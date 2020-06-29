@@ -1,13 +1,10 @@
 ## R2S 基于原生OpenWRT 的固件(AS IS, NO WARRANTY!!!)
 
-### 发布地址：
-https://github.com/QiuSimons/R2S-OpenWrt/releases
-
 ### 追新党可以在Action中取每日更新（可能会翻车，风险自担）：
-https://github.com/QiuSimons/R2S-OpenWrt/actions
+https://github.com/project-openwrt/R2S-OpenWrt/actions
 
 ### 本地一键编译命令（注意装好依赖）：
-git clone https://github.com/QiuSimons/R2S-OpenWrt.git&&cd R2S-OpenWrt&&bash onekeyr2s.sh
+git clone https://github.com/project-openwrt/R2S-OpenWrt.git&&cd R2S-OpenWrt&&bash onekeyr2s.sh
 
 ### 注意事项：
 0.IRQ脚本依赖nohup组件，fork后自行魔改的用户请补全依赖（默认状态下nohup是openclash的依赖，所以我这边没加，如果你去掉了openclash，请自行补齐依赖）
