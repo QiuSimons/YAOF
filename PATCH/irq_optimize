@@ -1,0 +1,10 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=99
+STOP=01
+start_service() {
+	procd_open_instance
+	procd_set_param command /bin/sh "/usr/bin/irq_optimize.sh"
+	procd_close_instance
+}
