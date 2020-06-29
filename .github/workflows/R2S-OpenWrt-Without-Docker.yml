@@ -1,0 +1,99 @@
+name: R2S-OpenWrt-Without-Docker
+
+on:
+#  push:
+#    branches: 
+#      - master
+  schedule:
+    - cron: 40 11 * * *
+  watch:
+    types: [started]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    
+    steps:
+    - name: Clone Repository
+      uses: actions/checkout@v1
+    - name: Init build dependencies
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        docker rmi $(docker images -q)
+        sudo -E apt-get remove -y --purge azure-cli ghc zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
+        sudo -E apt-get update -y
+        sudo -E apt-get install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libreadline-dev libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint ccache curl wget vim nano python python3 python-pip python3-pip python-ply python3-ply haveged lrzsz device-tree-compiler scons
+        wget -O - https://raw.githubusercontent.com/friendlyarm/build-env-on-ubuntu-bionic/master/install.sh | bash
+        sudo -E apt-get autoremove -y --purge
+        sudo -E apt-get clean -y
+        sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php
+        git clone https://github.com/friendlyarm/repo
+        sudo cp repo/repo /usr/bin/
+    - name: Free Disk Space
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        df -h
+    - name: Cleanup Old Action Artifacts
+      uses: kolpav/purge-artifacts-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        expire-in: 1days # Setting this to 0 will delete all artifacts
+    - name: Prepare Mixedwrt
+      run: |
+        sudo chown -R runner:runner /home/runner/work/R2S-OpenWrt
+        cp -r ./SCRIPTS/. ./
+        /bin/bash 01_get_ready.sh
+    - name: Prepare Package
+      run: |
+        cd openwrt
+        cp -r ../SCRIPTS/. ./
+        /bin/bash 02_prepare_package.sh
+    - name: Convert Translation
+      run: |
+        cd openwrt
+        /bin/bash 03_convert_translation.sh
+    - name: Remove Upx
+      run: |
+        cd openwrt
+        /bin/bash 04_remove_upx.sh
+    - name: Make Config
+      run: |
+        cd openwrt
+        mv ../SEED/config_2.seed .config
+        make defconfig
+        chmod -R 755 ./
+    - name: Make Download
+      run: |
+        df -h
+        cd openwrt
+        make download -j10
+    - name: Make Toolchain
+      run: |
+        df -h
+        cd openwrt
+        let make_process=$(nproc)+1
+        make toolchain/install -j${make_process} V=s
+    - name: Compile Openwrt
+      run: |
+        df -h
+        cd openwrt
+        let make_process=$(nproc)+1
+        make -j${make_process} V=s || make -j${make_process} V=s || make -j1 V=s
+    - name: Cleaning
+      run: |
+        df -h
+        cd openwrt/bin/targets/rockchip/armv8
+        /bin/bash ../../../../../SCRIPTS/05_cleaning.sh
+    - name: Print Disk Space After
+      run: df -h
+    - name: Upload Firmwares
+      uses: actions/upload-artifact@master
+      with:
+        name: R2S-OpenWrt
+        path: openwrt/bin/targets/rockchip/armv8/
