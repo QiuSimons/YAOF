@@ -50,6 +50,9 @@ svn co https://github.com/openwrt/packages/trunk/devel/gcc feeds/packages/devel/
 git clone https://github.com/NateLol/luci-app-beardropper package/luci-app-beardropper
 sed -i 's/"luci.fs"/"luci.sys".net/g' package/luci-app-beardropper/luasrc/model/cbi/beardropper/setting.lua
 sed -i '/firewall/d' package/luci-app-beardropper/root/etc/uci-defaults/luci-beardropper
+#京东签到
+git clone https://github.com/jerrykuku/node-request package/new/node-request
+git clone https://github.com/jerrykuku/luci-app-jd-dailybonus package/new/luci-app-jd-dailybonus
 #arpbind
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-arpbind package/lean/luci-app-arpbind
 #Adbyby
