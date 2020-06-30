@@ -85,6 +85,7 @@ CONFIG_DOCKER_NET_TFTP=y
 CONFIG_DOCKER_STO_EXT4=y
 CONFIG_DOCKER_STO_BTRFS=y
 CONFIG_PACKAGE_luci-app-firewall=y
+CONFIG_PACKAGE_luci-app-jd-dailybonus=y
 CONFIG_PACKAGE_luci-app-nlbwmon=y
 #CONFIG_PACKAGE_luci-app-oaf=y
 CONFIG_PACKAGE_luci-app-oled=y
