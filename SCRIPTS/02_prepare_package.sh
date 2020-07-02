@@ -167,7 +167,7 @@ sed -i 's/16384/65536/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 #修正架构
 sed -i "s,boardinfo.system,'ARMv8',g" feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
 #adjust_network
-cp -f ../PATCH/adjust_network package/base-files/files/etc/init.d/adjust_network
+cp -f ../PATCH/adjust_network package/base-files/files/etc/init.d/zzz_adjust_network
 #i2c_oled
 #cp -f ../I2C/i2c_ssd package/base-files/files/usr/bin/i2c_ssd
 #cp -f ../I2C/OLED_R2S package/base-files/files/etc/init.d/OLED_R2S
