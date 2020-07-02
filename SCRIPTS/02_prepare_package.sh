@@ -46,7 +46,8 @@ popd
 patch -p1 < ../PATCH/luci-app-firewall_add_sfe_switch.patch
 # SFE内核补丁
 pushd target/linux/generic/hack-5.4
-wget https://raw.githubusercontent.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/master/999-shortcut-fe-support.patch
+#wget https://raw.githubusercontent.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/master/999-shortcut-fe-support.patch
+wget https://raw.githubusercontent.com/project-openwrt/openwrt/18.06-kernel5.4/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 popd
 
 
@@ -169,7 +170,8 @@ git clone -b master --single-branch https://github.com/QiuSimons/openwrt-fullcon
 #翻译及部分功能优化
 git clone -b master --single-branch https://github.com/QiuSimons/addition-trans-zh package/lean/lean-translate
 #SFE
-svn co https://github.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/trunk/shortcut-fe package/new/shortcut-fe
+#svn co https://github.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/trunk/shortcut-fe package/new/shortcut-fe
+svn co https://github.com/project-openwrt/openwrt/branches/18.06-kernel5.4/package/lean/shortcut-fe package/new/shortcut-fe
 
 ##最后的收尾工作
 #最大连接
