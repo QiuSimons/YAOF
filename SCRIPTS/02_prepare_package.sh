@@ -42,6 +42,13 @@ popd
 pushd target/linux/generic/hack-5.4
 wget https://raw.githubusercontent.com/project-openwrt/openwrt/18.06-kernel5.4/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
 popd
+#Patch FireWall 以增添SFE
+patch -p1 < ../PATCH/luci-app-firewall_add_sfe_switch.patch
+# SFE内核补丁
+pushd target/linux/generic/hack-5.4
+wget https://raw.githubusercontent.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/master/999-shortcut-fe-support.patch
+popd
+
 
 ##获取额外package
 #更换GCC版本
@@ -161,6 +168,8 @@ svn co https://github.com/openwrt/packages/trunk/utils/collectd feeds/packages/u
 git clone -b master --single-branch https://github.com/QiuSimons/openwrt-fullconenat package/fullconenat
 #翻译及部分功能优化
 git clone -b master --single-branch https://github.com/QiuSimons/addition-trans-zh package/lean/lean-translate
+#SFE
+svn co https://github.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/trunk/shortcut-fe package/new/shortcut-fe
 
 ##最后的收尾工作
 #最大连接
