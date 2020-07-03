@@ -34,3 +34,12 @@ LUCI版本：19.07（当日最新）
 3.插件包含：SSRP，openclash，ADBYBY，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启)，流量分载(防火墙中开启)，SFE流量分载(也就是SFE加速，防火墙中开启，且默认开启)，BBR（默认开启），irq优化，OLED屏幕支持，京东签到
 
 4.核心频率1.512GHz
+
+### 固件预览：
+<img src="https://github.com/project-openwrt/R2S-OpenWrt/blob/master/PIC/app.png" width="600" />
+
+### 防呆指导：
+<img src="https://github.com/project-openwrt/R2S-OpenWrt/blob/master/PIC/offload.png" width="600" />
+<img src="https://github.com/project-openwrt/R2S-OpenWrt/blob/master/PIC/fullcone1.png" width="600" />
+<img src="https://github.com/project-openwrt/R2S-OpenWrt/blob/master/PIC/fullcone2.png" width="600" />
+<img src="https://github.com/project-openwrt/R2S-OpenWrt/blob/master/PIC/fullcone3.png" width="600" />
