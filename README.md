@@ -19,9 +19,11 @@ git clone https://github.com/project-openwrt/R2S-OpenWrt.git&&cd R2S-OpenWrt&&ba
 
 2.OP内置升级可用
 
-4.SSRP使用姿势： ①添加你要的订阅链接 ②再在最后加一行空行 ③右下角点一下保存并应用 ④更新所有订阅服务器节点
+3.SSRP使用姿势： ①添加你要的订阅链接 ②再在最后加一行空行 ③右下角点一下保存并应用 ④更新所有订阅服务器节点
 
-5.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6
+4.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6
+
+5.固件分为docker版和无docker版本，docker版支持部分无线网卡和docker-ce，但由于docker的依赖问题，ssrp之类的软件存在udp转发异常的故障；无docker使用需求的，推荐使用无docker版固件
 
 ### 版本信息：
 其他模块版本：SNAPSHOT（当日最新）
