@@ -6,13 +6,13 @@ on:
 #      - master
   schedule:
     - cron: 40 11 * * *
-  watch:
-    types: [started]
+#  watch:
+#    types: [started]
 
 jobs:
   build:
     runs-on: ubuntu-18.04
-    if: github.event.sender.id == 45143996
+#    if: github.event.sender.id == 45143996
     
     steps:
     - name: Clone Repository
