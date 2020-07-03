@@ -31,6 +31,6 @@ LUCI版本：19.07（当日最新）
 
 2.内置三款主题
 
-3.插件包含：SSRP，openclash，ADBYBY，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启)，流量分载(防火墙中开启)，SFE流量分载(也就是SFE加速，防火墙中开启，且默认开启)，BBR（默认开启），irq优化
+3.插件包含：SSRP，openclash，ADBYBY，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启)，流量分载(防火墙中开启)，SFE流量分载(也就是SFE加速，防火墙中开启，且默认开启)，BBR（默认开启），irq优化，OLED屏幕支持，京东签到
 
 4.核心频率1.512GHz
