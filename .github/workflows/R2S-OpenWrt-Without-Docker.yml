@@ -92,8 +92,40 @@ jobs:
         /bin/bash ../../../../../SCRIPTS/05_cleaning.sh
     - name: Print Disk Space After
       run: df -h
-    - name: Upload Firmwares
+    - name: Assemble Artifact
+      id: assemble_artifact
+      run: |
+        rm -rf ./artifact/
+        mkdir -p ./artifact/
+        cp openwrt/bin/targets/rockchip/armv8/*squashfs-sysupgrade.img.gz ./artifact/
+        cd openwrt
+        cd ..
+        zip -r artifact.zip ./artifact/
+        release_tag="R2S-GC404-$(date +%Y-%m-%d)"
+        echo "##[set-output name=release_tag;]$release_tag"
+    - name: Upload Artifact
       uses: actions/upload-artifact@master
       with:
-        name: R2S-OpenWrt
-        path: openwrt/bin/targets/rockchip/armv8/
+        name: ${{ steps.assemble_artifact.outputs.release_tag }}-ROM
+        path: ./artifact.zip
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.workflow_token }}
+      with:
+        tag_name: ${{ steps.assemble_artifact.outputs.release_tag }}
+        release_name: 自动发布 ${{ steps.assemble_artifact.outputs.release_tag }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.workflow_token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+        asset_path: ./artifact.zip
+        asset_name: ${{ steps.assemble_artifact.outputs.release_tag }}-ROM.zip
+        asset_content_type: application/zip
