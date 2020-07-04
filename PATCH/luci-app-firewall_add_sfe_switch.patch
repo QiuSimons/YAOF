@@ -1,0 +1,98 @@
+From: QiuSimons
+diff --git a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+--- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -7,6 +7,58 @@
+ 'require firewall';
+ 'require tools.firewall as fwtool';
+ 'require tools.widgets as widgets';
++var callInitList, callInitAction, sfe;
++
++callInitList = rpc.declare({
++    object: 'luci',
++    method: 'getInitList',
++    params: ['name'],
++    expect: {
++        '': {}
++    },
++    filter: function (res) {
++        for (var k in res)
++            return +res[k].enabled;
++        return null;
++    }
++});
++callInitAction = rpc.declare({
++    object: 'luci',
++    method: 'setInitAction',
++    params: ['name', 'action'],
++    expect: {
++        result: false
++    }
++});
++sfe = form.DummyValue.extend({
++    renderWidget: function (section_id, option_id, cfgvalue) {
++        return E([], [this.sfe_support ? E('button', {
++            'class': 'cbi-button cbi-button-save',
++            'click': function () {
++                this.disabled = true;
++                this.blur();
++                this.classList.add('spinning');
++                callInitAction('shortcut-fe', 'stop');
++                callInitAction('shortcut-fe', 'disable').then(L.bind(function () {
++                    this.classList.remove('spinning');
++                    location.reload();
++                }, this));
++            }
++        }, _('Enabled')) : E('button', {
++            'class': 'cbi-button cbi-button-reset',
++            'click': function () {
++                this.disabled = true;
++                this.blur();
++                this.classList.add('spinning');
++                callInitAction('shortcut-fe', 'start');
++                callInitAction('shortcut-fe', 'enable').then(L.bind(function () {
++                    this.classList.remove('spinning');
++                    location.reload();
++                }, this));
++            }
++        }, _('Disabled'))]);
++    },
++});
+ 
+ return view.extend({
+ 	callConntrackHelpers: rpc.declare({
+@@ -18,7 +70,8 @@
+ 	load: function() {
+ 		return Promise.all([
+ 			this.callConntrackHelpers(),
+-			firewall.getDefaults()
++			firewall.getDefaults(),
++			callInitList('shortcut-fe')
+ 		]);
+ 	},
+ 
+@@ -32,6 +85,7 @@
+ 	renderZones: function(data) {
+ 		var ctHelpers = data[0],
+ 		    fwDefaults = data[1],
++			sfe_support = data[2],
+ 		    m, s, o, inp, out;
+ 
+ 		m = new form.Map('firewall', _('Firewall - Zone Settings'),
+@@ -58,6 +112,16 @@
+ 
+ 		/* Netfilter flow offload support */
+ 
++		s = m.section(form.TypedSection, 'defaults', _('Routing/NAT Offloading'), _('SFE based offloading for Routing/NAT. Restart recommended.'));
++        s.anonymous = true;
++        s.addremove = false;
++        o = s.option(sfe, _('SFE flow offloading'),
++			_('SFE flow offloading'));
++        o.sfe_support = sfe_support;
++        o.load = function (section_id) {
++            return (uci.get('system', 'shortcut-fe', 'enabled') != 0) ? '1' : '0';
++        };
++
+ 		if (L.hasSystemFeature('offloading')) {
+ 			s = m.section(form.TypedSection, 'defaults', _('Routing/NAT Offloading'),
+ 				_('Experimental feature. Not fully compatible with QoS/SQM.'));
