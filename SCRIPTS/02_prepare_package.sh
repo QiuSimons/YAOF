@@ -132,6 +132,20 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-wrtbwmon
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-netdata package/lean/luci-app-netdata
 #OpenClash
 svn co https://github.com/vernesong/OpenClash/branches/master/luci-app-openclash package/new/luci-app-openclash
+#Clash Binary
+CLASH_VERSION=v1.0.0
+mkdir -p package/base-files/files/usr/bin && \
+cd package/base-files/files/usr/bin
+wget -O clash.gz https://github.com/Dreamacro/clash/releases/download/$CLASH_VERSION/clash-linux-armv8-$CLASH_VERSION.gz
+gunzip clash.gz
+chmod +x clash
+cd ../..
+mkdir -p etc/openclash/core
+cp usr/bin/clash etc/openclash/core/
+mkdir -p etc/clash
+cd etc/clash
+wget -O Country.mmdb https://github.com/Dreamacro/maxmind-geoip/releases/latest/download/Country.mmdb
+cd ../../../../..
 #SeverChan
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan package/new/luci-app-serverchan
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/utils/iputils package/network/utils/iputils
