@@ -23,6 +23,8 @@ patch -p1 < ../PATCH/use_json_object_new_int64.patch
 patch -p1 < ../PATCH/dnsmasq-add-filter-aaaa-option.patch
 patch -p1 < ../PATCH/luci-add-filter-aaaa-option.patch
 cp -f ../PATCH/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
+rm -rf ./package/network/services/dnsmasq/files/dhcp.conf
+cp -f ../PATCH/dhcp.conf ./package/network/services/dnsmasq/files/dhcp.conf
 #Patch FireWall 以增添fullcone功能 
 mkdir package/network/config/firewall/patches
 wget -P package/network/config/firewall/patches/ https://github.com/LGA1150/fullconenat-fw3-patch/raw/master/fullconenat.patch
