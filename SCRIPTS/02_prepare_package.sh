@@ -122,10 +122,10 @@ svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev pack
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/lean/trojan
 svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping package/lean/tcpping
 #订阅转换
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/subconverter package/new/subconverter
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/jpcre2 package/new/jpcre2
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rapidjson package/new/rapidjson
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/duktape package/ctcgfw/duktape
+svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/subconverter package/new/subconverter
+svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/jpcre2 package/new/jpcre2
+svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/rapidjson package/new/rapidjson
+svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/duktape package/new/duktape
 #清理内存
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ramfree package/lean/luci-app-ramfree
 #打印机
