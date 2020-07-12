@@ -31,6 +31,8 @@ git clone https://github.com/project-openwrt/R2S-OpenWrt.git&&cd R2S-OpenWrt&&ba
 
 6.刷写或升级后遇到任何问题，可以尝试ssh进路由器，输入fuck，回车后等待重启，或可解决
 
+7.LAN WAN口已互换，和原厂接口定义相反
+
 ### 版本信息：
 其他模块版本：SNAPSHOT（当日最新）
 
