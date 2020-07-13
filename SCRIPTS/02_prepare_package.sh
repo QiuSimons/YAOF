@@ -148,10 +148,8 @@ git clone -b lede --single-branch https://github.com/pymumu/luci-app-smartdns pa
 #上网APP过滤
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter package/new/OpenAppFilter
 #Docker
-mkdir -p package/luci-lib-docker && \
-wget https://raw.githubusercontent.com/lisaac/luci-lib-docker/master/Makefile -O package/luci-lib-docker/Makefile
-mkdir -p package/luci-app-dockerman && \
-wget https://raw.githubusercontent.com/lisaac/luci-app-dockerman/master/Makefile -O package/luci-app-dockerman/Makefile
+svn co https://github.com/lisaac/luci-app-dockerman/trunk/applications/luci-app-dockerman package/luci-app-dockerman
+svn co https://github.com/lisaac/luci-lib-docker/trunk/collections/luci-lib-docker package/luci-lib-docker
 svn co https://github.com/openwrt/packages/trunk/utils/docker-ce package/utils/docker-ce
 svn co https://github.com/openwrt/packages/trunk/utils/cgroupfs-mount package/utils/cgroupfs-mount
 svn co https://github.com/openwrt/packages/trunk/utils/containerd package/utils/containerd
