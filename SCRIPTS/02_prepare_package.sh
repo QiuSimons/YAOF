@@ -181,6 +181,7 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ipsec-vp
 #Lets Fuck
 mkdir package/base-files/files/usr/bin
 cp -f ../PATCH/fuck package/base-files/files/usr/bin/fuck
+cp -f ../PATCH/chinadnslist package/base-files/files/usr/bin/chinadnslist
 #最大连接
 sed -i 's/16384/65536/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 #修正架构

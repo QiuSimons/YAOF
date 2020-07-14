@@ -1,0 +1,7 @@
+#!/bin/bash -e
+set -o pipefail
+
+wget https://raw.githubusercontent.com/pexcn/daily/gh-pages/chnroute/chnroute.txt -nv -O /etc/chinadns-ng/chnroute.txt
+wget https://raw.githubusercontent.com/pexcn/daily/gh-pages/chnroute/chnroute-v6.txt -nv -O /etc/chinadns-ng/chnroute6.txt
+wget https://raw.githubusercontent.com/pexcn/daily/gh-pages/gfwlist/gfwlist.txt -nv -O /etc/chinadns-ng/gfwlist.txt
+wget https://raw.githubusercontent.com/pexcn/daily/gh-pages/chinalist/chinalist.txt -nv -O /etc/chinadns-ng/chinalist.txt
