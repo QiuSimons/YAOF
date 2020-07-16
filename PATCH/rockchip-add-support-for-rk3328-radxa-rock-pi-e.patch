@@ -483,7 +483,7 @@ index 0000000000..621ac58c7c
 ++			vdd_arm: DCDC_REG2 {
 ++				regulator-name = "vdd_arm";
 ++				regulator-min-microvolt = <712500>;
-++				regulator-max-microvolt = <1525000>;
+++				regulator-max-microvolt = <1450000>;
 ++				regulator-ramp-delay = <12500>;
 ++				regulator-always-on;
 ++				regulator-boot-on;
@@ -2834,7 +2834,7 @@ index 0000000000..d4e24be558
 ++			vdd_arm: DCDC_REG2 {
 ++				regulator-name = "vdd_arm";
 ++				regulator-min-microvolt = <712500>;
-++				regulator-max-microvolt = <1525000>;
+++				regulator-max-microvolt = <1450000>;
 ++				regulator-initial-mode = <0x1>;
 ++				regulator-ramp-delay = <12500>;
 ++				regulator-boot-on;
