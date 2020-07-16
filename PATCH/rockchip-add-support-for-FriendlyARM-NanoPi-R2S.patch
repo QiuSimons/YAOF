@@ -405,7 +405,7 @@ index 0000000000..2bc93378a7
 ++				regulator-name = "vdd_arm";
 ++				regulator-init-microvolt = <1225000>;
 ++				regulator-min-microvolt = <712500>;
-++				regulator-max-microvolt = <1450000>;
+++				regulator-max-microvolt = <1525000>;
 ++				regulator-always-on;
 ++				regulator-boot-on;
 ++				regulator-state-mem {
@@ -3276,7 +3276,7 @@ index 0000000000..3463df5c2e
 ++				regulator-name = "vdd_arm";
 ++				regulator-init-microvolt = <1225000>;
 ++				regulator-min-microvolt = <712500>;
-++				regulator-max-microvolt = <1450000>;
+++				regulator-max-microvolt = <1525000>;
 ++				regulator-always-on;
 ++				regulator-boot-on;
 ++				regulator-state-mem {
