@@ -87,7 +87,7 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/ddns-scripts_dnsp
 svn co https://github.com/openwrt/packages/branches/openwrt-18.06/net/ddns-scripts feeds/packages/net/ddns-scripts
 svn co https://github.com/openwrt/luci/branches/openwrt-18.06/applications/luci-app-ddns feeds/luci/applications/luci-app-ddns
 #Pandownload
-#svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/pandownload-fake-server package/lean/pandownload-fake-server
+svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/pandownload-fake-server package/lean/pandownload-fake-server
 #oled
 git clone -b master --single-branch https://github.com/NateLol/luci-app-oled package/new/luci-app-oled
 #网易云解锁
