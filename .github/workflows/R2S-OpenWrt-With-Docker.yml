@@ -1,6 +1,6 @@
 name: R2S-OpenWrt-With-Docker
 
-on:
+#on:
 #  push:
 #    branches: 
 #      - master
