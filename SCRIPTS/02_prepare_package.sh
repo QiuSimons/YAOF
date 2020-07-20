@@ -134,7 +134,9 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ramfree 
 #打印机
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-usb-printer package/lean/luci-app-usb-printer
 #流量监视
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-wrtbwmon package/lean/luci-app-wrtbwmon
+git clone -b master --single-branch https://github.com/brvphoenix/wrtbwmon package/new/wrtbwmon
+git clone -b master --single-branch https://github.com/brvphoenix/luci-app-wrtbwmon package/new/luci-app-wrtbwmon
+#svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-wrtbwmon package/lean/luci-app-wrtbwmon
 #流量监管
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-netdata package/lean/luci-app-netdata
 #OpenClash
