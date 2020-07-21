@@ -8,6 +8,7 @@ CONFIG_TARGET_OPTIONS=y
 CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+simd+crypto"
 CONFIG_LUCI_LANG_zh_Hans=y
 CONFIG_LUCI_LANG_zh-cn=y
+CONFIG_PACKAGE_kmod-crypto-rk3328=y
 CONFIG_PACKAGE_kmod-usb-net=y
 CONFIG_PACKAGE_kmod-usb-net-rtl8150=y
 CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
@@ -29,7 +30,6 @@ CONFIG_OPENSSL_WITH_DEPRECATED=y
 CONFIG_OPENSSL_WITH_PSK=y
 CONFIG_OPENSSL_WITH_SRP=y
 CONFIG_OPENSSL_WITH_TLS13=y
-
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
 CONFIG_PACKAGE_autocore-arm=y
