@@ -181,6 +181,9 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier p
 #cp -f ../PATCH/shortcut-fe package/base-files/files/etc/init.d/shortcut-fe
 #IPSEC
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ipsec-vpnd package/lean/luci-app-ipsec-vpnd
+#回滚zstd
+rm -rf ./feeds/packages/utils/zstd
+svn co https://github.com/QiuSimons/Others/tree/master/zstd feeds/packages/utils/zstd
 
 ##最后的收尾工作
 #Lets Fuck
