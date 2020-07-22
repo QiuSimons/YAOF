@@ -21,6 +21,8 @@ sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 patch -p1 < ../PATCH/kernel_crypto-add-rk3328-crypto-support.patch
 #patch i2c0
 cp -f ../PATCH/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
+#patch r8152 led
+cp -f ../PATCH/991-r8152-Add-module-param-for-customized-LEDs.patch ./target/linux/rockchip/patches-5.4/991-r8152-Add-module-param-for-customized-LEDs.patch
 #patch jsonc
 patch -p1 < ../PATCH/use_json_object_new_int64.patch
 #patch dnsmasq
