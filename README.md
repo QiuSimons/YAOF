@@ -21,17 +21,23 @@ wget -O - https://raw.githubusercontent.com/friendlyarm/build-env-on-ubuntu-bion
 git clone https://github.com/sonic0377/R2S-OpenWrt.git&&cd R2S-OpenWrt&&bash onekeyr2s.sh
 ```
 ### 注意事项：
+0.OC至1.608GHz（未提升电压，原则上不会增加大量额外发热）
+
 1.登陆IP：192.168.1.1 密码：无
 
 2.OP内置升级可用
 
 3.SSRP使用姿势： ①添加你要的订阅链接 ②再在最后加一行空行 ③右下角点一下保存并应用 ④更新所有订阅服务器节点
 
-4.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6
+4.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6)
 
 5.固件分为docker版和无docker版本，docker版支持部分无线网卡和docker-ce，但由于docker的依赖问题，ssrp之类的软件存在udp转发异常的故障；无docker使用需求的，推荐使用无docker版固件
 
 6.刷写或升级后遇到任何问题，可以尝试ssh进路由器，输入fuck，回车后等待重启，或可解决
+
+7.从2020.7.21开始不再交换 LAN WAN，用户注意！！！！！
+
+8.LAN灯不亮是openwrt上游的问题，请耐心等待上游修复，sys灯引导时闪烁，启动后常亮，也是上游的设定，有疑问请联系OP官方社区
 
 
 ### 版本信息：
