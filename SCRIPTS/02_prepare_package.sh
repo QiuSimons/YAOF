@@ -92,6 +92,8 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/adbyby package/le
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-accesscontrol package/lean/luci-app-accesscontrol
 #AutoCore
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/autocore package/lean/autocore
+sed -i 's,*/,,g' package/lean/autocore/files/arm/rpcd_10_system.js
+sed -i 's,/*,,g' package/lean/autocore/files/arm/rpcd_10_system.js
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/coremark package/lean/coremark
 sed -i 's,-DMULTIT,-Ofast -DMULTIT,g' package/lean/coremark/Makefile
 #迅雷快鸟
