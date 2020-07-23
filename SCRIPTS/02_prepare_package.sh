@@ -151,6 +151,7 @@ svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev pack
 svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping package/lean/tcpping
 #PASSWALL
 svn co https://github.com/Lienol/openwrt-package/trunk/lienol/luci-app-passwall package/new/luci-app-passwall
+patch -p1 < ../PATCH/move_passwall_2_services.patch
 svn co https://github.com/Lienol/openwrt-package/trunk/package/tcping package/new/tcping
 svn co https://github.com/Lienol/openwrt-package/trunk/package/trojan-go package/new/trojan-go
 svn co https://github.com/Lienol/openwrt-package/trunk/package/brook package/new/brook
