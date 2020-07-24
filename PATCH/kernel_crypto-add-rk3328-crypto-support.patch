@@ -13,9 +13,15 @@ index 48777764a8..2e71bb3e75 100644
 --- a/package/kernel/linux/modules/crypto.mk
 +++ b/package/kernel/linux/modules/crypto.mk
 @@ -842,3 +843,14 @@ endef
+<<<<<<< HEAD
 
  $(eval $(call KernelPackage,crypto-xts))
 
+=======
+ 
+ $(eval $(call KernelPackage,crypto-xts))
+ 
+>>>>>>> 513dc8ae059b7d75117dc56943018af1381a88be
 +
 +define KernelPackage/crypto-rk3328
 +  TITLE:=Rockchip RK3328 CryptoAPI module

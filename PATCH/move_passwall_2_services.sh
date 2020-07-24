@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 513dc8ae059b7d75117dc56943018af1381a88be
 #!/bin/bash
 # From: QiuSimons
 
@@ -19,3 +22,7 @@ do
 	[ -n "$(grep '\[\[vpn\]\]' "$b")" ] && sed -i 's,\[\[vpn\]\],\[\[services\]\],g' "$b"
 	[ -n "$(grep 'admin/vpn' "$b")" ] && sed -i 's,admin/vpn,admin/services,g' "$b"
 done
+<<<<<<< HEAD
+=======
+
+>>>>>>> 513dc8ae059b7d75117dc56943018af1381a88be

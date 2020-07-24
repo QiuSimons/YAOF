@@ -33,4 +33,8 @@ index eb78f6d9390c..ec737fffcded 100644
 +
  	rtl_tally_reset(tp);
 
+<<<<<<< HEAD
  	tp->coalesce = 15000;	/* 15 us */ 
+=======
+ 	tp->coalesce = 15000;	/* 15 us */
+>>>>>>> 513dc8ae059b7d75117dc56943018af1381a88be

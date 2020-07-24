@@ -3,7 +3,11 @@ index 0e7eaede3..f7128226f 100644
 --- a/package/lean/luci-app-cpufreq/root/etc/config/cpufreq
 +++ b/package/lean/luci-app-cpufreq/root/etc/config/cpufreq
 @@ -1,8 +1,8 @@
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 513dc8ae059b7d75117dc56943018af1381a88be
  config settings 'cpufreq'
 -	option governor ''
 -	option minfreq ''
@@ -13,3 +17,7 @@ index 0e7eaede3..f7128226f 100644
 +	option maxfreq '1608000'
  	option upthreshold '50'
  	option factor '10'
+<<<<<<< HEAD
+=======
+ 
+>>>>>>> 513dc8ae059b7d75117dc56943018af1381a88be
