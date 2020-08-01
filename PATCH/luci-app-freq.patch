@@ -1,0 +1,16 @@
+diff --git a/package/lean/luci-app-cpufreq/root/etc/config/cpufreq b/package/lean/luci-app-cpufreq/root/etc/config/cpufreq
+index 0e7eaede3..f7128226f 100644
+--- a/package/lean/luci-app-cpufreq/root/etc/config/cpufreq
++++ b/package/lean/luci-app-cpufreq/root/etc/config/cpufreq
+@@ -1,8 +1,8 @@
+ 
+ config settings 'cpufreq'
+-	option governor ''
+-	option minfreq ''
+-	option maxfreq ''
++	option governor 'schedutil'
++	option minfreq '816000'
++	option maxfreq '1608000'
+ 	option upthreshold '50'
+ 	option factor '10'
+ 

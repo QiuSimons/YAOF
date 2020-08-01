@@ -1,0 +1,132 @@
+From 85afb3c6ff67bd964620a4276ad25e15df2c83bc Mon Sep 17 00:00:00 2001
+From: CN_SZTL <cnsztl@project-openwrt.eu.org>
+Date: Wed, 29 Jul 2020 18:12:40 +0800
+Subject: [PATCH] tools: add upx/ucl support
+
+---
+ tools/Makefile     |  2 ++
+ tools/ucl/Makefile | 49 ++++++++++++++++++++++++++++++++++++++++++++++
+ tools/upx/Makefile | 35 +++++++++++++++++++++++++++++++++
+ 3 files changed, 86 insertions(+)
+ create mode 100644 tools/ucl/Makefile
+ create mode 100644 tools/upx/Makefile
+
+diff --git a/tools/Makefile b/tools/Makefile
+index 9bae09ece6..cddec94b7f 100644
+--- a/tools/Makefile
++++ b/tools/Makefile
+@@ -28,6 +28,7 @@ tools-y += firmware-utils patch-image quilt padjffs2
+ tools-y += mm-macros missing-macros cmake bc findutils gengetopt patchelf
+ tools-y += mtools dosfstools libressl
+ tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
++tools-y += ucl upx
+ tools-$(CONFIG_TARGET_x86) += qemu
+ tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
+ tools-$(CONFIG_TARGET_ar71xx) += lzma-old
+@@ -41,6 +42,7 @@ tools-$(CONFIG_TARGET_apm821xx)$(CONFIG_TARGET_gemini) += genext2fs
+ tools-$(CONFIG_TARGET_tegra) += cbootimage cbootimage-configs
+ 
+ # builddir dependencies
++$(curdir)/upx/compile := $(curdir)/ucl/compile
+ $(curdir)/bison/compile := $(curdir)/flex/compile
+ $(curdir)/flex/compile := $(curdir)/libtool/compile
+ $(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
+diff --git a/tools/ucl/Makefile b/tools/ucl/Makefile
+new file mode 100644
+index 0000000000..cf1c25bd8d
+--- /dev/null
++++ b/tools/ucl/Makefile
+@@ -0,0 +1,49 @@
++#
++# Copyright (C) 2019 OpenWrt.org
++#
++# This is free software, licensed under the GNU General Public License v2.
++# See /LICENSE for more information.
++#
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=ucl
++PKG_VERSION:=1.03
++
++PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
++PKG_SOURCE_URL:=http://www.oberhumer.com/opensource/ucl/download/$(PKG_SOURCE)
++PKG_HASH:=b865299ffd45d73412293369c9754b07637680e5c826915f097577cd27350348
++
++HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)
++
++include $(INCLUDE_DIR)/host-build.mk
++
++HOSTCC :=gcc
++HOST_CFLAGS +=-std=gnu89
++
++define Host/Prepare
++	$(Host/Prepare/Default)
++	mkdir -p $(STAGING_DIR_HOST)/include/ucl
++endef
++
++define Host/Configure
++	(cd $(HOST_BUILD_DIR); \
++	CC="$(HOSTCC)" \
++	CFLAGS="$(HOST_CFLAGS)" \
++	./configure --prefix=$(STAGING_DIR_HOST) \
++	);
++	$(call Host/Configure/Default)
++endef
++
++define Host/Compile
++	$(MAKE) -C $(HOST_BUILD_DIR)
++endef
++
++define Host/Install
++	$(MAKE) -C $(HOST_BUILD_DIR) install
++endef
++
++define Host/Clean
++	rm -rf $(STAGING_DIR_HOST)/include/ucl
++endef
++
++$(eval $(call HostBuild))
+diff --git a/tools/upx/Makefile b/tools/upx/Makefile
+new file mode 100644
+index 0000000000..fbf1dfbd2e
+--- /dev/null
++++ b/tools/upx/Makefile
+@@ -0,0 +1,35 @@
++#
++# Copyright (C) 2011-2020 OpenWrt.org
++#
++# This is free software, licensed under the GNU General Public License v2.
++# See /LICENSE for more information.
++#
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=upx
++PKG_VERSION:=3.95
++
++PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-src.tar.xz
++PKG_SOURCE_URL:=https://github.com/upx/upx/releases/download/v$(PKG_VERSION)
++PKG_HASH:=3b0f55468d285c760fcf5ea865a070b27696393002712054c69ff40d8f7f5592
++
++HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)-src
++
++include $(INCLUDE_DIR)/host-build.mk
++
++define Host/Compile
++	UPX_UCLDIR=$(STAGING_DIR_HOST) \
++	$(MAKE) -C $(HOST_BUILD_DIR)/src \
++		CXXFLAGS_WERROR="" LDFLAGS="$(HOST_LDFLAGS)" \
++		CXX="$(HOSTCXX)"
++endef
++
++define Host/Install
++	$(CP) $(HOST_BUILD_DIR)/src/upx.out $(STAGING_DIR_HOST)/bin/upx
++endef
++
++define Host/Clean
++	rm -f $(STAGING_DIR_HOST)/bin/upx
++endef
++
++$(eval $(call HostBuild))
+-- 
+2.20.1
+
