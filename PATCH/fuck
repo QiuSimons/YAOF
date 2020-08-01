@@ -10,5 +10,5 @@ rm -rf `ls | egrep -v '(share)'`
 cd /overlay/upper/usr/share
 rm -rf `ls | egrep -v '(unblockneteasemusic)'`
 cd /overlay/upper/etc
-rm -rf `ls | egrep -v '(config|smartdns|ssr|bench.log|shadow|chinadns-ng|AdGuardHome.yaml)'`
+rm -rf `ls | egrep -v '(config|smartdns|ssr|bench.log|shadow|chinadns-ng|openclash)'`
 sleep 5 && touch /etc/banner && reboot
