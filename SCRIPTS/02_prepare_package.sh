@@ -156,7 +156,7 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/ipt2socks package
 #git clone -b master --single-branch https://github.com/aa65535/openwrt-simple-obfs package/lean/simple-obfs
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/simple-obfs package/lean/simple-obfs
 svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev package/lean/shadowsocks-libev
-#svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/lean/trojan
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/lean/trojan
 svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping package/lean/tcpping
 #PASSWALL
 svn co https://github.com/Lienol/openwrt-package/trunk/lienol/luci-app-passwall package/new/luci-app-passwall
@@ -167,7 +167,7 @@ popd
 svn co https://github.com/Lienol/openwrt-package/trunk/package/tcping package/new/tcping
 svn co https://github.com/Lienol/openwrt-package/trunk/package/trojan-go package/new/trojan-go
 svn co https://github.com/Lienol/openwrt-package/trunk/package/brook package/new/brook
-svn co https://github.com/Lienol/openwrt-package/trunk/package/trojan package/new/trojan
+svn co https://github.com/Lienol/openwrt-package/trunk/package/trojan-plus package/new/trojan-plus
 #订阅转换
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/subconverter package/new/subconverter
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/jpcre2 package/new/jpcre2
