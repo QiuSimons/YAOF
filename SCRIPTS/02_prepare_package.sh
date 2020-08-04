@@ -5,7 +5,7 @@ clear
 rm -f ./feeds.conf.default
 wget https://raw.githubusercontent.com/openwrt/openwrt/openwrt-19.07/feeds.conf.default
 wget -P include/ https://raw.githubusercontent.com/openwrt/openwrt/openwrt-19.07/include/scons.mk
-patch -p1 < ../PATCH/0001-tools-add-upx-ucl-support.patch
+patch -p1 < ../PATCH/new/main/0001-tools-add-upx-ucl-support.patch
 #remove annoying snapshot tag
 sed -i 's,SNAPSHOT,,g' include/version.mk
 sed -i 's,snapshots,,g' package/base-files/image-config.in
@@ -20,15 +20,15 @@ sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 ##必要的patch
 #等待上游修复后使用
 #patch i2c0
-cp -f ../PATCH/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
+cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #patch rk-crypto
-patch -p1 < ../PATCH/kernel_crypto-add-rk3328-crypto-support.patch
+patch -p1 < ../PATCH/new/main/kernel_crypto-add-rk3328-crypto-support.patch
 #patch jsonc
-patch -p1 < ../PATCH/use_json_object_new_int64.patch
+patch -p1 < ../PATCH/new/package/use_json_object_new_int64.patch
 #patch dnsmasq
-patch -p1 < ../PATCH/dnsmasq-add-filter-aaaa-option.patch
-patch -p1 < ../PATCH/luci-add-filter-aaaa-option.patch
-cp -f ../PATCH/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
+patch -p1 < ../PATCH/new/package/dnsmasq-add-filter-aaaa-option.patch
+patch -p1 < ../PATCH/new/package/luci-add-filter-aaaa-option.patch
+cp -f ../PATCH/new/package/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
 rm -rf ./package/base-files/files/etc/init.d/boot
 wget -P package/base-files/files/etc/init.d https://raw.githubusercontent.com/project-openwrt/openwrt/18.06-kernel5.4/package/base-files/files/etc/init.d/boot
 #Patch FireWall 以增添fullcone功能 
@@ -44,7 +44,7 @@ pushd target/linux/generic/hack-5.4
 wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
 popd
 #Patch FireWall 以增添SFE
-patch -p1 < ../PATCH/luci-app-firewall_add_sfe_switch.patch
+patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
 # SFE内核补丁
 pushd target/linux/generic/hack-5.4
 #wget https://raw.githubusercontent.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/master/999-shortcut-fe-support.patch
@@ -52,10 +52,10 @@ pushd target/linux/generic/hack-5.4
 wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/999-shortcut-fe-support.patch
 popd
 #OC
-cp -f ../PATCH/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
+cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
 #IRQ
 rm -rf ./target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-cp -f ../PATCH/40-net-smp-affinity ./target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+cp -f ../PATCH/new/script/40-net-smp-affinity ./target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 #SWAP LAN WAN
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network
@@ -88,7 +88,7 @@ sed -i 's/"luci.fs"/"luci.sys".net/g' package/luci-app-beardropper/luasrc/model/
 sed -i '/firewall/d' package/luci-app-beardropper/root/etc/uci-defaults/luci-beardropper
 #luci-app-freq
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/luci-app-cpufreq package/lean/luci-app-cpufreq
-patch -p1 < ../PATCH/luci-app-freq.patch
+patch -p1 < ../PATCH/new/package/luci-app-freq.patch
 #京东签到
 git clone https://github.com/jerrykuku/node-request package/new/node-request
 git clone https://github.com/jerrykuku/luci-app-jd-dailybonus package/new/luci-app-jd-dailybonus
@@ -126,9 +126,9 @@ git clone -b master --single-branch https://github.com/jerrykuku/luci-theme-argo
 git clone -b master --single-branch https://github.com/garypang13/luci-theme-edge package/new/luci-theme-edge
 #AdGuard
 cp -rf ../openwrt-lienol/package/diy/luci-app-adguardhome ./package/new/luci-app-adguardhome
+svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ntlf9t/AdGuardHome package/new/AdGuardHome
 #cp -rf ../openwrt-lienol/package/diy/adguardhome ./package/new/AdGuardHome
 #git clone -b master --single-branch https://github.com/rufengsuixing/luci-app-adguardhome package/new/luci-app-adguardhome
-svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ntlf9t/AdGuardHome package/new/AdGuardHome
 #ChinaDNS
 git clone -b luci --single-branch https://github.com/pexcn/openwrt-chinadns-ng package/new/luci-chinadns-ng
 git clone -b master --single-branch https://github.com/pexcn/openwrt-chinadns-ng package/new/chinadns-ng
@@ -160,9 +160,9 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/le
 svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping package/lean/tcpping
 #PASSWALL
 svn co https://github.com/Lienol/openwrt-package/trunk/lienol/luci-app-passwall package/new/luci-app-passwall
-cp -f ../PATCH/move_passwall_2_services.sh ./package/new/luci-app-passwall/move_passwall_2_services.sh
+cp -f ../PATCH/new/script/move_2_services.sh ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
-bash move_passwall_2_services.sh
+bash move_2_services.sh
 popd
 svn co https://github.com/Lienol/openwrt-package/trunk/package/tcping package/new/tcping
 svn co https://github.com/Lienol/openwrt-package/trunk/package/trojan-go package/new/trojan-go
@@ -215,20 +215,15 @@ git clone -b master --single-branch https://github.com/QiuSimons/openwrt-fullcon
 #翻译及部分功能优化
 git clone -b master --single-branch https://github.com/QiuSimons/addition-trans-zh package/lean/lean-translate
 #SFE
-#svn co https://github.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/trunk/shortcut-fe package/new/shortcut-fe
-#svn co https://github.com/project-openwrt/openwrt/branches/18.06-kernel5.4/package/lean/shortcut-fe package/new/shortcut-fe
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/new/shortcut-fe
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/new/fast-classifier
-#cp -f ../PATCH/shortcut-fe package/base-files/files/etc/init.d/shortcut-fe
 #IPSEC
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ipsec-vpnd package/lean/luci-app-ipsec-vpnd
 #Zerotier
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/luci-app-zerotier package/lean/luci-app-zerotier
-#cp -rf ../openwrt-lienol/package/lean/luci-app-zerotier ./package/lean/luci-app-zerotier
-#svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/luci-app-zerotier package/lean/luci-app-zerotier
-cp -f ../PATCH/move_passwall_2_services.sh ./package/lean/luci-app-zerotier/move_passwall_2_services.sh
+cp -f ../PATCH/new/script/move_2_services.sh ./package/lean/luci-app-zerotier/move_2_services.sh
 pushd package/lean/luci-app-zerotier
-bash move_passwall_2_services.sh
+bash move_2_services.sh
 popd
 #回滚zstd
 rm -rf ./feeds/packages/utils/zstd
@@ -307,8 +302,8 @@ CONFIG_SG_SPLIT=y
 ##最后的收尾工作
 #Lets Fuck
 mkdir package/base-files/files/usr/bin
-cp -f ../PATCH/fuck package/base-files/files/usr/bin/fuck
-cp -f ../PATCH/chinadnslist package/base-files/files/usr/bin/chinadnslist
+cp -f ../PATCH/new/script/fuck package/base-files/files/usr/bin/fuck
+cp -f ../PATCH/new/script/chinadnslist package/base-files/files/usr/bin/chinadnslist
 #最大连接
 sed -i 's/16384/65536/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 #删除已有配置

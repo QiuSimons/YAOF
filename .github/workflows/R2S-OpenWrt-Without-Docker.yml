@@ -60,10 +60,14 @@ jobs:
       run: |
         cd openwrt
         /bin/bash 04_remove_upx.sh
+    - name: Add ACL
+      run: |
+        cd openwrt
+        /bin/bash 05_create_acl_for_luci.sh
     - name: Make Config
       run: |
         cd openwrt
-        mv ../SEED/config_2.seed .config
+        mv ../SEED/config_no_docker.seed .config
         make defconfig
         chmod -R 755 ./
     - name: Make Download
@@ -87,7 +91,7 @@ jobs:
       run: |
         df -h
         cd openwrt/bin/targets/rockchip/armv8
-        /bin/bash ../../../../../SCRIPTS/05_cleaning.sh
+        /bin/bash ../../../../../SCRIPTS/06_cleaning.sh
     - name: Print Disk Space After
       run: df -h
     - name: Assemble Artifact

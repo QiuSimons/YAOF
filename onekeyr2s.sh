@@ -6,7 +6,7 @@ cp -r ../SCRIPTS/. ./
 bash 02_prepare_package.sh
 bash 03_convert_translation.sh
 bash 04_remove_upx.sh
-cp ../SEED/config_2.seed .config
+cp ../SEED/config_no_docker.seed .config
 make defconfig
 make download -j10
 chmod -R 755 ./
