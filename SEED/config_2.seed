@@ -5,7 +5,7 @@ CONFIG_TARGET_ROOTFS_PARTSIZE=960
 CONFIG_DEVEL=y
 CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves -fno-plt"
 CONFIG_TARGET_OPTIONS=y
-CONFIG_TARGET_OPTIMIZATION="-O2 -pipe -march=armv8-a+crc+simd+crypto"
+CONFIG_TARGET_OPTIMIZATION="-Ofast -pipe -march=armv8-a+crc+simd+crypto"
 CONFIG_LUCI_LANG_zh_Hans=y
 CONFIG_LUCI_LANG_zh-cn=y
 CONFIG_PACKAGE_kmod-usb-net=y
