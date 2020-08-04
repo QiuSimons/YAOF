@@ -10,8 +10,8 @@ patch -p1 < ../PATCH/new/main/0001-tools-add-upx-ucl-support.patch
 sed -i 's,SNAPSHOT,,g' include/version.mk
 sed -i 's,snapshots,,g' package/base-files/image-config.in
 #使用O3级别的优化
-#sed -i 's/Os/Ofast/g' include/target.mk
-#sed -i 's/O2/Ofast/g' ./rules.mk
+sed -i 's/Os/Ofast/g' include/target.mk
+sed -i 's/O2/O3/g' ./rules.mk
 #更新feed
 ./scripts/feeds update -a && ./scripts/feeds install -a
 #irqbalance
