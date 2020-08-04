@@ -7,10 +7,10 @@ wget https://raw.githubusercontent.com/openwrt/openwrt/openwrt-19.07/feeds.conf.
 wget -P include/ https://raw.githubusercontent.com/openwrt/openwrt/openwrt-19.07/include/scons.mk
 patch -p1 < ../PATCH/new/main/0001-tools-add-upx-ucl-support.patch
 #remove annoying snapshot tag
-#sed -i 's,SNAPSHOT,,g' include/version.mk
+sed -i 's,SNAPSHOT,,g' include/version.mk
 sed -i 's,snapshots,,g' package/base-files/image-config.in
 #使用O3级别的优化
-sed -i 's/Os/Ofast/g' include/target.mk
+#sed -i 's/Os/Ofast/g' include/target.mk
 sed -i 's/O2/Ofast/g' ./rules.mk
 #更新feed
 ./scripts/feeds update -a && ./scripts/feeds install -a
