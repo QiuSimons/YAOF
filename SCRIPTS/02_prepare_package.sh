@@ -48,8 +48,8 @@ patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
 # SFE内核补丁
 pushd target/linux/generic/hack-5.4
 #wget https://raw.githubusercontent.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/master/999-shortcut-fe-support.patch
-#wget https://raw.githubusercontent.com/project-openwrt/openwrt/18.06-kernel5.4/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
-wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/999-shortcut-fe-support.patch
+wget https://raw.githubusercontent.com/Lienol/openwrt/dev-master/target/linux/generic/hack-5.4/999-01-shortcut-fe-support.patch
+#wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/999-shortcut-fe-support.patch
 popd
 #OC
 cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
