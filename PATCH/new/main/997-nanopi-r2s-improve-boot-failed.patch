@@ -16,6 +16,7 @@ SD Card: Netac Extreme P500 Pro 32GB
 Signed-off-by: Yuan Tao <ty@wevs.org>
 ---
 
+diff --git a/arch/arm/dts/rk3328-nanopi-r2s.dts b/arch/arm/dts/rk3328-nanopi-r2s.dts
 --- a/arch/arm/dts/rk3328-nanopi-r2s.dts
 +++ b/arch/arm/dts/rk3328-nanopi-r2s.dts
 @@ -32,6 +32,7 @@
@@ -34,6 +35,8 @@ Signed-off-by: Yuan Tao <ty@wevs.org>
  		vin-supply = <&vcc_io>;
  	};
  
+
+diff --git a/arch/arm/mach-rockchip/rk3328/rk3328.c b/arch/arm/mach-rockchip/rk3328/rk3328.c
 --- a/arch/arm/mach-rockchip/rk3328/rk3328.c
 +++ b/arch/arm/mach-rockchip/rk3328/rk3328.c
 @@ -50,9 +50,14 @@ int arch_cpu_init(void)
