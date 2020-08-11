@@ -243,6 +243,8 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/frp package/feeds
 
 #crypto
 echo '
+CPU_FREQ=y
+CPU_FREQ_GOV_ONDEMAND=y
 CONFIG_REGULATOR_GPIO=y
 CONFIG_ARM64_CRYPTO=y
 CONFIG_CRYPTO_AES_ARM64=y
