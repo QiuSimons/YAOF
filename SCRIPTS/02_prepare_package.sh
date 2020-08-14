@@ -20,7 +20,7 @@ sed -i 's/O2/O3/g' ./rules.mk
 ##必要的patch
 #等待上游修复后使用
 #fix sd
-cp -f ../PATCH/new/main/997-nanopi-r2s-improve-boot-failed.patch ./package/boot/uboot-rockchip/patches/997-nanopi-r2s-improve-boot-failed.patch
+#cp -f ../PATCH/new/main/997-nanopi-r2s-improve-boot-failed.patch ./package/boot/uboot-rockchip/patches/997-nanopi-r2s-improve-boot-failed.patch
 #patch i2c0
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #patch rk-crypto
