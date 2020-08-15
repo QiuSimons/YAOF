@@ -18,6 +18,8 @@ sed -i 's/O2/O3/g' ./rules.mk
 #sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 
 ##必要的patch
+#Kernel
+wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3285.patch | git apply
 #等待上游修复后使用
 #fix sd
 #cp -f ../PATCH/new/main/997-nanopi-r2s-improve-boot-failed.patch ./package/boot/uboot-rockchip/patches/997-nanopi-r2s-improve-boot-failed.patch
