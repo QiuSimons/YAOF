@@ -1,5 +1,9 @@
 #!/bin/bash
 clear
+
+#Kernel
+wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3285.patch | git apply
+
 ##准备工作
 #使用19.07的feed源
 rm -f ./feeds.conf.default
