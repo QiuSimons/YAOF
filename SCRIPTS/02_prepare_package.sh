@@ -31,6 +31,8 @@ sed -i 's/O2/O3/g' ./rules.mk
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #patch rk-crypto
 patch -p1 < ../PATCH/new/main/kernel_crypto-add-rk3328-crypto-support.patch
+#luci network
+patch -p1 < ../PATCH/new/main/luci_network-add-packet-steering.patch
 #patch jsonc
 patch -p1 < ../PATCH/new/package/use_json_object_new_int64.patch
 #patch dnsmasq
