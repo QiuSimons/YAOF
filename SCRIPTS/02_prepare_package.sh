@@ -256,6 +256,10 @@ git clone https://github.com/lwz322/luci-app-frps.git package/lean/luci-app-frps
 git clone https://github.com/kuoruan/luci-app-frpc.git package/lean/luci-app-frpc
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/frp package/feeds/packages/frp
 
+#自己加的OPENVPN
+#openvpn
+svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/luci-app-openvpn-server package/lean/luci-app-openvpn-server
+
 
 ##最后的收尾工作
 #Lets Fuck
