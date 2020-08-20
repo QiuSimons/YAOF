@@ -1,5 +1,5 @@
 # 该项目FORK自GC大佬的项目，感谢GC大佬的辛劳付出！！
-# GC大佬的项目地址：https://github.com/project-openwrt/R2S-OpenWrt/
+## GC大佬的项目地址：https://github.com/project-openwrt/R2S-OpenWrt/
 
 ## R2S 基于原生OpenWRT 的固件(AS IS, NO WARRANTY!!!)
 
