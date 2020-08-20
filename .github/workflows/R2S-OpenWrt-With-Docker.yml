@@ -4,8 +4,8 @@ on:
 #  push:
 #    branches: 
 #      - master
-  schedule:
-    - cron: 15 11 * * *
+# schedule:
+#  - cron: 15 11 * * *
 #  watch:
 #    types: [started]
 
