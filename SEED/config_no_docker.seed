@@ -6,7 +6,7 @@ CONFIG_TARGET_ROOTFS_PARTSIZE=960
 CONFIG_DEVEL=y
 CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves -fno-plt"
 CONFIG_TARGET_OPTIONS=y
-CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crypto+crc"
+CONFIG_TARGET_OPTIMIZATION="-O2 -pipe -march=armv8-a+crypto+crc"
 
 CONFIG_LUCI_LANG_zh_Hans=y
 CONFIG_LUCI_LANG_zh-cn=y
@@ -20,8 +20,13 @@ CONFIG_KERNEL_BUILD_DOMAIN="buildhost"
 CONFIG_KERNEL_BUILD_USER="builder"
 # CONFIG_LUCI_CSSTIDY is not set
 # CONFIG_LUCI_JSMIN is not set
+
+CONFIG_OPENSSL_ENGINE=y
 CONFIG_OPENSSL_OPTIMIZE_SPEED=y
 CONFIG_OPENSSL_WITH_ASM=y
+CONFIG_PACKAGE_libopenssl-devcrypto=y
+CONFIG_PACKAGE_libopenssl-conf=y
+
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
 CONFIG_PACKAGE_autocore-arm=y
