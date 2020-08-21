@@ -4,7 +4,9 @@ clear
 #Kernel
 #wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3320.patch | patch -p1
 wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3277.patch | patch -p1
-wget -O- https://github.com/project-openwrt/openwrt/commit/abb0ba46c021595d49c35609b70e473e6c79d127.patch | patch -p1
+
+#Crypto（test
+#wget -O- https://github.com/AmadeusGhost/lede/commit/3e668936669080ca6f3fcea5534b94d00103291a.patch | patch -p1
 
 ##准备工作
 #使用19.07的feed源
@@ -16,8 +18,8 @@ patch -p1 < ../PATCH/new/main/0001-tools-add-upx-ucl-support.patch
 sed -i 's,SNAPSHOT,,g' include/version.mk
 sed -i 's,snapshots,,g' package/base-files/image-config.in
 #使用O3级别的优化
-sed -i 's/Os/O3/g' include/target.mk
-sed -i 's/O2/O3/g' ./rules.mk
+sed -i 's/Os/O2/g' include/target.mk
+sed -i 's/O2/O2/g' ./rules.mk
 #更新feed
 ./scripts/feeds update -a && ./scripts/feeds install -a
 #irqbalance
@@ -66,8 +68,10 @@ cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/
 #IRQ
 #rm -rf ./target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 #cp -f ../PATCH/new/script/40-net-smp-affinity ./target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-sed -i '/;;/i\set_interface_core 8 "ff160000" "ff160000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-sed -i '/;;/i\set_interface_core 1 "ff150000" "ff150000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+sed -i 's,set_interface_core 2,set_interface_core 8' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+sed -i 's,set_interface_core 4,set_interface_core 1' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+sed -i '/;;/i\set_interface_core 4 "ff160000" "ff160000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+sed -i '/;;/i\set_interface_core 2 "ff150000" "ff150000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 #SWAP LAN WAN
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network
@@ -255,6 +259,9 @@ rm -f ./package/feeds/packages/frp
 git clone https://github.com/lwz322/luci-app-frps.git package/lean/luci-app-frps
 git clone https://github.com/kuoruan/luci-app-frpc.git package/lean/luci-app-frpc
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/frp package/feeds/packages/frp
+
+#disable-rk3328-eth-offloading
+wget -P target/linux/rockchip/armv8/base-files/etc/hotplug.d/iface https://raw.githubusercontent.com/friendlyarm/friendlywrt/master-v19.07.1/target/linux/rockchip-rk3328/base-files/etc/hotplug.d/iface/12-disable-rk3328-eth-offloading
 
 ##最后的收尾工作
 #自己加的OPENVPN
