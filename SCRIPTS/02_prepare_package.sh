@@ -244,8 +244,8 @@ pushd package/lean/luci-app-zerotier
 bash move_2_services.sh
 popd
 #回滚zstd
-rm -rf ./feeds/packages/utils/zstd
-svn co https://github.com/QiuSimons/Others/trunk/zstd feeds/packages/utils/zstd
+#rm -rf ./feeds/packages/utils/zstd
+#svn co https://github.com/QiuSimons/Others/trunk/zstd feeds/packages/utils/zstd
 #UPNP（回滚以解决某些沙雕设备的沙雕问题
 rm -rf ./feeds/packages/net/miniupnpd
 svn co https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
