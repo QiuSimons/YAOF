@@ -1,6 +1,9 @@
 name: R2S-OpenWrt-Without-Docker
 
 on:
+  push:
+    paths:
+      - '.github/workflows/R2S-OpenWrt-Without-Docker.yml'
   schedule:
     - cron: 5 9 * * *
   watch:
