@@ -117,6 +117,8 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-arpbind 
 #Adbyby
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-adbyby-plus package/lean/luci-app-adbyby-plus
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/adbyby package/lean/coremark/adbyby
+# File Transfer
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-filetransfer  package/lean/luci-app-filetransfer
 #访问控制
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-accesscontrol package/lean/luci-app-accesscontrol
 #AutoCore
