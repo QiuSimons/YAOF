@@ -30,7 +30,7 @@ jobs:
         sudo -E apt-get clean -y
         sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php
         git clone https://github.com/friendlyarm/repo
-        sudo cp repo/repo  /usr/bin/
+        sudo cp repo/repo /usr/bin/
     - name: Free Disk Space
       run: |
         sudo swapoff -a
