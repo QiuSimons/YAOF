@@ -5,7 +5,6 @@ Subject: [PATCH] Support hardware random number generator for RK3328
 
 Signed-off-by: wevsty <ty@wevs.org>
 ---
- target/linux/rockchip/armv8/config-5.4        |   2 +
  ...rockchip-hardware-random-dev-support.patch | 385 ++++++++++++++++++
  ...rockchip-add-hardware-rng-for-RK3328.patch |  28 ++
  ...rockchip-add-hardware-rng-for-RK3399.patch |  27 ++
@@ -16,19 +15,6 @@ Signed-off-by: wevsty <ty@wevs.org>
  create mode 100644 target/linux/rockchip/patches-5.4/014-rockchip-add-hardware-rng-for-RK3399.patch
  create mode 100644 target/linux/rockchip/patches-5.4/015-rockchip-enable-hardware-rng-for-NanoPi-R2S.patch
 
-diff --git a/target/linux/rockchip/armv8/config-5.4 b/target/linux/rockchip/armv8/config-5.4
-index 368ed4e4b4..c23dcd89ff 100644
---- a/target/linux/rockchip/armv8/config-5.4
-+++ b/target/linux/rockchip/armv8/config-5.4
-@@ -192,6 +192,8 @@ 
- CONFIG_HWMON=y
- CONFIG_HWSPINLOCK=y
- CONFIG_HW_CONSOLE=y
-+CONFIG_HW_RANDOM=y
-+CONFIG_HW_RANDOM_ROCKCHIP=y
- # CONFIG_HZ_PERIODIC is not set
- CONFIG_I2C=y
- CONFIG_I2C_ALGOBIT=y
 diff --git a/target/linux/rockchip/patches-5.4/012-rockchip-hardware-random-dev-support.patch b/target/linux/rockchip/patches-5.4/012-rockchip-hardware-random-dev-support.patch
 new file mode 100644
 index 0000000000..b78e56b99c
