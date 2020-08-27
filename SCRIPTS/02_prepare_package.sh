@@ -5,11 +5,7 @@ clear
 wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3277.patch | patch -p1
 
 #HW-RNG
-patch --strip=1 --binary --ignore-whitespace < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
-echo '
-CONFIG_HW_RANDOM=y
-CONFIG_HW_RANDOM_ROCKCHIP=y
-' >> ./target/linux/rockchip/armv8/config-5.4
+patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
 
 #Crypto（test
 #wget -O- https://github.com/AmadeusGhost/lede/commit/3e668936669080ca6f3fcea5534b94d00103291a.patch | patch -p1
