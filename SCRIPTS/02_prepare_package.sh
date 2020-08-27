@@ -5,7 +5,7 @@ clear
 wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3277.patch | patch -p1
 
 #HW-RNG
-wget -O- https://github.com/wevsty/openwrt-nanopi-r2s/commit/e5b5361651940ff5c0c1784dfd0130abec7ab535.patch | patch -p1
+patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
 
 #Crypto（test
 #wget -O- https://github.com/AmadeusGhost/lede/commit/3e668936669080ca6f3fcea5534b94d00103291a.patch | patch -p1
