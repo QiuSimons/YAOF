@@ -2,6 +2,7 @@
 ## GC大佬的项目地址：https://github.com/project-openwrt/R2S-OpenWrt/
 
 ## R2S 基于原生OpenWRT 的固件(AS IS, NO WARRANTY!!!)
+![R2S-OpenWrt-Without-Docker](https://github.com/QiuSimons/R2S-OpenWrt/workflows/R2S-OpenWrt-Without-Docker/badge.svg)
 
 ### 下载地址：
 https://github.com/sonic0377/R2S-OpenWrt/releases
@@ -28,17 +29,13 @@ git clone https://github.com/project-openwrt/R2S-OpenWrt.git&&cd R2S-OpenWrt&&ba
 
 2.OP内置升级可用
 
-3.SSRP使用姿势： ①添加你要的订阅链接 ②再在最后加一行空行 ③右下角点一下保存并应用 ④更新所有订阅服务器节点
+3.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6
 
-4.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6
+4.刷写或升级后遇到任何问题，可以尝试ssh进路由器，输入fuck，回车后等待重启，或可解决
 
-5.固件分为docker版和无docker版本，docker版支持部分无线网卡和docker-ce，但由于docker的依赖问题，ssrp之类的软件存在udp转发异常的故障；无docker使用需求的，推荐使用无docker版固件
+5.从2020.8.1开始重新交换 LAN WAN，解决千兆环境下IDM下载掉速的问题，用户注意！！！！！（当前靠外的是LAN，靠中心的是WAN）
 
-6.刷写或升级后遇到任何问题，可以尝试ssh进路由器，输入fuck，回车后等待重启，或可解决
-
-7.从2020.8.1开始重新交换 LAN WAN，解决千兆环境下IDM下载掉速的问题，用户注意！！！！！（当前靠外的是LAN，靠中心的是WAN）
-
-8.sys灯引导时闪烁，启动后常亮，是上游的设定，有疑问请联系OP官方社区
+6.sys灯引导时闪烁，启动后常亮，是上游的设定，有疑问请联系OP官方社区
 
 ### 版本信息：
 其他模块版本：SNAPSHOT（当日最新）
@@ -46,11 +43,11 @@ git clone https://github.com/project-openwrt/R2S-OpenWrt.git&&cd R2S-OpenWrt&&ba
 LUCI版本：19.07（当日最新）
 
 ### 特性及功能：
-1.O3编译（获得更高的理论性能
+1.O2编译
 
 2.内置三款主题
 
-3.插件包含：SSRP，PassWall，OpenClash，AdguardHome，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，ChinaDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启)，流量分载(防火墙中开启)，SFE流量分载(也就是SFE加速，防火墙中开启，且默认开启)，BBR（默认开启），irq优化，OLED屏幕支持，京东签到，Zerotier，FRPC，FRPS，无线打印，流量监控
+3.插件包含：VSSR，PassWall，OpenClash，AdguardHome，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，ChinaDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启)，流量分载(防火墙中开启)，SFE流量分载(也就是SFE加速，防火墙中开启，且默认开启)，BBR（默认开启），irq优化，OLED屏幕支持，京东签到，Zerotier，FRPC，FRPS，无线打印，流量监控
 
 4.核心频率1.608GHz
 
