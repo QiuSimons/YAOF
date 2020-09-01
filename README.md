@@ -29,7 +29,7 @@ git clone https://github.com/project-openwrt/R2S-OpenWrt.git&&cd R2S-OpenWrt&&ba
 
 2.OP内置升级可用
 
-3.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6
+3.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6)
 
 4.刷写或升级后遇到任何问题，可以尝试ssh进路由器，输入fuck，回车后等待重启，或可解决
 
