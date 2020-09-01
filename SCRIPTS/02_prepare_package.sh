@@ -236,6 +236,8 @@ svn co https://github.com/openwrt/packages/trunk/utils/runc package/utils/runc
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/utils/fuse package/utils/fuse
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/services/samba36 package/network/services/samba36
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/libs/libconfig package/libs/libconfig
+svn co https://github.com/openwrt/packages/trunk/libs/nghttp2 package/libs/nghttp2
+svn co https://github.com/openwrt/packages/trunk/libs/libcap-ng package/libs/libcap-ng
 rm -rf ./feeds/packages/utils/collectd
 svn co https://github.com/openwrt/packages/trunk/utils/collectd feeds/packages/utils/collectd
 #FullCone模块
