@@ -1,6 +1,12 @@
 #!/bin/bash
 clear
 
+#experimental patch from friendlywrt
+wget -P target/linux/generic/hack-5.4/ https://github.com/friendlyarm/kernel-rockchip/commit/707f883846ba2da643fdcc7639dbc6efa9d89d2d.patch
+wget -P target/linux/generic/hack-5.4/ https://github.com/friendlyarm/kernel-rockchip/commit/bc3f848f1d7c1fa0ec76c4407e4c38788341d84f.patch
+wget -P target/linux/generic/hack-5.4/ https://github.com/friendlyarm/kernel-rockchip/commit/881a300e5cc2291343eab3dd7ad94b60f19b1917.patch
+wget -P target/linux/generic/hack-5.4/ https://github.com/friendlyarm/kernel-rockchip/commit/5cd951244fd4f0acea470134c0a39bbb52805f08.patch
+
 #Kernel
 wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3277.patch | patch -p1
 
