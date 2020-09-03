@@ -79,7 +79,7 @@ jobs:
         df -h
         cd openwrt
         let make_process=$(nproc)+1
-        make toolchain/install -j${make_process} V=s
+        make toolchain/install -j${make_process} V=s || make toolchain/install -j1 V=s
     - name: Compile Openwrt
       run: |
         df -h
