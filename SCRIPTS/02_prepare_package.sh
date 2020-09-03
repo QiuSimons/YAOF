@@ -2,8 +2,7 @@
 clear
 
 #experimental patch from friendlywrt
-wget -P target/linux/generic/hack-5.4/ https://github.com/friendlyarm/kernel-rockchip/commit/707f883846ba2da643fdcc7639dbc6efa9d89d2d.patch
-wget -P target/linux/generic/hack-5.4/ https://github.com/friendlyarm/kernel-rockchip/commit/bc3f848f1d7c1fa0ec76c4407e4c38788341d84f.patch
+cp -f ../PATCH/new/main/DWC3-and-stmmac-add-support-to-set-irq-affinity.patch ./target/linux/generic/hack-5.4/DWC3-and-stmmac-add-support-to-set-irq-affinity.patch
 wget -P target/linux/generic/hack-5.4/ https://github.com/friendlyarm/kernel-rockchip/commit/881a300e5cc2291343eab3dd7ad94b60f19b1917.patch
 cp -f ../PATCH/new/main/r8152-refresh-it-to-Realtek-version-2.13.0.patch ./target/linux/generic/hack-5.4/r8152-refresh-it-to-Realtek-version-2.13.0.patch
 
