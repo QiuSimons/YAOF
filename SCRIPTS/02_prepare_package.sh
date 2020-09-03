@@ -4,6 +4,7 @@ clear
 #Kernel
 wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3277.patch | patch -p1
 
+notExce(){ 
 #RT Kernel
 cp -f ../PATCH/new/main/999-patch-5.4.61-rt37.patch ./target/linux/generic/hack-5.4/999-patch-5.4.61-rt37.patch
 sed -i '/PREEMPT/d' ./target/linux/rockchip/armv8/config-5.4
@@ -16,6 +17,7 @@ echo '
 CONFIG_PREEMPT_RT=y
 CONFIG_PREEMPTION=y
 ' >> ./target/linux/rockchip/config-default
+}
 
 #HW-RNG
 patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
