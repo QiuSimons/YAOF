@@ -2,8 +2,8 @@
 clear
 
 #experimental patch from friendlywrt
-cp -f ../PATCH/new/main/DWC3-and-stmmac-add-support-to-set-irq-affinity.patch ./target/linux/generic/hack-5.4/DWC3-and-stmmac-add-support-to-set-irq-affinity.patch
-cp -f ../PATCH/new/main/999-nanopi-r2-add-handle_cpu_id-for-gmac-dwc3.patch ./target/linux/rockchip/patches-5.4/999-nanopi-r2-add-handle_cpu_id-for-gmac-dwc3.patch
+#cp -f ../PATCH/new/main/DWC3-and-stmmac-add-support-to-set-irq-affinity.patch ./target/linux/generic/hack-5.4/DWC3-and-stmmac-add-support-to-set-irq-affinity.patch
+#cp -f ../PATCH/new/main/999-nanopi-r2-add-handle_cpu_id-for-gmac-dwc3.patch ./target/linux/rockchip/patches-5.4/999-nanopi-r2-add-handle_cpu_id-for-gmac-dwc3.patch
 cp -f ../PATCH/new/main/r8152-refresh-it-to-Realtek-version-2.13.0.patch ./target/linux/generic/hack-5.4/r8152-refresh-it-to-Realtek-version-2.13.0.patch
 
 #Kernel
