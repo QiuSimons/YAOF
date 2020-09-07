@@ -213,6 +213,7 @@ svn co https://github.com/xiaorouji/openwrt-package/trunk/package/tcping package
 svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-go package/new/trojan-go
 svn co https://github.com/xiaorouji/openwrt-package/trunk/package/brook package/new/brook
 svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-plus package/new/trojan-plus
+svn co https://github.com/xiaorouji/openwrt-package/trunk/package/ssocks package/new/ssocks
 #订阅转换
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/subconverter package/new/subconverter
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/jpcre2 package/new/jpcre2
