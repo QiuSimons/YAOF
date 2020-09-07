@@ -2,6 +2,7 @@
 clear
 
 #Kernel
+cp -f ../PATCH/new/main/xanmod_5.4.patch ./target/linux/generic/hack-5.4/000-xanmod_5.4.patch
 wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3277.patch | patch -p1
 #wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3389.patch | patch -p1
 
