@@ -15,6 +15,11 @@ jobs:
     steps:
     - name: Clone Repository
       uses: actions/checkout@v1
+    - name: Show CPU Model and Free Space
+      run: |
+        echo -e "Total CPU cores\t: $(nproc)"
+        cat /proc/cpuinfo | grep 'model name'
+        free -h
     - name: Init build dependencies
       env:
         DEBIAN_FRONTEND: noninteractive
