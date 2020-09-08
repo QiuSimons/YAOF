@@ -88,7 +88,7 @@ wget https://raw.githubusercontent.com/Lienol/openwrt/dev-master/target/linux/ge
 #wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/999-shortcut-fe-support.patch
 popd
 #OC
-cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
+cp -f ../PATCH/new/main/999-RK3328-enable-1512mhz-opp.patch ./target/linux/rockchip/patches-5.4/999-RK3328-enable-1512mhz-opp.patch
 #IRQ
 #rm -rf ./target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 #cp -f ../PATCH/new/script/40-net-smp-affinity ./target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
@@ -324,6 +324,8 @@ CONFIG_CRYPTO_SIMD=y
 #自己加的OPENVPN
 #openvpn
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/luci-app-openvpn-server package/lean/luci-app-openvpn-server
+#OC
+#cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
 #Lets Fuck
 mkdir package/base-files/files/usr/bin
 cp -f ../PATCH/new/script/fuck package/base-files/files/usr/bin/fuck
