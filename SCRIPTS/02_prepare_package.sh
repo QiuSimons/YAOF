@@ -223,7 +223,7 @@ svn co https://github.com/xiaorouji/openwrt-package/trunk/package/ssocks package
 svn co https://github.com/oceancn/luci-nwan/trunk/luci/applications/luci-cpulimit package/lean/luci-app-cpulimit
 #svn co https://github.com/project-openwrt/openwrt/branches/master/package/ntlf9t/luci-app-cpulimit package/lean/luci-app-cpulimit
 #svn co https://github.com/project-openwrt/openwrt/branches/master/package/ntlf9t/cpulimit package/lean/cpulimit
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ntlf9t/cpulimit-ng  package/lean/cpulimit-ng
+svn co https://github.com/QiuSimons/Others/trunk/cpulimit-ng  package/lean/cpulimit-ng
 #订阅转换
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/subconverter package/new/subconverter
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/jpcre2 package/new/jpcre2
