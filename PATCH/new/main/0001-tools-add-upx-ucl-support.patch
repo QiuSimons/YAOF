@@ -15,22 +15,22 @@ diff --git a/tools/Makefile b/tools/Makefile
 index 9bae09ece6..cddec94b7f 100644
 --- a/tools/Makefile
 +++ b/tools/Makefile
-@@ -28,6 +28,7 @@ tools-y += firmware-utils patch-image quilt padjffs2
- tools-y += mm-macros missing-macros cmake bc findutils gengetopt patchelf
- tools-y += mtools dosfstools libressl
- tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
+@@ -26,6 +26,7 @@
+ tools-y += libressl libtool lzma m4 make-ext4fs missing-macros mkimage
+ tools-y += mklibs mm-macros mtd-utils mtools padjffs2 patch-image
+ tools-y += patchelf pkgconf quilt squashfskit4 sstrip zip zlib zstd
 +tools-y += ucl upx
- tools-$(CONFIG_TARGET_x86) += qemu
- tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
- tools-$(CONFIG_TARGET_ar71xx) += lzma-old
-@@ -41,6 +42,7 @@ tools-$(CONFIG_TARGET_apm821xx)$(CONFIG_TARGET_gemini) += genext2fs
- tools-$(CONFIG_TARGET_tegra) += cbootimage cbootimage-configs
+ tools-$(BUILD_B43_TOOLS) += b43-tools
+ tools-$(BUILD_ISL) += isl
+ tools-$(BUILD_TOOLCHAIN) += expat gmp libelf mpc mpfr
+@@ -38,6 +39,7 @@
+ tools-$(CONFIG_USE_SPARSE) += sparse
  
  # builddir dependencies
 +$(curdir)/upx/compile := $(curdir)/ucl/compile
- $(curdir)/bison/compile := $(curdir)/flex/compile
- $(curdir)/flex/compile := $(curdir)/libtool/compile
- $(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
+ $(curdir)/autoconf/compile := $(curdir)/m4/compile
+ $(curdir)/automake/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/pkgconf/compile $(curdir)/xz/compile
+ $(curdir)/b43-tools/compile := $(curdir)/bison/compile
 diff --git a/tools/ucl/Makefile b/tools/ucl/Makefile
 new file mode 100644
 index 0000000000..cf1c25bd8d
