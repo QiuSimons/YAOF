@@ -1,0 +1,52 @@
+diff -rNEZbwBdu3 a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+--- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c	2020-09-03 17:27:11.000000000 +0800
++++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c	2020-09-04 00:10:23.217451587 +0800
+@@ -4468,6 +4468,8 @@
+ 	struct net_device *ndev = NULL;
+ 	struct stmmac_priv *priv;
+ 	u32 queue, rxq, maxq;
++	u32 cpu_id;
++	struct cpumask cpumask;
+ 	int i, ret = 0;
+ 
+ 	ndev = devm_alloc_etherdev_mqs(device, sizeof(struct stmmac_priv),
+@@ -4487,6 +4489,13 @@
+ 	priv->ioaddr = res->addr;
+ 	priv->dev->base_addr = (unsigned long)res->addr;
+ 
++	if (!of_property_read_u32(device->of_node, "handle_cpu_id", &cpu_id)) {
++		cpumask_clear(&cpumask);
++		cpumask_set_cpu(cpu_id, &cpumask);
++		irq_set_affinity(res->irq, &cpumask);
++		dev_dbg(device, "setup irq on cpu%d\n", cpu_id);
++	}
++
+ 	priv->dev->irq = res->irq;
+ 	priv->wol_irq = res->wol_irq;
+ 	priv->lpi_irq = res->lpi_irq;
+diff -rNEZbwBdu3 a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+--- a/drivers/usb/dwc3/host.c	2020-09-03 17:27:11.000000000 +0800
++++ b/drivers/usb/dwc3/host.c	2020-09-04 00:06:31.446810033 +0800
+@@ -48,6 +48,8 @@
+ 	int			ret, irq;
+ 	struct resource		*res;
+ 	struct platform_device	*dwc3_pdev = to_platform_device(dwc->dev);
++	struct cpumask		cpumask;
++	u32			cpu_id;
+ 	int			prop_idx = 0;
+ 
+ 	irq = dwc3_host_get_irq(dwc);
+@@ -63,6 +65,13 @@
+ 	if (!res)
+ 		return -ENOMEM;
+ 
++	if (!of_property_read_u32(dwc->dev->of_node, "handle_cpu_id", &cpu_id)) {
++		cpumask_clear(&cpumask);
++		cpumask_set_cpu(cpu_id, &cpumask);
++		irq_set_affinity(irq, &cpumask);
++		dev_dbg(dwc->dev, "setup irq on cpu%d\n", cpu_id);
++	}
++
+ 	dwc->xhci_resources[1].start = irq;
+ 	dwc->xhci_resources[1].end = irq;
+ 	dwc->xhci_resources[1].flags = res->flags;

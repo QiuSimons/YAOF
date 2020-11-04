@@ -1,0 +1,18 @@
+
+config chinadns-ng
+	option ipset_name4 'chnroute'
+	option ipset_name6 'chnroute6'
+	option gfwlist_file '/etc/chinadns-ng/gfwlist.txt'
+	option chnlist_file '/etc/chinadns-ng/chinalist.txt'
+	option noip_as_chnip '0'
+	option enable '1'
+	option bind_port '6052'
+	option timeout_sec '1'
+	option china_dns '127.0.0.1#6050'
+	option trust_dns '127.0.0.1#6051'
+	option reuse_port '0'
+	option chnlist_first '1'
+	option fair_mode '1'
+	option repeat_times '2'
+	option bind_addr '127.0.0.1'
+
