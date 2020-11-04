@@ -34,6 +34,8 @@ git clone https://github.com/project-openwrt/R2S-OpenWrt.git&&cd R2S-OpenWrt&&ba
 
 6.sys灯引导时闪烁，启动后常亮，是上游的设定，有疑问请联系OP官方社区
 
+7.预配置了部分插件，ADG的管理密码默认admin
+
 ### 版本信息：
 其他模块版本：SNAPSHOT（当日最新）
 
