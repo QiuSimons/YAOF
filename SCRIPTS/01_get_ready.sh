@@ -13,6 +13,9 @@ git rebase --skip
 cd ..
 }
 git clone -b master https://git.openwrt.org/openwrt/openwrt.git openwrt
+cd openwrt
+git revert 0232bf6 42675aa ba9b8da 00e8725 1a69f50
+cd ..
 git clone https://github.com/Lienol/openwrt.git openwrt-lienol
 git clone https://github.com/Lienol/openwrt-packages packages-lienol
 git clone https://github.com/Lienol/openwrt-luci luci-lienol
