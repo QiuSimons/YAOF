@@ -53,6 +53,9 @@ sed -i 's/O2/O2/g' ./rules.mk
 #sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 #RNGD
 sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
+#rc.common
+rm -rf ./package/base-files/files/etc/rc.common
+wget -P package/base-files/files/etc https://raw.githubusercontent.com/QiuSimons/Others/master/rc.common
 
 ##必要的patch
 #fix sd
