@@ -58,8 +58,6 @@ rm -rf ./package/base-files/files/etc/rc.common
 wget -P package/base-files/files/etc https://raw.githubusercontent.com/QiuSimons/Others/master/rc.common
 
 ##必要的patch
-#fix sd
-#cp -f ../PATCH/new/main/101-rockchip-rk3328-nanopi-r2s-improve-boot-failed.patch ./package/boot/uboot-rockchip/patches/101-rockchip-rk3328-nanopi-r2s-improve-boot-failed.patch
 #patch i2c0
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #patch rk-crypto
@@ -83,16 +81,13 @@ wget -O- https://github.com/LGA1150/fullconenat-fw3-patch/raw/master/luci.patch 
 popd
 # Patch Kernel 以解决fullcone冲突
 pushd target/linux/generic/hack-5.4
-#wget https://raw.githubusercontent.com/project-openwrt/openwrt/18.06-kernel5.4/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
 wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
 popd
 #Patch FireWall 以增添SFE
 patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
 # SFE内核补丁
 pushd target/linux/generic/hack-5.4
-#wget https://raw.githubusercontent.com/MeIsReallyBa/Openwrt-sfe-flowoffload-linux-5.4/master/999-shortcut-fe-support.patch
-#wget https://raw.githubusercontent.com/Lienol/openwrt/dev-master/target/linux/generic/hack-5.4/999-01-shortcut-fe-support.patch
-wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/999-shortcut-fe-support.patch
+wget https://raw.githubusercontent.com/coolsnowwolf/lede/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 popd
 #OC
 cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
