@@ -299,6 +299,8 @@ svn co https://github.com/openwrt/packages/trunk/utils/tini feeds/packages/utils
 ln -sf ../../../feeds/packages/utils/tini ./package/feeds/packages/tini
 svn co https://github.com/openwrt/packages/trunk/utils/runc feeds/packages/utils/runc
 ln -sf ../../../feeds/packages/utils/runc ./package/feeds/packages/runc
+svn co https://github.com/openwrt/packages/trunk/utils/yq feeds/packages/utils/yq
+ln -sf ../../../feeds/packages/utils/yq ./package/feeds/packages/yq
 #补全部分依赖（实际上并不会用到
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/utils/fuse package/utils/fuse
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/services/samba36 package/network/services/samba36
