@@ -314,6 +314,7 @@ git clone -b master --single-branch https://github.com/QiuSimons/addition-trans-
 #SFE
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/new/shortcut-fe
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/new/fast-classifier
+wget -P package/base-files/files/etc/init.d https://raw.githubusercontent.com/coolsnowwolf/lede/d8a77f3f199f1aa7597d76b83210b4e084f1361c/package/lean/shortcut-fe/files/etc/init.d/shortcut-fe
 #IPSEC
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ipsec-vpnd package/lean/luci-app-ipsec-vpnd
 #Zerotier
