@@ -3,15 +3,17 @@ clear
 
 notExce(){ 
 #blocktrron.git 
-#patch -p1 < ../PATCH/new/main/exp/uboot-rockchip-update-to-v2020.10.patch
-#patch -p1 < ../PATCH/new/main/exp/rockchip-fix-NanoPi-R2S-GMAC-clock-name.patch
+patch -p1 < ../PATCH/new/main/exp/uboot-rockchip-update-to-v2020.10.patch
+patch -p1 < ../PATCH/new/main/exp/rockchip-fix-NanoPi-R2S-GMAC-clock-name.patch
 
 #update r8152 driver
-#wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3178.patch | patch -p1
+wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3178.patch | patch -p1
 
 #Kernel
-#cp -f ../PATCH/new/main/xanmod_5.4.patch ./target/linux/generic/hack-5.4/000-xanmod_5.4.patch
+cp -f ../PATCH/new/main/xanmod_5.4.patch ./target/linux/generic/hack-5.4/000-xanmod_5.4.patch
 }
+wget -q https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3580.patch
+patch -p1 < ./3580.patch
 
 notExce(){ 
 #RT Kernel
