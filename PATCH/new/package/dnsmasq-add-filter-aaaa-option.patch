@@ -13,12 +13,13 @@ diff --git a/package/network/services/dnsmasq/files/dhcp.conf b/package/network/
 index 360c7d79eee..c9407f5e649 100644
 --- a/package/network/services/dnsmasq/files/dhcp.conf
 +++ b/package/network/services/dnsmasq/files/dhcp.conf
-@@ -20,6 +20,7 @@ config dnsmasq
+@@ -20,7 +20,8 @@ config dnsmasq
  	#list notinterface	lo
  	#list bogusnxdomain     '64.94.110.11'
  	option localservice	1  # disable to allow DNS requests from non-local subnets
 +	option filteraaaa	1
- 
+ 	option ednspacket_max	1232
+
  config dhcp lan
  	option interface	lan
 diff --git a/package/network/services/dnsmasq/files/dnsmasq.init b/package/network/services/dnsmasq/files/dnsmasq.init
