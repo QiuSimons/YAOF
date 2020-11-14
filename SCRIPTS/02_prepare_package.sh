@@ -1,6 +1,8 @@
 #!/bin/bash
 clear
 
+wget -O- https://github.com/project-openwrt/openwrt/commit/d8df86130d172b3ce262d2744e2ddd2a6eed5f50.patch | patch -p1
+
 notExce(){ 
 #blocktrron.git 
 patch -p1 < ../PATCH/new/main/exp/uboot-rockchip-update-to-v2020.10.patch
