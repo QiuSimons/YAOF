@@ -255,6 +255,7 @@ sed -i 's,include ../..,include $(TOPDIR)/feeds/luci,g' ./package/new/luci-app-s
 #上网APP过滤
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter package/new/OpenAppFilter
 #Docker
+sed -i "s,libblkid,libblkid +libselinux +libsepol,g" packages/utils/lvm2/Makefile
 svn co https://github.com/lisaac/luci-app-dockerman/trunk/applications/luci-app-dockerman package/luci-app-dockerman
 svn co https://github.com/lisaac/luci-lib-docker/trunk/collections/luci-lib-docker package/luci-lib-docker
 svn co https://github.com/openwrt/packages/trunk/utils/docker-ce feeds/packages/utils/docker-ce
