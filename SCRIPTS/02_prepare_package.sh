@@ -60,7 +60,7 @@ sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
 rm -rf ./package/base-files/files/etc/rc.common
 cp -f ../PATCH/duplicate/rc.common ./package/base-files/files/etc/rc.common
 #irqbalance
-#sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
+sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 
 ##必要的patch
 #patch i2c0
