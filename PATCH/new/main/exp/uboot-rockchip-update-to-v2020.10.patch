@@ -1,0 +1,767 @@
+From fb6ee0c112a4b707eaaa1d0d6154f936173fc63a Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Sun, 4 Oct 2020 23:55:54 +0200
+Subject: [PATCH] uboot-rockchip: update to v2020.10
+
+Update to the latest U-Boot release. Refresh patches for the NanoPi R2S
+to include the latest DTS accepted Linux upstream.
+
+Signed-off-by: David Bauer <mail@david-bauer.net>
+---
+ package/boot/uboot-rockchip/Makefile          |   6 +-
+ ...Add-support-for-FriendlyARM-NanoPi-R.patch | 284 ++++++++++--------
+ .../nanopi-r2s-rk3328/dt-platdata.c           |  53 ++--
+ .../nanopi-r2s-rk3328/dt-structs-gen.h        |  53 ++--
+ 4 files changed, 228 insertions(+), 168 deletions(-)
+
+diff --git a/package/boot/uboot-rockchip/Makefile b/package/boot/uboot-rockchip/Makefile
+index 944c942efc..74bb72be49 100644
+--- a/package/boot/uboot-rockchip/Makefile
++++ b/package/boot/uboot-rockchip/Makefile
+@@ -5,10 +5,10 @@
+ include $(TOPDIR)/rules.mk
+ include $(INCLUDE_DIR)/kernel.mk
+ 
+-PKG_VERSION:=2020.07
+-PKG_RELEASE:=3
++PKG_VERSION:=2020.10
++PKG_RELEASE:=1
+ 
+-PKG_HASH:=c1f5bf9ee6bb6e648edbf19ce2ca9452f614b08a9f886f1a566aa42e8cf05f6a
++PKG_HASH:=0d481bbdc05c0ee74908ec2f56a6daa53166cc6a78a0e4fac2ac5d025770a622
+ 
+ PKG_MAINTAINER:=Tobias Maedel <openwrt@tbspace.de>
+ 
+diff --git a/package/boot/uboot-rockchip/patches/100-rockchip-rk3328-Add-support-for-FriendlyARM-NanoPi-R.patch b/package/boot/uboot-rockchip/patches/100-rockchip-rk3328-Add-support-for-FriendlyARM-NanoPi-R.patch
+index bc65fb69ef..e8b1c9b67d 100644
+--- a/package/boot/uboot-rockchip/patches/100-rockchip-rk3328-Add-support-for-FriendlyARM-NanoPi-R.patch
++++ b/package/boot/uboot-rockchip/patches/100-rockchip-rk3328-Add-support-for-FriendlyARM-NanoPi-R.patch
+@@ -1,4 +1,4 @@
+-From 67f4c228c2bf515386cd54073104dc2e6eae85ea Mon Sep 17 00:00:00 2001
++From 82cab423557470769a14fd3d1258cb02ec5b052b Mon Sep 17 00:00:00 2001
+ From: David Bauer <mail@david-bauer.net>
+ Date: Fri, 10 Jul 2020 14:58:30 +0200
+ Subject: [PATCH] rockchip: rk3328: Add support for FriendlyARM NanoPi R2S
+@@ -17,18 +17,18 @@ WAN - LAN - SYS LED
+ Signed-off-by: David Bauer <mail@david-bauer.net>
+ ---
+  arch/arm/dts/Makefile                      |   1 +
+- arch/arm/dts/rk3328-nanopi-r2s-u-boot.dtsi |  34 +++
+- arch/arm/dts/rk3328-nanopi-r2s.dts         | 334 +++++++++++++++++++++
++ arch/arm/dts/rk3328-nanopi-r2s-u-boot.dtsi |  40 +++
++ arch/arm/dts/rk3328-nanopi-r2s.dts         | 370 +++++++++++++++++++++
+  board/rockchip/evb_rk3328/MAINTAINERS      |   7 +
+  configs/nanopi-r2s-rk3328_defconfig        |  99 ++++++
+- 5 files changed, 475 insertions(+)
++ 5 files changed, 517 insertions(+)
+  create mode 100644 arch/arm/dts/rk3328-nanopi-r2s-u-boot.dtsi
+  create mode 100644 arch/arm/dts/rk3328-nanopi-r2s.dts
+  create mode 100644 configs/nanopi-r2s-rk3328_defconfig
+ 
+ --- a/arch/arm/dts/Makefile
+ +++ b/arch/arm/dts/Makefile
+-@@ -106,6 +106,7 @@ dtb-$(CONFIG_ROCKCHIP_RK3308) += \
++@@ -108,6 +108,7 @@ dtb-$(CONFIG_ROCKCHIP_RK3308) += \
+  
+  dtb-$(CONFIG_ROCKCHIP_RK3328) += \
+  	rk3328-evb.dtb \
+@@ -38,7 +38,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+  	rk3328-rock-pi-e.dtb
+ --- /dev/null
+ +++ b/arch/arm/dts/rk3328-nanopi-r2s-u-boot.dtsi
+-@@ -0,0 +1,34 @@
++@@ -0,0 +1,40 @@
+ +// SPDX-License-Identifier: GPL-2.0+
+ +/*
+ + * (C) Copyright 2018-2019 Rockchip Electronics Co., Ltd
+@@ -73,9 +73,15 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +&vcc_sd {
+ +	u-boot,dm-spl;
+ +};
+++
+++&gmac2io {
+++	snps,reset-gpio = <&gpio1 RK_PC2 GPIO_ACTIVE_LOW>;
+++	snps,reset-active-low;
+++	snps,reset-delays-us = <0 10000 50000>;
+++};
+ --- /dev/null
+ +++ b/arch/arm/dts/rk3328-nanopi-r2s.dts
+-@@ -0,0 +1,334 @@
++@@ -0,0 +1,370 @@
+ +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ +/*
+ + * Copyright (c) 2020 David Bauer <mail@david-bauer.net>
+@@ -88,92 +94,91 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +#include "rk3328.dtsi"
+ +
+ +/ {
+-+	model = "FriendlyARM NanoPi R2S";
+++	model = "FriendlyElec NanoPi R2S";
+ +	compatible = "friendlyarm,nanopi-r2s", "rockchip,rk3328";
+ +
+ +	chosen {
+ +		stdout-path = "serial2:1500000n8";
+ +	};
+ +
+-+	gmac_clkin: external-gmac-clock {
+++	gmac_clk: gmac-clock {
+ +		compatible = "fixed-clock";
+ +		clock-frequency = <125000000>;
+ +		clock-output-names = "gmac_clkin";
+ +		#clock-cells = <0>;
+ +	};
+ +
+-+	vcc_sd: sdmmc-regulator {
+-+		compatible = "regulator-fixed";
+-+		gpio = <&gpio0 RK_PD6 GPIO_ACTIVE_LOW>;
+-+		pinctrl-names = "default";
+-+		pinctrl-0 = <&sdmmc0m1_gpio>;
+-+		regulator-name = "vcc_sd";
+-+		regulator-min-microvolt = <3300000>;
+-+		regulator-max-microvolt = <3300000>;
+-+		vin-supply = <&vcc_io>;
+-+	};
+-+
+-+	vcc_sdio: sdmmcio-regulator {
+-+		compatible = "regulator-gpio";
+-+		gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;
+-+		enable-active-high;
+-+		states = <1800000 0x1
+-+			  3300000 0x0>;
+++	keys {
+++		compatible = "gpio-keys";
+++		pinctrl-0 = <&reset_button_pin>;
+ +		pinctrl-names = "default";
+-+		pinctrl-0 = <&sdio_vcc_pin>;
+-+		regulator-always-on;
+-+		regulator-min-microvolt = <1800000>;
+-+		regulator-max-microvolt = <3300000>;
+-+		regulator-name = "vcc_sdio";
+-+		regulator-settling-time-us = <5000>;
+-+		regulator-type = "voltage";
+-+		vin-supply = <&vcc_io>;
+-+	};
+ +
+-+	vcc_sys: vcc-sys {
+-+		compatible = "regulator-fixed";
+-+		regulator-name = "vcc_sys";
+-+		regulator-always-on;
+-+		regulator-boot-on;
+-+		regulator-min-microvolt = <5000000>;
+-+		regulator-max-microvolt = <5000000>;
+++		reset {
+++			label = "reset";
+++			gpios = <&gpio0 RK_PA0 GPIO_ACTIVE_LOW>;
+++			linux,code = <KEY_RESTART>;
+++			debounce-interval = <50>;
+++		};
+ +	};
+ +
+ +	leds {
+ +		compatible = "gpio-leds";
+-+
+++		pinctrl-0 = <&lan_led_pin>,  <&sys_led_pin>, <&wan_led_pin>;
+ +		pinctrl-names = "default";
+-+		pinctrl-0 = <&led_pins>;
+-+
+-+		sys {
+-+			gpios = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;
+-+			label = "nanopi-r2s:red:sys";
+-+		};
+ +
+-+		lan {
+++		lan_led: led-0 {
+ +			gpios = <&gpio2 RK_PB7 GPIO_ACTIVE_HIGH>;
+ +			label = "nanopi-r2s:green:lan";
+ +		};
+ +
+-+		wan {
+++		sys_led: led-1 {
+++			gpios = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;
+++			label = "nanopi-r2s:red:sys";
+++		};
+++
+++		wan_led: led-2 {
+ +			gpios = <&gpio2 RK_PC2 GPIO_ACTIVE_HIGH>;
+ +			label = "nanopi-r2s:green:wan";
+ +		};
+ +	};
+ +
+-+	gpio_keys {
+-+		compatible = "gpio-keys-polled";
+-+		poll-interval = <100>;
+++	vcc_io_sdio: sdmmcio-regulator {
+++		compatible = "regulator-gpio";
+++		enable-active-high;
+++		gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;
+++		pinctrl-0 = <&sdio_vcc_pin>;
+++		pinctrl-names = "default";
+++		regulator-name = "vcc_io_sdio";
+++		regulator-always-on;
+++		regulator-min-microvolt = <1800000>;
+++		regulator-max-microvolt = <3300000>;
+++		regulator-settling-time-us = <5000>;
+++		regulator-type = "voltage";
+++		startup-delay-us = <2000>;
+++		states = <1800000 0x1
+++			  3300000 0x0>;
+++		vin-supply = <&vcc_io_33>;
+++	};
+ +
+++	vcc_sd: sdmmc-regulator {
+++		compatible = "regulator-fixed";
+++		gpio = <&gpio0 RK_PD6 GPIO_ACTIVE_LOW>;
+++		pinctrl-0 = <&sdmmc0m1_gpio>;
+ +		pinctrl-names = "default";
+-+		pinctrl-0 = <&button_pins>;
+++		regulator-name = "vcc_sd";
+++		regulator-boot-on;
+++		regulator-min-microvolt = <3300000>;
+++		regulator-max-microvolt = <3300000>;
+++		vin-supply = <&vcc_io_33>;
+++	};
+ +
+-+		reset {
+-+			label = "Reset Button";
+-+			gpios = <&gpio0 RK_PA0 GPIO_ACTIVE_LOW>;
+-+			linux,code = <KEY_RESTART>;
+-+			debounce-interval = <50>;
+-+		};
+++	vdd_5v: vdd-5v {
+++		compatible = "regulator-fixed";
+++		regulator-name = "vdd_5v";
+++		regulator-always-on;
+++		regulator-boot-on;
+++		regulator-min-microvolt = <5000000>;
+++		regulator-max-microvolt = <5000000>;
+ +	};
+ +};
+ +
+@@ -195,19 +200,16 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +
+ +&gmac2io {
+ +	assigned-clocks = <&cru SCLK_MAC2IO>, <&cru SCLK_MAC2IO_EXT>;
+-+	assigned-clock-parents = <&gmac_clkin>, <&gmac_clkin>;
+++	assigned-clock-parents = <&gmac_clk>, <&gmac_clk>;
+ +	clock_in_out = "input";
+-+	phy-supply = <&vcc_io>;
+ +	phy-handle = <&rtl8211e>;
+ +	phy-mode = "rgmii";
+-+	pinctrl-names = "default";
+++	phy-supply = <&vcc_io_33>;
+ +	pinctrl-0 = <&rgmiim1_pins>;
+++	pinctrl-names = "default";
+++	rx_delay = <0x18>;
+ +	snps,aal;
+-+	snps,reset-gpio = <&gpio1 RK_PC2 GPIO_ACTIVE_LOW>;
+-+	snps,reset-active-low;
+-+	snps,reset-delays-us = <0 10000 50000>;
+ +	tx_delay = <0x24>;
+-+	rx_delay = <0x18>;
+ +	status = "okay";
+ +
+ +	mdio {
+@@ -215,8 +217,15 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +		#address-cells = <1>;
+ +		#size-cells = <0>;
+ +
+-+		rtl8211e: ethernet-phy@0 {
+-+			reg = <0>;
+++		rtl8211e: ethernet-phy@1 {
+++			compatible = "ethernet-phy-id001c.c915",
+++				     "ethernet-phy-ieee802.3-c22";
+++			reg = <1>;
+++			pinctrl-0 = <&eth_phy_reset_pin>;
+++			pinctrl-names = "default";
+++			reset-assert-us = <10000>;
+++			reset-deassert-us = <50000>;
+++			reset-gpios = <&gpio1 RK_PC2 GPIO_ACTIVE_LOW>;
+ +		};
+ +	};
+ +};
+@@ -224,35 +233,36 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +&i2c1 {
+ +	status = "okay";
+ +
+-+	rk805: rk805@18 {
+++	rk805: pmic@18 {
+ +		compatible = "rockchip,rk805";
+ +		reg = <0x18>;
+-+		interrupt-parent = <&gpio2>;
+-+		interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
+++		interrupt-parent = <&gpio1>;
+++		interrupts = <24 IRQ_TYPE_LEVEL_LOW>;
+ +		#clock-cells = <1>;
+ +		clock-output-names = "xin32k", "rk805-clkout2";
+ +		gpio-controller;
+ +		#gpio-cells = <2>;
+-+		pinctrl-names = "default";
+ +		pinctrl-0 = <&pmic_int_l>;
+++		pinctrl-names = "default";
+ +		rockchip,system-power-controller;
+ +		wakeup-source;
+ +
+-+		vcc1-supply = <&vcc_sys>;
+-+		vcc2-supply = <&vcc_sys>;
+-+		vcc3-supply = <&vcc_sys>;
+-+		vcc4-supply = <&vcc_sys>;
+-+		vcc5-supply = <&vcc_io>;
+-+		vcc6-supply = <&vcc_sys>;
+++		vcc1-supply = <&vdd_5v>;
+++		vcc2-supply = <&vdd_5v>;
+++		vcc3-supply = <&vdd_5v>;
+++		vcc4-supply = <&vdd_5v>;
+++		vcc5-supply = <&vcc_io_33>;
+++		vcc6-supply = <&vdd_5v>;
+ +
+ +		regulators {
+-+			vdd_logic: DCDC_REG1 {
+-+				regulator-name = "vdd_logic";
+++			vdd_log: DCDC_REG1 {
+++				regulator-name = "vdd_log";
+++				regulator-always-on;
+++				regulator-boot-on;
+ +				regulator-min-microvolt = <712500>;
+ +				regulator-max-microvolt = <1450000>;
+ +				regulator-ramp-delay = <12500>;
+-+				regulator-always-on;
+-+				regulator-boot-on;
+++
+ +				regulator-state-mem {
+ +					regulator-on-in-suspend;
+ +					regulator-suspend-microvolt = <1000000>;
+@@ -261,11 +271,12 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +
+ +			vdd_arm: DCDC_REG2 {
+ +				regulator-name = "vdd_arm";
+++				regulator-always-on;
+++				regulator-boot-on;
+ +				regulator-min-microvolt = <712500>;
+ +				regulator-max-microvolt = <1450000>;
+ +				regulator-ramp-delay = <12500>;
+-+				regulator-always-on;
+-+				regulator-boot-on;
+++
+ +				regulator-state-mem {
+ +					regulator-on-in-suspend;
+ +					regulator-suspend-microvolt = <950000>;
+@@ -276,17 +287,19 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +				regulator-name = "vcc_ddr";
+ +				regulator-always-on;
+ +				regulator-boot-on;
+++
+ +				regulator-state-mem {
+ +					regulator-on-in-suspend;
+ +				};
+ +			};
+ +
+-+			vcc_io: DCDC_REG4 {
+-+				regulator-name = "vcc_io";
+-+				regulator-min-microvolt = <3300000>;
+-+				regulator-max-microvolt = <3300000>;
+++			vcc_io_33: DCDC_REG4 {
+++				regulator-name = "vcc_io_33";
+ +				regulator-always-on;
+ +				regulator-boot-on;
+++				regulator-min-microvolt = <3300000>;
+++				regulator-max-microvolt = <3300000>;
+++
+ +				regulator-state-mem {
+ +					regulator-on-in-suspend;
+ +					regulator-suspend-microvolt = <3300000>;
+@@ -295,10 +308,11 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +
+ +			vcc_18: LDO_REG1 {
+ +				regulator-name = "vcc_18";
+-+				regulator-min-microvolt = <1800000>;
+-+				regulator-max-microvolt = <1800000>;
+ +				regulator-always-on;
+ +				regulator-boot-on;
+++				regulator-min-microvolt = <1800000>;
+++				regulator-max-microvolt = <1800000>;
+++
+ +				regulator-state-mem {
+ +					regulator-on-in-suspend;
+ +					regulator-suspend-microvolt = <1800000>;
+@@ -307,10 +321,11 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +
+ +			vcc18_emmc: LDO_REG2 {
+ +				regulator-name = "vcc18_emmc";
+-+				regulator-min-microvolt = <1800000>;
+-+				regulator-max-microvolt = <1800000>;
+ +				regulator-always-on;
+ +				regulator-boot-on;
+++				regulator-min-microvolt = <1800000>;
+++				regulator-max-microvolt = <1800000>;
+++
+ +				regulator-state-mem {
+ +					regulator-on-in-suspend;
+ +					regulator-suspend-microvolt = <1800000>;
+@@ -319,10 +334,11 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +
+ +			vdd_10: LDO_REG3 {
+ +				regulator-name = "vdd_10";
+-+				regulator-min-microvolt = <1000000>;
+-+				regulator-max-microvolt = <1000000>;
+ +				regulator-always-on;
+ +				regulator-boot-on;
+++				regulator-min-microvolt = <1000000>;
+++				regulator-max-microvolt = <1000000>;
+++
+ +				regulator-state-mem {
+ +					regulator-on-in-suspend;
+ +					regulator-suspend-microvolt = <1000000>;
+@@ -333,35 +349,46 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +};
+ +
+ +&io_domains {
+-+	status = "okay";
+-+
+-+	vccio1-supply = <&vcc_io>;
+++	pmuio-supply = <&vcc_io_33>;
+++	vccio1-supply = <&vcc_io_33>;
+ +	vccio2-supply = <&vcc18_emmc>;
+-+	vccio3-supply = <&vcc_sdio>;
+++	vccio3-supply = <&vcc_io_sdio>;
+ +	vccio4-supply = <&vcc_18>;
+-+	vccio5-supply = <&vcc_io>;
+-+	vccio6-supply = <&vcc_io>;
+-+	pmuio-supply = <&vcc_io>;
+++	vccio5-supply = <&vcc_io_33>;
+++	vccio6-supply = <&vcc_io_33>;
+++	status = "okay";
+ +};
+ +
+ +&pinctrl {
+-+	leds {
+-+		led_pins: led-pins {
+-+			rockchip,pins = <0 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>,
+-+							<2 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>,
+-+							<2 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+++	button {
+++		reset_button_pin: reset-button-pin {
+++			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
+ +		};
+ +	};
+ +
+-+	button {
+-+		button_pins: button-pins {
+-+			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
+++	ethernet-phy {
+++		eth_phy_reset_pin: eth-phy-reset-pin {
+++			rockchip,pins = <1 RK_PC2 RK_FUNC_GPIO &pcfg_pull_down>;
+++		};
+++	};
+++
+++	leds {
+++		lan_led_pin: lan-led-pin {
+++			rockchip,pins = <2 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
+++		};
+++
+++		sys_led_pin: sys-led-pin {
+++			rockchip,pins = <0 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
+++		};
+++
+++		wan_led_pin: wan-led-pin {
+++			rockchip,pins = <2 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+ +		};
+ +	};
+ +
+ +	pmic {
+ +		pmic_int_l: pmic-int-l {
+-+			rockchip,pins = <2 RK_PA6 RK_FUNC_GPIO &pcfg_pull_up>;
+++			rockchip,pins = <1 RK_PD0 RK_FUNC_GPIO &pcfg_pull_up>;
+ +		};
+ +	};
+ +
+@@ -372,16 +399,22 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +	};
+ +};
+ +
+++&pwm2 {
+++	status = "okay";
+++};
+++
+ +&sdmmc {
+ +	bus-width = <4>;
+-+	cap-mmc-highspeed;
+ +	cap-sd-highspeed;
+ +	disable-wp;
+-+	max-frequency = <150000000>;
+++	pinctrl-0 = <&sdmmc0_clk>, <&sdmmc0_cmd>, <&sdmmc0_dectn>, <&sdmmc0_bus4>;
+ +	pinctrl-names = "default";
+-+	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_dectn &sdmmc0_bus4>;
+++	sd-uhs-sdr12;
+++	sd-uhs-sdr25;
+++	sd-uhs-sdr50;
+++	sd-uhs-sdr104;
+ +	vmmc-supply = <&vcc_sd>;
+-+	vqmmc-supply = <&vcc_sdio>;
+++	vqmmc-supply = <&vcc_io_sdio>;
+ +	status = "okay";
+ +};
+ +
+@@ -391,16 +424,25 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ +	status = "okay";
+ +};
+ +
+-+&uart2 {
+++&u2phy {
+ +	status = "okay";
+ +};
+ +
+-+&u2phy {
+++&u2phy_host {
+++	status = "okay";
+++};
+++
+++&u2phy_otg {
+ +	status = "okay";
+++};
+ +
+-+	u2phy_host: host-port {
+-+		status = "okay";
+-+	};
+++&uart2 {
+++	status = "okay";
+++};
+++
+++&usb20_otg {
+++	status = "okay";
+++	dr_mode = "host";
+ +};
+ +
+ +&usb_host0_ehci {
+diff --git a/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-platdata.c b/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-platdata.c
+index fa42c1a760..a931ab7924 100644
+--- a/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-platdata.c
++++ b/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-platdata.c
+@@ -8,7 +8,7 @@
+ #include <dm.h>
+ #include <dt-structs.h>
+ 
+-static const struct dtd_rockchip_rk3328_grf dtv_syscon_at_ff100000 = {
++static struct dtd_rockchip_rk3328_grf dtv_syscon_at_ff100000 = {
+ 	.reg			= {0xff100000, 0x1000},
+ };
+ U_BOOT_DEVICE(syscon_at_ff100000) = {
+@@ -17,7 +17,7 @@ U_BOOT_DEVICE(syscon_at_ff100000) = {
+ 	.platdata_size	= sizeof(dtv_syscon_at_ff100000),
+ };
+ 
+-static const struct dtd_rockchip_rk3328_cru dtv_clock_controller_at_ff440000 = {
++static struct dtd_rockchip_rk3328_cru dtv_clock_controller_at_ff440000 = {
+ 	.reg			= {0xff440000, 0x1000},
+ 	.rockchip_grf		= 0x3a,
+ };
+@@ -27,11 +27,11 @@ U_BOOT_DEVICE(clock_controller_at_ff440000) = {
+ 	.platdata_size	= sizeof(dtv_clock_controller_at_ff440000),
+ };
+ 
+-static const struct dtd_rockchip_rk3328_uart dtv_serial_at_ff130000 = {
++static struct dtd_ns16550_serial dtv_serial_at_ff130000 = {
+ 	.clock_frequency	= 0x16e3600,
+ 	.clocks			= {
+-			{&dtv_clock_controller_at_ff440000, {40}},
+-			{&dtv_clock_controller_at_ff440000, {212}},},
++			{NULL, {40}},
++			{NULL, {212}},},
+ 	.dma_names		= {"tx", "rx"},
+ 	.dmas			= {0x10, 0x6, 0x10, 0x7},
+ 	.interrupts		= {0x0, 0x39, 0x4},
+@@ -42,20 +42,19 @@ static const struct dtd_rockchip_rk3328_uart dtv_serial_at_ff130000 = {
+ 	.reg_shift		= 0x2,
+ };
+ U_BOOT_DEVICE(serial_at_ff130000) = {
+-	.name		= "rockchip_rk3328_uart",
++	.name		= "ns16550_serial",
+ 	.platdata	= &dtv_serial_at_ff130000,
+ 	.platdata_size	= sizeof(dtv_serial_at_ff130000),
+ };
+ 
+-static const struct dtd_rockchip_rk3328_dw_mshc dtv_mmc_at_ff500000 = {
++static struct dtd_rockchip_rk3288_dw_mshc dtv_mmc_at_ff500000 = {
+ 	.bus_width		= 0x4,
+-	.cap_mmc_highspeed	= true,
+ 	.cap_sd_highspeed	= true,
+ 	.clocks			= {
+-			{&dtv_clock_controller_at_ff440000, {317}},
+-			{&dtv_clock_controller_at_ff440000, {33}},
+-			{&dtv_clock_controller_at_ff440000, {74}},
+-			{&dtv_clock_controller_at_ff440000, {78}},},
++			{NULL, {317}},
++			{NULL, {33}},
++			{NULL, {74}},
++			{NULL, {78}},},
+ 	.disable_wp		= true,
+ 	.fifo_depth		= 0x100,
+ 	.interrupts		= {0x0, 0xc, 0x4},
+@@ -63,17 +62,21 @@ static const struct dtd_rockchip_rk3328_dw_mshc dtv_mmc_at_ff500000 = {
+ 	.pinctrl_0		= {0x47, 0x48, 0x49, 0x4a},
+ 	.pinctrl_names		= "default",
+ 	.reg			= {0xff500000, 0x4000},
++	.sd_uhs_sdr104		= true,
++	.sd_uhs_sdr12		= true,
++	.sd_uhs_sdr25		= true,
++	.sd_uhs_sdr50		= true,
+ 	.u_boot_spl_fifo_mode	= true,
+ 	.vmmc_supply		= 0x4b,
+ 	.vqmmc_supply		= 0x1e,
+ };
+ U_BOOT_DEVICE(mmc_at_ff500000) = {
+-	.name		= "rockchip_rk3328_dw_mshc",
++	.name		= "rockchip_rk3288_dw_mshc",
+ 	.platdata	= &dtv_mmc_at_ff500000,
+ 	.platdata_size	= sizeof(dtv_mmc_at_ff500000),
+ };
+ 
+-static const struct dtd_rockchip_rk3328_pinctrl dtv_pinctrl = {
++static struct dtd_rockchip_rk3328_pinctrl dtv_pinctrl = {
+ 	.ranges			= true,
+ 	.rockchip_grf		= 0x3a,
+ };
+@@ -83,9 +86,9 @@ U_BOOT_DEVICE(pinctrl) = {
+ 	.platdata_size	= sizeof(dtv_pinctrl),
+ };
+ 
+-static const struct dtd_rockchip_gpio_bank dtv_gpio0_at_ff210000 = {
++static struct dtd_rockchip_gpio_bank dtv_gpio0_at_ff210000 = {
+ 	.clocks			= {
+-			{&dtv_clock_controller_at_ff440000, {200}},},
++			{NULL, {200}},},
+ 	.gpio_controller	= true,
+ 	.interrupt_controller	= true,
+ 	.interrupts		= {0x0, 0x33, 0x4},
+@@ -97,10 +100,11 @@ U_BOOT_DEVICE(gpio0_at_ff210000) = {
+ 	.platdata_size	= sizeof(dtv_gpio0_at_ff210000),
+ };
+ 
+-static const struct dtd_regulator_fixed dtv_sdmmc_regulator = {
+-	.gpio			= {0x60, 0x1e, 0x1},
+-	.pinctrl_0		= 0x61,
++static struct dtd_regulator_fixed dtv_sdmmc_regulator = {
++	.gpio			= {0x61, 0x1e, 0x1},
++	.pinctrl_0		= 0x67,
+ 	.pinctrl_names		= "default",
++	.regulator_boot_on	= true,
+ 	.regulator_max_microvolt = 0x325aa0,
+ 	.regulator_min_microvolt = 0x325aa0,
+ 	.regulator_name		= "vcc_sd",
+@@ -112,7 +116,7 @@ U_BOOT_DEVICE(sdmmc_regulator) = {
+ 	.platdata_size	= sizeof(dtv_sdmmc_regulator),
+ };
+ 
+-static const struct dtd_rockchip_rk3328_dmc dtv_dmc = {
++static struct dtd_rockchip_rk3328_dmc dtv_dmc = {
+ 	.reg			= {0xff400000, 0x1000, 0xff780000, 0x3000, 0xff100000, 0x1000, 0xff440000, 0x1000,
+ 		0xff720000, 0x1000, 0xff798000, 0x1000},
+ 	.rockchip_sdram_params	= {0x1, 0xa, 0x2, 0x1, 0x0, 0x0, 0x11, 0x0,
+@@ -147,3 +151,12 @@ U_BOOT_DEVICE(dmc) = {
+ 	.platdata_size	= sizeof(dtv_dmc),
+ };
+ 
++void dm_populate_phandle_data(void) {
++	dtv_serial_at_ff130000.clocks[0].node = DM_GET_DEVICE(clock_controller_at_ff440000);
++	dtv_serial_at_ff130000.clocks[1].node = DM_GET_DEVICE(clock_controller_at_ff440000);
++	dtv_mmc_at_ff500000.clocks[0].node = DM_GET_DEVICE(clock_controller_at_ff440000);
++	dtv_mmc_at_ff500000.clocks[1].node = DM_GET_DEVICE(clock_controller_at_ff440000);
++	dtv_mmc_at_ff500000.clocks[2].node = DM_GET_DEVICE(clock_controller_at_ff440000);
++	dtv_mmc_at_ff500000.clocks[3].node = DM_GET_DEVICE(clock_controller_at_ff440000);
++	dtv_gpio0_at_ff210000.clocks[0].node = DM_GET_DEVICE(clock_controller_at_ff440000);
++}
+diff --git a/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-structs-gen.h b/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-structs-gen.h
+index 88291627b8..22efe0d247 100644
+--- a/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-structs-gen.h
++++ b/package/boot/uboot-rockchip/src/of-platdata/nanopi-r2s-rk3328/dt-structs-gen.h
+@@ -6,10 +6,23 @@
+ 
+ #include <stdbool.h>
+ #include <linux/libfdt.h>
++struct dtd_ns16550_serial {
++	fdt32_t		clock_frequency;
++	struct phandle_1_arg clocks[2];
++	const char *	dma_names[2];
++	fdt32_t		dmas[4];
++	fdt32_t		interrupts[3];
++	fdt32_t		pinctrl_0;
++	const char *	pinctrl_names;
++	fdt64_t		reg[2];
++	fdt32_t		reg_io_width;
++	fdt32_t		reg_shift;
++};
+ struct dtd_regulator_fixed {
+ 	fdt32_t		gpio[3];
+ 	fdt32_t		pinctrl_0;
+ 	const char *	pinctrl_names;
++	bool		regulator_boot_on;
+ 	fdt32_t		regulator_max_microvolt;
+ 	fdt32_t		regulator_min_microvolt;
+ 	const char *	regulator_name;
+@@ -22,17 +35,8 @@ struct dtd_rockchip_gpio_bank {
+ 	fdt32_t		interrupts[3];
+ 	fdt64_t		reg[2];
+ };
+-struct dtd_rockchip_rk3328_cru {
+-	fdt64_t		reg[2];
+-	fdt32_t		rockchip_grf;
+-};
+-struct dtd_rockchip_rk3328_dmc {
+-	fdt64_t		reg[12];
+-	fdt32_t		rockchip_sdram_params[196];
+-};
+-struct dtd_rockchip_rk3328_dw_mshc {
++struct dtd_rockchip_rk3288_dw_mshc {
+ 	fdt32_t		bus_width;
+-	bool		cap_mmc_highspeed;
+ 	bool		cap_sd_highspeed;
+ 	struct phandle_1_arg clocks[4];
+ 	bool		disable_wp;
+@@ -42,10 +46,22 @@ struct dtd_rockchip_rk3328_dw_mshc {
+ 	fdt32_t		pinctrl_0[4];
+ 	const char *	pinctrl_names;
+ 	fdt64_t		reg[2];
++	bool		sd_uhs_sdr104;
++	bool		sd_uhs_sdr12;
++	bool		sd_uhs_sdr25;
++	bool		sd_uhs_sdr50;
+ 	bool		u_boot_spl_fifo_mode;
+ 	fdt32_t		vmmc_supply;
+ 	fdt32_t		vqmmc_supply;
+ };
++struct dtd_rockchip_rk3328_cru {
++	fdt64_t		reg[2];
++	fdt32_t		rockchip_grf;
++};
++struct dtd_rockchip_rk3328_dmc {
++	fdt64_t		reg[12];
++	fdt32_t		rockchip_sdram_params[196];
++};
+ struct dtd_rockchip_rk3328_grf {
+ 	fdt64_t		reg[2];
+ };
+@@ -53,20 +69,9 @@ struct dtd_rockchip_rk3328_pinctrl {
+ 	bool		ranges;
+ 	fdt32_t		rockchip_grf;
+ };
+-struct dtd_rockchip_rk3328_uart {
+-	fdt32_t		clock_frequency;
+-	struct phandle_1_arg clocks[2];
+-	const char *	dma_names[2];
+-	fdt32_t		dmas[4];
+-	fdt32_t		interrupts[3];
+-	fdt32_t		pinctrl_0;
+-	const char *	pinctrl_names;
+-	fdt64_t		reg[2];
+-	fdt32_t		reg_io_width;
+-	fdt32_t		reg_shift;
+-};
+ #define dtd_syscon dtd_rockchip_rk3328_cru
+ #define dtd_simple_mfd dtd_rockchip_rk3328_grf
+-#define dtd_snps_dw_apb_uart dtd_rockchip_rk3328_uart
++#define dtd_rockchip_rk3328_uart dtd_ns16550_serial
++#define dtd_snps_dw_apb_uart dtd_ns16550_serial
+ #define dtd_rockchip_cru dtd_rockchip_rk3328_cru
+-#define dtd_rockchip_rk3288_dw_mshc dtd_rockchip_rk3328_dw_mshc
++#define dtd_rockchip_rk3328_dw_mshc dtd_rockchip_rk3288_dw_mshc
+-- 
+2.20.1
