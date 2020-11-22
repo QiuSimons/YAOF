@@ -57,8 +57,8 @@ sed -i 's/O2/O2/g' ./rules.mk
 #RNGD
 sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
 #rc.common
-rm -rf ./package/base-files/files/etc/rc.common
-cp -f ../PATCH/duplicate/rc.common ./package/base-files/files/etc/rc.common
+#rm -rf ./package/base-files/files/etc/rc.common
+#cp -f ../PATCH/duplicate/rc.common ./package/base-files/files/etc/rc.common
 #irqbalance
 #sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 
