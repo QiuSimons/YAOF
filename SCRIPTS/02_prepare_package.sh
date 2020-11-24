@@ -65,6 +65,8 @@ sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
 ##必要的patch
 #patch i2c0
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
+#3328 add idle
+wget -P target/linux/rockchip/patches-5.4 https://github.com/project-openwrt/openwrt/raw/master/target/linux/rockchip/patches-5.4/005-arm64-dts-rockchip-Add-RK3328-idle-state.patch
 #luci network
 patch -p1 < ../PATCH/new/main/luci_network-add-packet-steering.patch
 #patch jsonc
