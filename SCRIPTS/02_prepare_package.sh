@@ -164,7 +164,8 @@ cp -rf ../PATCH/duplicate/luci-app-control-weburl ./package/new/luci-app-control
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/autocore package/lean/autocore
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/lean/coremark package/lean/coremark
 #迅雷快鸟
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-xlnetacc package/lean/luci-app-xlnetacc
+#svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-xlnetacc package/lean/luci-app-xlnetacc
+git clone https://github.com/garypang13/luci-app-xlnetacc package/lean/luci-app-xlnetacc
 #DDNS
 rm -rf ./feeds/packages/net/ddns-scripts
 rm -rf ./feeds/luci/applications/luci-app-ddns
