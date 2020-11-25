@@ -320,6 +320,10 @@ rm -f ./package/feeds/packages/frp
 git clone https://github.com/lwz322/luci-app-frps.git package/lean/luci-app-frps
 git clone https://github.com/kuoruan/luci-app-frpc.git package/lean/luci-app-frpc
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/frp package/feeds/packages/frp
+#花生壳
+svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/luci-app-phtunnel package/new/luci-app-phtunnel
+svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
+svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/phtunnel package/new/phtunnel
 
 #crypto
 echo '
