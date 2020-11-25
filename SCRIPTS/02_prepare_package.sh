@@ -7,8 +7,8 @@ rm -rf ./package/network/config/firewall
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/config/firewall package/network/config/firewall
 #使用19.07的feed源
 rm -f ./feeds.conf.default
-wget https://raw.githubusercontent.com/openwrt/openwrt/openwrt-19.07/feeds.conf.default
-wget -P include/ https://raw.githubusercontent.com/openwrt/openwrt/openwrt-19.07/include/scons.mk
+wget https://github.com/openwrt/openwrt/raw/openwrt-19.07/feeds.conf.default
+wget -P include/ https://github.com/openwrt/openwrt/raw/openwrt-19.07/include/scons.mk
 patch -p1 < ../PATCH/new/main/0001-tools-add-upx-ucl-support.patch
 #remove annoying snapshot tag
 sed -i 's,SNAPSHOT,,g' include/version.mk
@@ -42,7 +42,7 @@ patch -p1 < ../PATCH/new/package/dnsmasq-add-filter-aaaa-option.patch
 patch -p1 < ../PATCH/new/package/luci-add-filter-aaaa-option.patch
 cp -f ../PATCH/new/package/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
 rm -rf ./package/base-files/files/etc/init.d/boot
-wget -P package/base-files/files/etc/init.d https://raw.githubusercontent.com/QiuSimons/openwrt-ctcgfw/openwrt-18.06-k5.4/package/base-files/files/etc/init.d/boot
+wget -P package/base-files/files/etc/init.d https://github.com/QiuSimons/openwrt-ctcgfw/raw/openwrt-18.06-k5.4/package/base-files/files/etc/init.d/boot
 #Patch FireWall 以增添fullcone功能 
 mkdir package/network/config/firewall/patches
 wget -P package/network/config/firewall/patches/ https://github.com/QiuSimons/fullconenat-fw3-patch-LGA1150/raw/master/fullconenat.patch
@@ -52,13 +52,13 @@ wget -O- https://github.com/QiuSimons/fullconenat-fw3-patch-LGA1150/raw/master/l
 popd
 # Patch Kernel 以解决fullcone冲突
 pushd target/linux/generic/hack-5.4
-wget https://raw.githubusercontent.com/QiuSimons/lede-coolsnowwolf/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
+wget https://github.com/QiuSimons/lede-coolsnowwolf/raw/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
 popd
 #Patch FireWall 以增添SFE
 patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
 # SFE内核补丁
 pushd target/linux/generic/hack-5.4
-wget https://raw.githubusercontent.com/QiuSimons/lede-coolsnowwolf/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
+wget https://github.com/QiuSimons/lede-coolsnowwolf/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 popd
 #OC
 cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
