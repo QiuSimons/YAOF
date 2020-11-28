@@ -1,46 +1,7 @@
 #!/bin/bash
 clear
 
-#wget -O- https://github.com/project-openwrt/openwrt/commit/d8df86130d172b3ce262d2744e2ddd2a6eed5f50.patch | patch -p1
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/r8152 package/new/r8152
-sed -i '/rtl8152/d' ./target/linux/rockchip/image/armv8.mk
-
-notExce(){ 
-#blocktrron.git 
-patch -p1 < ../PATCH/new/main/exp/uboot-rockchip-update-to-v2020.10.patch
-patch -p1 < ../PATCH/new/main/exp/rockchip-fix-NanoPi-R2S-GMAC-clock-name.patch
-
-#update r8152 driver
-wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3178.patch | patch -p1
-
-#Kernel
-cp -f ../PATCH/new/main/xanmod_5.4.patch ./target/linux/generic/hack-5.4/000-xanmod_5.4.patch
-wget -q https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3580.patch
-patch -p1 < ./3580.patch
-}
-
-notExce(){ 
-#RT Kernel
-cp -f ../PATCH/new/main/999-patch-5.4.61-rt37.patch ./target/linux/generic/hack-5.4/999-patch-5.4.61-rt37.patch
-sed -i '/PREEMPT/d' ./target/linux/rockchip/armv8/config-5.4
-echo '
-CONFIG_PREEMPT_RT=y
-CONFIG_PREEMPTION=y
-' >> ./target/linux/rockchip/armv8/config-5.4
-sed -i '/PREEMPT/d' ./target/linux/rockchip/config-default
-echo '
-CONFIG_PREEMPT_RT=y
-CONFIG_PREEMPTION=y
-' >> ./target/linux/rockchip/config-default
-}
-
-#HW-RNG
-patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
-
 ##准备工作
-#回滚FW3
-rm -rf ./package/network/config/firewall
-svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/config/firewall package/network/config/firewall
 #使用19.07的feed源
 rm -f ./feeds.conf.default
 wget https://github.com/openwrt/openwrt/raw/openwrt-19.07/feeds.conf.default
@@ -49,24 +10,37 @@ patch -p1 < ../PATCH/new/main/0001-tools-add-upx-ucl-support.patch
 #remove annoying snapshot tag
 sed -i 's,SNAPSHOT,,g' include/version.mk
 sed -i 's,snapshots,,g' package/base-files/image-config.in
-#使用O3级别的优化
+#使用O2级别的优化
 sed -i 's/Os/O2/g' include/target.mk
 sed -i 's/O2/O2/g' ./rules.mk
 #更新feed
 ./scripts/feeds update -a && ./scripts/feeds install -a
-#RNGD
-sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
-#rc.common
-#rm -rf ./package/base-files/files/etc/rc.common
-#cp -f ../PATCH/duplicate/rc.common ./package/base-files/files/etc/rc.common
-#irqbalance
-#sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 
-##必要的patch
+##R2S相关
+#r8152新驱动（觉得不稳定的可以注释掉这段
+#wget -O- https://github.com/project-openwrt/openwrt/commit/d8df86130d172b3ce262d2744e2ddd2a6eed5f50.patch | patch -p1
+svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/r8152 package/new/r8152
+sed -i '/rtl8152/d' ./target/linux/rockchip/image/armv8.mk
+#HW-RNG（硬件随机数，觉得不稳定的可以注释掉
+patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
+sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
 #patch i2c0
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #3328 add idle
 wget -P target/linux/rockchip/patches-5.4 https://github.com/project-openwrt/openwrt/raw/master/target/linux/rockchip/patches-5.4/005-arm64-dts-rockchip-Add-RK3328-idle-state.patch
+#OC
+cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
+#IRQ
+sed -i '/;;/i\set_interface_core 8 "ff160000" "ff160000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+sed -i '/;;/i\set_interface_core 1 "ff150000" "ff150000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+#disabed rk3328 ethernet tcp/udp offloading tx/rx
+sed -i '/;;/i\ethtool -K eth0 rx off tx off && logger -t disable-offloading "disabed rk3328 ethernet tcp/udp offloading tx/rx"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+#SWAP LAN WAN
+sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network
+sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network
+
+
+##必要的patch
 #luci network
 patch -p1 < ../PATCH/new/main/luci_network-add-packet-steering.patch
 #patch jsonc
@@ -77,6 +51,9 @@ patch -p1 < ../PATCH/new/package/luci-add-filter-aaaa-option.patch
 cp -f ../PATCH/new/package/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
 rm -rf ./package/base-files/files/etc/init.d/boot
 wget -P package/base-files/files/etc/init.d https://github.com/project-openwrt/openwrt/raw/openwrt-18.06-k5.4/package/base-files/files/etc/init.d/boot
+#回滚FW3
+rm -rf ./package/network/config/firewall
+svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/config/firewall package/network/config/firewall
 #Patch FireWall 以增添fullcone功能 
 mkdir package/network/config/firewall/patches
 wget -P package/network/config/firewall/patches/ https://github.com/LGA1150/fullconenat-fw3-patch/raw/master/fullconenat.patch
@@ -92,19 +69,8 @@ popd
 patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
 # SFE内核补丁
 pushd target/linux/generic/hack-5.4
-<<<<<<< HEAD
 wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 popd
-#OC
-cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
-#IRQ
-sed -i '/;;/i\set_interface_core 8 "ff160000" "ff160000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-sed -i '/;;/i\set_interface_core 1 "ff150000" "ff150000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-#disabed rk3328 ethernet tcp/udp offloading tx/rx
-sed -i '/;;/i\ethtool -K eth0 rx off tx off && logger -t disable-offloading "disabed rk3328 ethernet tcp/udp offloading tx/rx"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-#SWAP LAN WAN
-sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 
 ##获取额外package
 #luci-app-compressed-memory
@@ -119,8 +85,6 @@ rm -rf ./package/kernel/cryptodev-linux
 svn co https://github.com/project-openwrt/openwrt/trunk/package/kernel/cryptodev-linux package/kernel/cryptodev-linux
 #更换curl
 rm -rf ./package/network/utils/curl
-#svn co https://github.com/openwrt/packages/trunk/net/curl feeds/packages/net/curl
-#ln -sf ../../../feeds/packages/net/curl ./package/feeds/packages/curl
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/utils/curl package/network/utils/curl
 #更换Node版本
 rm -rf ./feeds/packages/lang/node
@@ -223,16 +187,16 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/le
 svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping package/lean/tcpping
 svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
 #PASSWALL
-svn co https://github.com/xiaorouji/openwrt-package/trunk/lienol/luci-app-passwall package/new/luci-app-passwall
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
 cp -f ../PATCH/new/script/move_2_services.sh ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
 bash move_2_services.sh
 popd
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/tcping package/new/tcping
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-go package/new/trojan-go
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/brook package/new/brook
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-plus package/new/trojan-plus
-svn co https://github.com/xiaorouji/openwrt-package/trunk/package/ssocks package/new/ssocks
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/new/tcping
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-go package/new/trojan-go
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/brook
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-plus package/new/trojan-plus
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/ssocks package/new/ssocks
 #luci-app-cpulimit
 cp -rf ../PATCH/duplicate/luci-app-cpulimit ./package/lean/luci-app-cpulimit
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/ntlf9t/cpulimit package/lean/cpulimit
@@ -328,6 +292,7 @@ svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/luci-app-phtunnel
 svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
 svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/phtunnel package/new/phtunnel
 
+##R2S相关
 #crypto
 echo '
 CONFIG_ARM64_CRYPTO=y
@@ -353,7 +318,6 @@ CONFIG_CRYPTO_SIMD=y
 # CONFIG_CRYPTO_SM3_ARM64_CE is not set
 # CONFIG_CRYPTO_SM4_ARM64_CE is not set
 ' >> ./target/linux/rockchip/armv8/config-5.4
-
 #let trojan prefer chacha20(vssr,passwall,ssrp
 patch -p1 < ../PATCH/new/main/chacha.patch
 
