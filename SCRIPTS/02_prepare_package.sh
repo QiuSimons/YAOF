@@ -17,28 +17,27 @@ sed -i 's/O2/O2/g' ./rules.mk
 ./scripts/feeds update -a && ./scripts/feeds install -a
 
 ##R2S相关
-#r8152新驱动（觉得不稳定的可以注释掉这段
+#r8152新驱动（可选
 #wget -O- https://github.com/project-openwrt/openwrt/commit/d8df86130d172b3ce262d2744e2ddd2a6eed5f50.patch | patch -p1
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/r8152 package/new/r8152
 sed -i '/rtl8152/d' ./target/linux/rockchip/image/armv8.mk
-#HW-RNG（硬件随机数，觉得不稳定的可以注释掉
+#HW-RNG（硬件随机数，可选
 patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
 sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
-#patch i2c0
+#patch i2c0（服务于OLED，可选
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #3328 add idle
 wget -P target/linux/rockchip/patches-5.4 https://github.com/project-openwrt/openwrt/raw/master/target/linux/rockchip/patches-5.4/005-arm64-dts-rockchip-Add-RK3328-idle-state.patch
-#OC
+#OC（提升主频，可选
 cp -f ../PATCH/new/main/999-unlock-1608mhz-rk3328.patch ./target/linux/rockchip/patches-5.4/999-unlock-1608mhz-rk3328.patch
 #IRQ
 sed -i '/;;/i\set_interface_core 8 "ff160000" "ff160000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 sed -i '/;;/i\set_interface_core 1 "ff150000" "ff150000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 #disabed rk3328 ethernet tcp/udp offloading tx/rx
 sed -i '/;;/i\ethtool -K eth0 rx off tx off && logger -t disable-offloading "disabed rk3328 ethernet tcp/udp offloading tx/rx"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-#SWAP LAN WAN
+#SWAP LAN WAN（满足千兆场景，可选
 sed -i 's,"eth1" "eth0","eth0" "eth1",g' target/linux/rockchip/armv8/base-files/etc/board.d/02_network
 sed -i "s,'eth1' 'eth0','eth0' 'eth1',g" target/linux/rockchip/armv8/base-files/etc/board.d/02_network
-
 
 ##必要的patch
 #luci network
@@ -54,6 +53,10 @@ wget -P package/base-files/files/etc/init.d https://github.com/project-openwrt/o
 #回滚FW3
 rm -rf ./package/network/config/firewall
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/config/firewall package/network/config/firewall
+# Patch Kernel 以解决fullcone冲突
+pushd target/linux/generic/hack-5.4
+wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
+popd
 #Patch FireWall 以增添fullcone功能 
 mkdir package/network/config/firewall/patches
 wget -P package/network/config/firewall/patches/ https://github.com/LGA1150/fullconenat-fw3-patch/raw/master/fullconenat.patch
@@ -61,16 +64,18 @@ wget -P package/network/config/firewall/patches/ https://github.com/LGA1150/full
 pushd feeds/luci
 wget -O- https://github.com/LGA1150/fullconenat-fw3-patch/raw/master/luci.patch | git apply
 popd
-# Patch Kernel 以解决fullcone冲突
-pushd target/linux/generic/hack-5.4
-wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
-popd
-#Patch FireWall 以增添SFE
-patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
-# SFE内核补丁
+#FullCone 相关组件
+cp -rf ../openwrt-lienol/package/network/fullconenat ./package/network/fullconenat
+# Patch Kernel 以支援SFE
 pushd target/linux/generic/hack-5.4
 wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 popd
+# Patch LuCI 以增添SFE开关
+patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
+# SFE 相关组件
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/new/shortcut-fe
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/new/fast-classifier
+cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
 
 ##获取额外package
 #luci-app-compressed-memory
@@ -223,7 +228,6 @@ svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network
 cp -rf ../packages-lienol/net/smartdns ./package/new/smartdns
 cp -rf ../luci-lienol/applications/luci-app-smartdns ./package/new/luci-app-smartdns
 sed -i 's,include ../..,include $(TOPDIR)/feeds/luci,g' ./package/new/luci-app-smartdns/Makefile
-
 #上网APP过滤
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter package/new/OpenAppFilter
 #Docker
@@ -256,14 +260,6 @@ svn co https://github.com/openwrt/packages/trunk/libs/libcap-ng feeds/packages/l
 ln -sf ../../../feeds/packages/libs/libcap-ng ./package/feeds/packages/libcap-ng
 rm -rf ./feeds/packages/utils/collectd
 svn co https://github.com/openwrt/packages/trunk/utils/collectd feeds/packages/utils/collectd
-#FullCone模块
-cp -rf ../openwrt-lienol/package/network/fullconenat ./package/network/fullconenat
-#翻译及部分功能优化
-cp -rf ../PATCH/duplicate/addition-trans-zh-master ./package/lean/lean-translate
-#SFE
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/new/shortcut-fe
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/new/fast-classifier
-cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
 #IPSEC
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ipsec-vpnd package/lean/luci-app-ipsec-vpnd
 #Zerotier
@@ -291,6 +287,8 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/frp package/feeds
 svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/luci-app-phtunnel package/new/luci-app-phtunnel
 svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
 svn co https://github.com/teasiu/dragino2/trunk/package/teasiu/phtunnel package/new/phtunnel
+#翻译及部分功能优化
+cp -rf ../PATCH/duplicate/addition-trans-zh-master ./package/lean/lean-translate
 
 ##R2S相关
 #crypto
