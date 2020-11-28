@@ -148,6 +148,7 @@ svn co https://github.com/QiuSimons/openwrt-ctcgfw/branches/master/package/lean/
 git clone -b master --single-branch https://github.com/QiuSimons/luci-app-oled-NateLol package/new/luci-app-oled
 #网易云解锁
 git clone https://github.com/QiuSimons/luci-app-unblockneteasemusic-ctcgfw package/new/UnblockNeteaseMusic
+#popd
 #定时重启
 svn co https://github.com/QiuSimons/lede-coolsnowwolf/trunk/package/lean/luci-app-autoreboot package/lean/luci-app-autoreboot
 #argon主题
@@ -185,7 +186,7 @@ svn co https://github.com/QiuSimons/lede-coolsnowwolf/trunk/package/lean/trojan 
 svn co https://github.com/QiuSimons/openwrt-ctcgfw/trunk/package/lean/tcpping package/lean/tcpping
 svn co https://github.com/QiuSimons/helloworld-fw876/trunk/naiveproxy package/lean/naiveproxy
 #PASSWALL
-svn co https://github.com/QiuSimons/openwrt-passwall-xiaorouji/trunk/luci-app-passwall package/new/luci-app-passwall
+svn co https://github.com/QiuSimons/openwrt-package-xiaorouji/trunk/lienol/luci-app-passwall package/new/luci-app-passwall
 cp -f ../PATCH/new/script/move_2_services.sh ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
 bash move_2_services.sh
