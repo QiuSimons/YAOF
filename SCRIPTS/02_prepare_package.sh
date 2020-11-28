@@ -205,6 +205,7 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-go package/new
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/brook
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-plus package/new/trojan-plus
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/ssocks package/new/ssocks
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray package/new/xray
 #luci-app-cpulimit
 cp -rf ../PATCH/duplicate/luci-app-cpulimit ./package/lean/luci-app-cpulimit
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/ntlf9t/cpulimit package/lean/cpulimit
