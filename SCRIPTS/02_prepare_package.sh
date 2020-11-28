@@ -185,7 +185,7 @@ svn co https://github.com/QiuSimons/lede-coolsnowwolf/trunk/package/lean/trojan 
 svn co https://github.com/QiuSimons/openwrt-ctcgfw/trunk/package/lean/tcpping package/lean/tcpping
 svn co https://github.com/QiuSimons/helloworld-fw876/trunk/naiveproxy package/lean/naiveproxy
 #PASSWALL
-svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
+svn co https://github.com/QiuSimons/openwrt-passwall-xiaorouji/trunk/luci-app-passwall package/new/luci-app-passwall
 cp -f ../PATCH/new/script/move_2_services.sh ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
 bash move_2_services.sh
