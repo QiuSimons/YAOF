@@ -28,18 +28,18 @@ sed -i '/;;/i\ethtool -K eth0 rx off tx off && logger -t disable-offloading "dis
 #wget -O- https://github.com/project-openwrt/openwrt/commit/d8df86130d172b3ce262d2744e2ddd2a6eed5f50.patch | patch -p1
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/r8152 package/new/r8152
 sed -i '/rtl8152/d' ./target/linux/rockchip/image/armv8.mk
-#HW-RNG（硬件随机数，可选
-patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
-sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
-echo '
-CONFIG_CRYPTO_DRBG=y
-CONFIG_CRYPTO_DRBG_HMAC=y
-CONFIG_CRYPTO_DRBG_MENU=y
-CONFIG_CRYPTO_JITTERENTROPY=y
-CONFIG_CRYPTO_RNG=y
-CONFIG_CRYPTO_RNG2=y
-CONFIG_CRYPTO_RNG_DEFAULT=y
-' >> ./target/linux/rockchip/armv8/config-5.4
+##HW-RNG（硬件随机数，可选
+#patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
+#sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
+#echo '
+#CONFIG_CRYPTO_DRBG=y
+#CONFIG_CRYPTO_DRBG_HMAC=y
+#CONFIG_CRYPTO_DRBG_MENU=y
+#CONFIG_CRYPTO_JITTERENTROPY=y
+#CONFIG_CRYPTO_RNG=y
+#CONFIG_CRYPTO_RNG2=y
+#CONFIG_CRYPTO_RNG_DEFAULT=y
+#' >> ./target/linux/rockchip/armv8/config-5.4
 #patch i2c0（服务于OLED，可选
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #OC（提升主频，可选
