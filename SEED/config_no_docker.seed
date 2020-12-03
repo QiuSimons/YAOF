@@ -39,7 +39,7 @@ CONFIG_PACKAGE_kmod-crypto-ctr=y
 CONFIG_PACKAGE_kmod-crypto-gcm=y
 CONFIG_PACKAGE_kmod-crypto-aes=y
 
-CONFIG_PACKAGE_rng-tools=y
+#CONFIG_PACKAGE_rng-tools=y
 
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
