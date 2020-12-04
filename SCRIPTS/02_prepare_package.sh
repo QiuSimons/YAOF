@@ -184,6 +184,8 @@ git clone -b master --depth 1 https://github.com/pexcn/openwrt-chinadns-ng.git p
 #VSSR
 git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
 git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
+sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
+sed -i '/V2ray:v2ray/d' package/lean/luci-app-vssr/Makefile
 #SSRP
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 sed -i 's,default n,default y,g' package/lean/luci-app-ssr-plus/Makefile
