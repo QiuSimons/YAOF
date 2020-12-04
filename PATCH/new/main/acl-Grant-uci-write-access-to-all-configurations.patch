@@ -4,9 +4,6 @@ Date: Fri, 4 Dec 2020 11:45:52 +0800
 Subject: [PATCH] Grant uci write access to all configurations
 
 ---
- .../luci-base/root/usr/share/rpcd/acl.d/luci-base.json | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
 diff --git a/feed/luci/modules/luci-base/root/usr/share/rpcd/acl.d/luci-base.json b/feed/luci/modules/luci-base/root/usr/share/rpcd/acl.d/luci-base.json
 index af9fc514e1..8c3398083b 100644
 --- a/feed/luci/modules/luci-base/root/usr/share/rpcd/acl.d/luci-base.json
