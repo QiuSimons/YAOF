@@ -217,8 +217,8 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/bro
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-plus package/new/trojan-plus
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/ssocks package/new/ssocks
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray package/new/xray
-svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray package/new/v2ray
-svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray package/new/v2ray-plugin
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/v2ray package/new/v2ray
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/v2ray-plugin package/new/v2ray-plugin
 #luci-app-cpulimit
 cp -rf ../PATCH/duplicate/luci-app-cpulimit ./package/lean/luci-app-cpulimit
 svn co https://github.com/project-openwrt/openwrt/branches/master/package/ntlf9t/cpulimit package/lean/cpulimit
