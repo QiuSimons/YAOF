@@ -188,6 +188,7 @@ git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git pac
 git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
 #SSRP
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
+sed -i 's,default n,default y,g' package/lean/luci-app-ssr-plus/Makefile
 #SSRP依赖
 rm -rf ./feeds/packages/net/kcptun
 rm -rf ./feeds/packages/net/shadowsocks-libev
@@ -207,6 +208,7 @@ svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping pac
 svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
 #PASSWALL
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
+sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
 cp -f ../PATCH/new/script/move_2_services.sh ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
 bash move_2_services.sh
