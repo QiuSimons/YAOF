@@ -13,6 +13,6 @@ config chinadns-ng
 	option reuse_port '0'
 	option chnlist_first '1'
 	option fair_mode '0'
-	option repeat_times '2'
+	option repeat_times '1'
 	option bind_addr '127.0.0.1'
 
