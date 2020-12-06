@@ -37,7 +37,7 @@ dns:
   allowed_clients: []
   disallowed_clients: []
   blocked_hosts: []
-  cache_size: 0
+  cache_size: 4194304
   cache_ttl_min: 0
   cache_ttl_max: 0
   bogus_nxdomain: []
