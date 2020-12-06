@@ -8,6 +8,6 @@ wget https://raw.githubusercontent.com/pexcn/daily/gh-pages/gfwlist/gfwlist.txt 
 wget https://raw.githubusercontent.com/pexcn/daily/gh-pages/chinalist/chinalist.txt -nv -O /tmp/chinadns-ng/chinalist.txt
 find /tmp/chinadns-ng/ -size -20k -exec rm {} \;
 chmod -R  755  /tmp/chinadns-ng
-\cp -rf /tmp/chinadns-ng/** /etc/chinadns-ng
-wget -P /tmp "https://raw.githubusercontent.com/QiuSimons/Others/master/blacklist-ip.conf" && cat /tmp/blacklist-ip.conf >> "/etc/smartdns/blacklist-ip.conf" && cat "/etc/smartdns/blacklist-ip.conf" | sort | uniq > /tmp/tmp_blacklist-ip.conf && cat /tmp/tmp_blacklist-ip.conf > "/etc/smartdns/blacklist-ip.conf"
+cp -rf /tmp/chinadns-ng/** /etc/chinadns-ng
+#wget -P /tmp "https://raw.githubusercontent.com/QiuSimons/Others/master/blacklist-ip.conf" && cat /tmp/blacklist-ip.conf >> "/etc/smartdns/blacklist-ip.conf" && cat "/etc/smartdns/blacklist-ip.conf" | sort | uniq > /tmp/tmp_blacklist-ip.conf && cat /tmp/tmp_blacklist-ip.conf > "/etc/smartdns/blacklist-ip.conf"
 exit 0
