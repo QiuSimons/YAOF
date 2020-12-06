@@ -9,8 +9,8 @@ uci set system.@system[0].zonename=Asia/Shanghai
 uci commit system
 
 #ssrp
-sed -i 's/local ucic = uci.cursor()/local ucic = luci.model.uci.cursor()/g' /usr/share/shadowsocksr/subscribe.lua
-sed -i "s/'cbid.shadowsocksr.'/'widget.cbid.shadowsocksr.'/g" /usr/lib/lua/luci/view/shadowsocksr/ssrurl.htm
+#sed -i 's/local ucic = uci.cursor()/local ucic = luci.model.uci.cursor()/g' /usr/share/shadowsocksr/subscribe.lua
+#sed -i "s/'cbid.shadowsocksr.'/'widget.cbid.shadowsocksr.'/g" /usr/lib/lua/luci/view/shadowsocksr/ssrurl.htm
 
 #HW-RNG
 uci set system.@rngd[0].enabled="1"
@@ -31,11 +31,6 @@ uci set uhttpd.main.redirect_https=0
 uci commit uhttpd
 /etc/init.d/uhttpd restart
 
-#network
-#uci set network.globals.packet_steering=1
-#uci commit network
-#/etc/init.d/network restart
-
 #firewall
 uci set firewall.@zone[1].fullcone='1'
 uci commit firewall
@@ -53,7 +48,7 @@ sed -i 's,#devcrypto,devcrypto,g' /etc/ssl/openssl.cnf
 sed -i 's,#USE_SOFTDRIVERS = 2,USE_SOFTDRIVERS = 1,g' /etc/ssl/openssl.cnf
 
 #neteasemusic
-echo "59.111.239.62 httpdns.n.netease.com" >> /etc/hosts && cat /etc/hosts | sort | uniq > /tmp/tmp_hosts && cat /tmp/tmp_hosts > /etc/hosts
+#echo "59.111.239.62 httpdns.n.netease.com" >> /etc/hosts && cat /etc/hosts | sort | uniq > /tmp/tmp_hosts && cat /tmp/tmp_hosts > /etc/hosts
 
 #chinalist
 echo "10 2 * * * chinadnslist &" >> /etc/crontabs/root && cat /etc/crontabs/root | sort | uniq > /tmp/tmp_cron_root && cat /tmp/tmp_cron_root > /etc/crontabs/root
