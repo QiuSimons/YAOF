@@ -12,7 +12,7 @@ config chinadns-ng
 	option trust_dns '127.0.0.1#6051'
 	option reuse_port '0'
 	option chnlist_first '1'
-	option fair_mode '1'
+	option fair_mode '0'
 	option repeat_times '2'
 	option bind_addr '127.0.0.1'
 
