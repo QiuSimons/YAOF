@@ -101,6 +101,9 @@ cp -rf ../NoTengoBattery/package/system/compressed-memory ./package/system/compr
 #更换cryptodev-linux
 rm -rf ./package/kernel/cryptodev-linux
 svn co https://github.com/project-openwrt/openwrt/trunk/package/kernel/cryptodev-linux package/kernel/cryptodev-linux
+#更换lzo
+rm -rf ./package/libs/lzo
+svn co https://github.com/openwrt/packages/trunk/libs/lzo package/libs/lzo
 #更换curl
 rm -rf ./package/network/utils/curl
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/utils/curl package/network/utils/curl
