@@ -8,7 +8,7 @@ on:
 
 jobs:
   
-  Cleanup-Old- Releases:
+  Cleanup-Old-Releases:
     runs-on: ubuntu-18.04
     steps:  
     - name: Delete Older Releases
