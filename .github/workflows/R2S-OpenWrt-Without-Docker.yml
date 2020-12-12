@@ -7,6 +7,26 @@ on:
     types: started
 
 jobs:
+  
+  Cleanup-Old-Artifacts:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Cleanup Old Action Artifacts
+      uses: kolpav/purge-artifacts-action@v1
+      with:
+        token: ${{ github.token }}
+        expire-in: 14d
+        
+  Cleanup-Workflow-Logs:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Cleanup Workflow Logs
+        uses: ActionsRML/delete-workflow-runs@v1.2.1
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 14
+          
   build:
     runs-on: ubuntu-18.04
     if: github.event.repository.owner.id == github.event.sender.id
