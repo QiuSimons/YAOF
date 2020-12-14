@@ -34,7 +34,7 @@ config server
 	option type 'udp'
 	option name 'DNSPod'
 	option ip '119.29.29.29'
-	option blacklist_ip '1'
+	option blacklist_ip '0'
 	option server_group 'mainland'
 	option enabled '1'
 
@@ -42,7 +42,15 @@ config server
 	option type 'udp'
 	option name 'AliDNS'
 	option ip '223.5.5.5'
-	option blacklist_ip '1'
+	option blacklist_ip '0'
+	option server_group 'mainland'
+	option enabled '1'
+
+config server
+	option type 'udp'
+	option name 'BaiduDNS'
+	option ip '180.76.76.76'
+	option blacklist_ip '0'
 	option server_group 'mainland'
 	option enabled '1'
 
