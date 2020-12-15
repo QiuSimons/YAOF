@@ -73,6 +73,11 @@ echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 uci set network.globals.packet_steering='1'
 uci commit network
 
+#SSRP
+uci set shadowsocksr.@global[0].gfwlist_url='https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt'
+uci set shadowsocksr.@global[0].chnroute_url='https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt'
+uci commit shadowsocksr
+
 ln -sf /sbin/ip /usr/bin/ip
 
 opkg flag hold luci-app-ddns
