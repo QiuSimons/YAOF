@@ -87,7 +87,7 @@ patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/lean/shortcut-fe
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/lean/fast-classifier
 cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
-wget -qO - https://github.com/AmadeusGhost/lede/commit/5e95fd8572d5727ccbfe199efbd5d98297d8643b.patch | patch -p1
+#wget -qO - https://github.com/AmadeusGhost/lede/commit/5e95fd8572d5727ccbfe199efbd5d98297d8643b.patch | patch -p1
 
 ##获取额外package
 #（不用注释这里的任何东西，这不会对提升action的执行速度起到多大的帮助
