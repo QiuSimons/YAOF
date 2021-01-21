@@ -1,0 +1,14 @@
+
+config MosChinaDNS 'MosChinaDNS'
+	option httpport '3000'
+	option redirect 'none'
+	option configpath '/etc/config/MosChinaDNS.yaml'
+	option workdir '/usr/bin/MosChinaDNS'
+	option logfile 'syslog'
+	option verbose '0'
+	option binpath '/usr/bin/MosChinaDNS/MosChinaDNS'
+
+	option binmtime '1611004214'
+	option waitonboot '1'
+	option ucitracktest '0'
+	option enabled '1'

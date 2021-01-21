@@ -1,0 +1,6 @@
+
+config list
+	option exename '/sbin/rngd'
+	option limit '1'
+	option enabled '1'
+
