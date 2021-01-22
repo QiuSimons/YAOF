@@ -1025,10 +1025,10 @@ msgid ""
 "to reboot device to an alternative partition."
 msgstr ""
 "警告：备用分区可能具有自己的设置和完全不同的固件。<br /><br /> 由于备用分区上"
-"的网络配置和WiFi SSID /密码可能有所不同，因此您可能必须调整计算机设置才能在设"
-"备重启后访问设备。<br /><br /> 另请注意，备用分区固件可能无法提供切换活动分区"
-"并引导回当前活动分区的简便方法。<br /><br /> 点击 \"继续\" 下面将设备重新引导"
-"到备用分区。"
+"的网络配置和 WiFi SSID / 密码可能有所不同，因此您可能必须调整计算机设置才能在"
+"设备重启后访问设备。<br /><br /> 另请注意，备用分区固件可能无法提供切换活动分"
+"区并引导回当前活动分区的简便方法。<br /><br /> 点击 \"继续\" 下面将设备重新"
+"引导到备用分区。"
 
 msgid ""
 "WARNING: Power off might result in a reboot on a device which doesn't "
@@ -1042,10 +1042,10 @@ msgid "Warning: There are unsaved changes that will get lost on reboot!"
 msgstr "警告：某些设置没有保存，重启将导致丢失这些配置！"
 
 msgid "Warning: This system does not have two partitions!"
-msgstr "警告：当前系统没有包括两个分区!"
+msgstr "警告：当前系统没有包括两个分区！"
 
 msgid "Warning: This system does not support powering off!"
-msgstr "警告：本系统不支持软关机!"
+msgstr "警告：本系统不支持软关机！"
 
 msgid "Filter IPv6 Records"
 msgstr "过滤 IPv6 记录"
@@ -1067,7 +1067,7 @@ msgstr "数据包引导"
 
 msgid ""
 "Enable packet steering across all CPUs. May help or hinder network speed."
-msgstr "启用所有CPU的数据包控制。 可能有助于或阻碍网络速度。"
+msgstr "启用所有 CPU 的数据包控制。 可能有助于或阻碍网络速度。"
 
 msgid "Compressed memory"
 msgstr "内存压缩"
@@ -1079,34 +1079,34 @@ msgid "Configure the compressed memory subsystem, which allows data in memory to
 msgstr "配置内存压缩系统，允许压缩内存中的数据以提高资源利用率。"
 
 msgid "Compressed RAM disk properties"
-msgstr "RamDisk压缩设置"
+msgstr "RamDisk 压缩设置"
 
 msgid "Configure the compressed RAM disk properties. This RAM disk will be used as a swap device."
-msgstr "对RamDisk压缩参数进行设置。这个RamDisk将会作为Swap设备。"
+msgstr "对 RamDisk 压缩参数进行设置。这个 RamDisk 将会作为 Swap 设备。"
 
 msgid "Enable swap on zram"
-msgstr "在zRam上启用Swap"
+msgstr "在 zRam 上启用 Swap"
 
 msgid "Enable usage of the compressed RAM disk (zram)."
-msgstr "启用RamDisk压缩（zRam）"
+msgstr "启用 RamDisk 压缩（zRam）"
 
 msgid "Compression algorithm"
 msgstr "压缩算法"
 
 msgid "Select the compression algorithm. The one with higher compression ratio is the first and the one with the lower is the last."
-msgstr "选择压缩算法，压缩比按列表中的顺序，由高到低排列。启用最好的压缩算法可以节省更多的内存，但会增加CPU占用。"
+msgstr "选择压缩算法，压缩比按列表中的顺序，由高到低排列。启用最好的压缩算法可以节省更多的内存，但会增加 CPU 占用。"
 
 msgid "Base memory pool"
 msgstr "基础内存池"
 
 msgid "This is the maximum percentage of the main memory to use as the compressed disk assuming that the data is compressible."
-msgstr "压缩内存可使用的最大内存百分比"
+msgstr "压缩内存可使用的最大内存百分比。"
 
 msgid "Backing storage device"
 msgstr "后备存储池"
 
 msgid "This file or device will be used when the data is hard to compress which offer no gain to keep it in memory. Note that the file or device must have the appropiate size, for example, the size of the RAM disk."
-msgstr "这个文件或存储位置将在数据难以被压缩时使用。请注意，该文件或存储位置的剩余空间需大于RamDisk。"
+msgstr "这个文件或存储位置将在数据难以被压缩时使用。请注意，该文件或存储位置的剩余空间需大于 RamDisk。"
 
 msgid "Show advanced setup"
 msgstr "高级设置"
@@ -1118,22 +1118,22 @@ msgid "Compressed swap cache properties"
 msgstr "Swap Cache压缩设置"
 
 msgid "Configure the compressed swap cache. This cache will try to avoid I/O to slow disks or to use the more expensive compressor of zram."
-msgstr "对Swap Cache压缩参数进行设置。这个Cache将会减少硬盘IO。"
+msgstr "对 Swap Cache 压缩参数进行设置。这个 Cache 将会减少硬盘 IO。"
 
 msgid "Enable zswap cache"
-msgstr "启用zSwap Cache"
+msgstr "启用 zSwap Cache"
 
 msgid "Enable the usage of the compressed swap cache (zswap)."
-msgstr "启用zSwap Cache压缩（zSwap）"
+msgstr "启用 zSwap Cache 压缩（zSwap）"
 
 msgid "Select the compression algorithm, they are not ordered by speed. There is no gain in choosing a slower algorithm, since the zpool limits the maximum compression ratio. Because of this, the default is the best option."
-msgstr "选择压缩算法，建议使用默认的"
+msgstr "选择压缩算法，建议使用默认的。"
 
 msgid "Maximum memory pool"
 msgstr "最大内存池"
 
 msgid "This is the maximum percentage of the main memory to use as the compressed cache for swap when zram is not available."
-msgstr "这个值是当zRam不可用时候，zSwap Cache可使用的最大内存百分比"
+msgstr "这个值是当 zRam 不可用时候，zSwap Cache 可使用的最大内存百分比。"
 
 msgid "Memory allocator"
 msgstr "内存分配器"
@@ -1145,19 +1145,19 @@ msgid "System swappiness"
 msgstr "系统交换空间策略"
 
 msgid "The tendency of the system to swap unused pages instead of dropping file system cache. If your file system is compressed, such as SQUASHFS, UBI or zfs, use a slightly higher swappiness.'"
-msgstr "数值越大，代表越积极的使用Swap空间而不是Ram，建议在SQUASHFS之类的文件系统上使用一个相对更大的值"
+msgstr "数值越大，代表越积极的使用 Swap 空间而不是 Ram ，建议在 SQUASHFS 之类的文件系统上使用一个相对更大的值。"
 
 msgid "Compressor for zram"
-msgstr "zRam压缩算法"
+msgstr "zRam 压缩算法"
 
 msgid "Select the compression algorithm for zram when zswap is enabled. The one with higher compression ratio is the first and the one with the lower is the last. Enabling the best compression enables greater memory savings."
-msgstr "选择zRam的压缩算法，压缩比按列表中的顺序，由高到低排列。启用最好的压缩算法可以节省更多的内存，但会增加CPU占用。"
+msgstr "选择 zRam 的压缩算法，压缩比按列表中的顺序，由高到低排列。启用最好的压缩算法可以节省更多的内存，但会增加 CPU 占用。"
 
 msgid "Scale factor"
 msgstr "比例因子"
 
 msgid "This is the percentage that will use the zswap pool when zram is enabled. This represents the uncompressed data size as a percentage of the zram\'s pool maximum size."
-msgstr "这是zRam启用后，zSwap占用的内存百分比。这也表示未压缩数据占zRam池的最大占比。"
+msgstr "这是 zRam 启用后，zSwap 占用的内存百分比。这也表示未压缩数据占 zRam 池的最大占比。"
 
 msgid "Enable FullCone NAT"
-msgstr "启用FullCone-NAT"
+msgstr "启用 FullCone-NAT"
