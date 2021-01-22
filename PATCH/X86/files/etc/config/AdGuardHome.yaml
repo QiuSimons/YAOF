@@ -61,6 +61,10 @@ dns:
   rewrites:
   - domain: wifi.weixin.qq.com
     answer: 127.0.0.1
+  - domain: clock.redhat.com
+    answer: cn.ntp.org.cn
+  - domain: clock.cuhk.edu.hk
+    answer: cn.ntp.org.cn
   blocked_services: []
 tls:
   enabled: false
@@ -109,7 +113,8 @@ filters:
   name: ChinaList and EasyList
   id: 1600600711
 whitelist_filters: []
-user_rules: []
+user_rules:
+- '||https://www.meituan.com^$important'
 dhcp:
   enabled: false
   interface_name: ""
