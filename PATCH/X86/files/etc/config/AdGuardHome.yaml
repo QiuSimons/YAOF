@@ -65,6 +65,8 @@ dns:
     answer: cn.ntp.org.cn
   - domain: clock.cuhk.edu.hk
     answer: cn.ntp.org.cn
+  - domain: https://www.meituan.com
+    answer: www.meituan.com
   blocked_services: []
 tls:
   enabled: false
@@ -113,8 +115,7 @@ filters:
   name: ChinaList and EasyList
   id: 1600600711
 whitelist_filters: []
-user_rules:
-- '||https://www.meituan.com^$important'
+user_rules: []
 dhcp:
   enabled: false
   interface_name: ""
