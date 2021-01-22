@@ -23,7 +23,7 @@ msgid ""
 "management (AQM) and prioritisation on one network interface."
 msgstr ""
 "使用 <abbr title=\"智能列队管理\">SQM</abbr> 你可以启用流量整形，更好的混合"
-"(公平列队)主动列队管理(AQM) 并设置网络接口优先级。"
+"（公平列队）主动列队管理（AQM）并设置网络接口优先级。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:32
 msgid "Queues"
@@ -43,7 +43,7 @@ msgstr "链路层适配"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:40
 msgid "Enable this SQM instance."
-msgstr "启用此SQM实例"
+msgstr "启用此 SQM 实例"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:54
 msgid ""
@@ -51,7 +51,7 @@ msgid ""
 "disable the sqm initscript manually under System Startup menu in case this "
 "change was not wished for."
 msgstr ""
-"你刚刚开启了SQM随机启动功能，如果你不希望SQM随机启动，可以在系统启动菜单下手"
+"你刚刚开启了 SQM 随机启动功能，如果你不希望 SQM 随机启动，可以在系统启动菜单下手"
 "动禁用。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:60
@@ -62,19 +62,19 @@ msgstr "接口名称"
 msgid ""
 "Download speed (kbit/s) (ingress) set to 0 to selectively disable ingress "
 "shaping:"
-msgstr "下载速度(kbit/s)(入口)<br />设置为0关闭入口控制："
+msgstr "下载速度（kbit/s）（入口）<br />设置为 0 关闭入口控制："
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:74
 msgid ""
 "Upload speed (kbit/s) (egress) set to 0 to selectively disable egress "
 "shaping:"
-msgstr "上传速度(kbit/s)(出口)<br />设置为0关闭出口控制："
+msgstr "上传速度（kbit/s）（出口）<br />设置为 0 关闭出口控制："
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:88
 msgid ""
 "Create log file for this SQM instance under /var/run/sqm/${Interface_name}.[start|stop]-sqm.log."
 msgstr ""
-"[启用|关闭]日志<br />创建日志文件到/var/run/sqm/接口名-sqm.log。"
+"[启用|关闭]日志<br />创建日志文件到 /var/run/sqm/接口名-sqm.log。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:82
 msgid "Verbosity of SQM's output into the system log."
@@ -106,11 +106,11 @@ msgstr "选中该复选框显示高级配置。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:133
 msgid "Squash DSCP on inbound packets (ingress):"
-msgstr "入站数据包压缩DSCP:"
+msgstr "入站数据包压缩 DSCP:"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:140
 msgid "Ignore DSCP on ingress:"
-msgstr "忽略入站DSCP"
+msgstr "忽略入站 DSCP"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:147
 msgid ""
@@ -138,11 +138,11 @@ msgstr "出站队列严格限制；留空为默认。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:180
 msgid "Latency target for ingress, e.g 5ms [units: s, ms, or us]; leave empty for automatic selection, put in the word default for the qdisc's default."
-msgstr "入站延迟目标，例如 5ms [单位: s, ms, 或 us]；留空为自动选择，default为列队规则默认值。"
+msgstr "入站延迟目标，例如 5ms [单位: s, ms, 或 us]；留空为自动选择，default 为列队规则默认值。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:185
 msgid "Latency target for egress, e.g. 5ms [units: s, ms, or us]; leave empty for automatic selection, put in the word default for the qdisc's default."
-msgstr "出站延迟目标，例如 5ms [单位: s, ms, 或 us]；留空为自动选择，default为列队规则默认值。"
+msgstr "出站延迟目标，例如 5ms [单位: s, ms, 或 us]；留空为自动选择，default 为列队规则默认值。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:192
 msgid ""
@@ -158,7 +158,7 @@ msgstr "传递到出站队列规则的高级选项字符串；没有错误检查
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:201
 msgid "Which link layer to account for:"
-msgstr "对哪个链路层生效:"
+msgstr "对哪个链路层生效："
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:207
 msgid "Per Packet Overhead (byte):"
@@ -169,25 +169,25 @@ msgid ""
 "Show Advanced Linklayer Options, (only needed if MTU > 1500). Advanced "
 "options will only be used as long as this box is checked."
 msgstr ""
-"显示高级链路选项，（仅在MTU> 1500时才需要）。 只有选中此框时，才会使用高级选"
+"显示高级链路选项，（仅在 MTU > 1500 时才需要）。 只有选中此框时，才会使用高级选"
 "项。"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:221
 msgid ""
 "Maximal Size for size and rate calculations, tcMTU (byte); needs to be >= "
 "interface MTU + overhead:"
-msgstr "大小和速率计算的最大尺寸，tcMTU（byte）; 需要> =接口MTU +开销："
+msgstr "大小和速率计算的最大尺寸，tcMTU（byte）; 需要 >= 接口MTU + 开销："
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:228
 msgid ""
 "Number of entries in size/rate tables, TSIZE; for ATM choose TSIZE = (tcMTU "
 "+ 1) / 16:"
-msgstr "大小/速率表中的条目数，TSIZE; 对于ATM选择TSIZE =（tcMTU + 1）/ 16："
+msgstr "大小/速率表中的条目数，TSIZE; 对于 ATM 选择 TSIZE =（tcMTU + 1）/ 16："
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:235
 msgid ""
 "Minimal packet size, MPU (byte); needs to be > 0 for ethernet size tables:"
-msgstr "最小数据包大小，MPU（byte）; 在以太网中需要>0："
+msgstr "最小数据包大小，MPU（byte）; 在以太网中需要 > 0："
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:242
 msgid "Which linklayer adaptation mechanism to use; for testing only"

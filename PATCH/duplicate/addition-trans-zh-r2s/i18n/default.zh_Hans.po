@@ -47,7 +47,7 @@ msgid "Size of the ZRam device in megabytes"
 msgstr "划分给 ZRam 分区的内存大小（MB），推荐留空由系统自动管理"
 
 msgid "Number of parallel threads used for compression"
-msgstr "用于压缩内存数据的CPU并发线程数"
+msgstr "用于压缩内存数据的 CPU 并发线程数"
 
 msgid "Swap"
 msgstr "虚拟内存"
@@ -58,7 +58,7 @@ msgstr "强制 40MHz 频宽"
 msgid ""
 "Always use 40MHz channels even if the secondary channel overlaps. Using this "
 "option does not comply with IEEE 802.11n-2009!"
-msgstr "强制启用 40MHz 频宽并忽略辅助信道重叠。此选项可能不兼容某些无线硬件导致无法启用!"
+msgstr "强制启用 40MHz 频宽并忽略辅助信道重叠。此选项可能不兼容某些无线硬件导致无法启用！"
 
 msgid "Disassociate On Low Acknowledgement"
 msgstr "弱信号剔除"
