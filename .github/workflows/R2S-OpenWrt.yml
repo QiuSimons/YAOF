@@ -1,9 +1,9 @@
 name: R2S-OpenWrt
 
 on:
-  schedule:
+#  schedule:
     - cron: 5 9 * * 6
-  watch:
+#  watch:
     types: started
 
 jobs:
