@@ -4,6 +4,8 @@
 ![X86-OpenWrt](https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/X86-OpenWrt/badge.svg)
 ### 请勿用于商业用途!!! 请勿用于商业用途!!! 请勿用于商业用途!!! 请勿用于商业用途!!! 请勿用于商业用途!!!
 
+### 无限期停更直到 [@nobk](https://github.com/nobk) 车软
+
 ### 下载地址：
 https://github.com/QiuSimons/R2S-R4S-OpenWrt/releases
 
