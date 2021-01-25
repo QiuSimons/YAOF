@@ -23,7 +23,6 @@ patch -p1 < ../PATCH/new/main/0001-tools-add-upx-ucl-support.patch
 #remove annoying snapshot tag
 sed -i 's,SNAPSHOT,,g' include/version.mk
 sed -i 's,snapshots,,g' package/base-files/image-config.in
-sed -i 's, (傻逼商家售卖本固件必死),,g' target/linux/rockchip/patches-5.4/200-rockchip-add-support-for-NanoPi-R4S.patch
 #使用O2级别的优化
 sed -i 's/Os/O2/g' include/target.mk
 sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mcpu=cortex-a73.cortex-a53+crypto+crc -mtune=cortex-a73.cortex-a53,g' include/target.mk
@@ -77,7 +76,7 @@ cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
 sed -i '/CRYPTO_DEV_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
 sed -i '/HW_RANDOM_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
 sed -i '/CONFIG_SLUB/d' ./target/linux/rockchip/armv8/config-5.4
-sed -i '/CONFIG_PROC/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/CONFIG_PROC_[^VMCORE]/d' ./target/linux/rockchip/armv8/config-5.4
 echo '
 CONFIG_CRYPTO_DEV_ROCKCHIP=y
 CONFIG_HW_RANDOM_ROCKCHIP=y

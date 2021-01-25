@@ -43,7 +43,7 @@ sed -i '/rtl8152/d' ./target/linux/rockchip/image/armv8.mk
 #CONFIG_CRYPTO_RNG_DEFAULT=y
 #' >> ./target/linux/rockchip/armv8/config-5.4
 sed -i '/CONFIG_SLUB/d' ./target/linux/rockchip/armv8/config-5.4
-sed -i '/CONFIG_PROC/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/CONFIG_PROC_[^VMCORE]/d' ./target/linux/rockchip/armv8/config-5.4
 #patch i2c0（服务于OLED，可选
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 #OC（提升主频，可选
