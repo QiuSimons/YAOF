@@ -1,9 +1,9 @@
 name: R4S-OpenWrt
 
 on:
-#  schedule:
+  schedule:
     - cron: 5 6 * * 0
-#  watch:
+  watch:
     types: started
 
 jobs:
