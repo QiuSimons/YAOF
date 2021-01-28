@@ -28,8 +28,8 @@ sed -i '/set_interface_core 4 "eth1"/a\set_interface_core 1 "ff150000" "ff150000
 sed -i '/;;/i\ethtool -K eth0 rx off tx off && logger -t disable-offloading "disabed rk3328 ethernet tcp/udp offloading tx/rx"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 #r8152新驱动（可选
 #wget -O- https://github.com/project-openwrt/openwrt/commit/d8df86130d172b3ce262d2744e2ddd2a6eed5f50.patch | patch -p1
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/r8152 package/new/r8152
-sed -i '/rtl8152/d' ./target/linux/rockchip/image/armv8.mk
+#svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/r8152 package/new/r8152
+#sed -i '/rtl8152/d' ./target/linux/rockchip/image/armv8.mk
 ##HW-RNG（硬件随机数，可选
 #patch -p1 < ../PATCH/new/main/Support-hardware-random-number-generator-for-RK3328.patch
 #sed -i 's/-f/-f -i/g' feeds/packages/utils/rng-tools/files/rngd.init
