@@ -397,7 +397,5 @@ sed -i 's/16384/65536/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 rm -rf .config
 #预配置一些插件
 cp -rf ../PATCH/R4S/files ./files
-#授予权限
-chmod -R 755 ./
 
 exit 0
