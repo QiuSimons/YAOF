@@ -373,8 +373,6 @@ sed -i 's/16384/65536/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 sed -i 's/default "5"/default "0"/g' config/Config-images.in
 #预配置一些插件
 cp -rf ../PATCH/X86/files ./files
-#修复权限
-chmod -R 755 ./
 #生成默认配置及缓存
 rm -rf .config
 exit 0
