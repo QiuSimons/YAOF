@@ -310,6 +310,7 @@ svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network
 #cp -rf ../packages-lienol/net/smartdns ./package/new/smartdns
 mkdir package/new/smartdns
 wget -P package/new/smartdns/ https://github.com/HiGarfield/lede-17.01.4-Mod/raw/master/package/extra/smartdns/Makefile
+sed -i 's,files/etc/config,$(PKG_BUILD_DIR)/package/openwrt/files/etc/config,g' ./package/new/smartdns/Makefile
 cp -rf ../luci-lienol/applications/luci-app-smartdns ./package/new/luci-app-smartdns
 sed -i 's,include ../..,include $(TOPDIR)/feeds/luci,g' ./package/new/luci-app-smartdns/Makefile
 #上网APP过滤
