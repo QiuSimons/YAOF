@@ -261,7 +261,9 @@ git clone -b master --depth 1 https://github.com/vernesong/OpenClash.git package
 git clone -b master --depth 1 https://github.com/tty228/luci-app-serverchan.git package/new/luci-app-serverchan
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/utils/iputils package/network/utils/iputils
 #SmartDNS
-cp -rf ../packages-lienol/net/smartdns ./package/new/smartdns
+#cp -rf ../packages-lienol/net/smartdns ./package/new/smartdns
+mkdir package/new/smartdns
+wget -P package/new/smartdns/ https://github.com/HiGarfield/lede-17.01.4-Mod/raw/master/package/extra/smartdns/Makefile
 cp -rf ../luci-lienol/applications/luci-app-smartdns ./package/new/luci-app-smartdns
 sed -i 's,include ../..,include $(TOPDIR)/feeds/luci,g' ./package/new/luci-app-smartdns/Makefile
 #上网APP过滤
