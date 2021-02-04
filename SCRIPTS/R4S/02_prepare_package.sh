@@ -350,6 +350,9 @@ svn co https://github.com/openwrt/packages/trunk/utils/usbutils feeds/packages/u
 ln -sf ../../../feeds/packages/utils/usbutils ./package/feeds/packages/usbutils
 svn co https://github.com/openwrt/packages/trunk/utils/hwdata feeds/packages/utils/hwdata
 ln -sf ../../../feeds/packages/utils/hwdata ./package/feeds/packages/hwdata
+rm -rf ./feeds/packages/net/dnsdist
+svn co https://github.com/openwrt/packages/trunk/net/dnsdist feeds/packages/net/dnsdist
+
 #ipv6-helper
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/ipv6-helper package/lean/ipv6-helper
 #IPSEC
