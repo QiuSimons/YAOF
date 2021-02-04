@@ -317,6 +317,8 @@ svn co https://github.com/openwrt/packages/trunk/utils/usbutils feeds/packages/u
 ln -sf ../../../feeds/packages/utils/usbutils ./package/feeds/packages/usbutils
 svn co https://github.com/openwrt/packages/trunk/utils/hwdata feeds/packages/utils/hwdata
 ln -sf ../../../feeds/packages/utils/hwdata ./package/feeds/packages/hwdata
+rm -rf ./feeds/packages/net/dnsdist
+svn co https://github.com/openwrt/packages/trunk/net/dnsdist feeds/packages/net/dnsdist
 
 #IPSEC
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ipsec-vpnd package/lean/luci-app-ipsec-vpnd
