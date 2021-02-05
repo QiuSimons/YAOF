@@ -1,18 +1,23 @@
-From 4a8c11f4806907fb9a77c1ddf84155cc5e1fa7cf Mon Sep 17 00:00:00 2001
+From bf6d9dcfc6c239c6be91385758d9c8332c7d8ac4 Mon Sep 17 00:00:00 2001
 From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
-Date: Sun, 13 Dec 2020 23:54:39 +0800
-Subject: [PATCH] RK3399: set critical CPU temperature for thermal throttling
- at 85
+Date: Fri, 5 Feb 2021 16:46:34 +0800
+Subject: [PATCH] rk3399: reset thermal throttling temp
 
 ---
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index 7a9a7aca86c6a0..28b1c1c5dc8a7e 100644
+index 2551b238b97c6..a53ff24d92bad 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -777,7 +777,7 @@
+@@ -772,12 +772,12 @@
+ 
+ 			trips {
+ 				cpu_alert0: cpu_alert0 {
+-					temperature = <70000>;
++					temperature = <80000>;
+ 					hysteresis = <2000>;
  					type = "passive";
  				};
  				cpu_alert1: cpu_alert1 {
@@ -26,7 +31,7 @@ index 7a9a7aca86c6a0..28b1c1c5dc8a7e 100644
  			trips {
  				gpu_alert0: gpu_alert0 {
 -					temperature = <75000>;
-+					temperature = <85000>;
++					temperature = <80000>;
  					hysteresis = <2000>;
  					type = "passive";
  				};
