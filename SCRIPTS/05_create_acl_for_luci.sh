@@ -1,5 +1,5 @@
 #!/bin/bash
-# [CTCGFW]Project-OpenWrt
+# [CTCGFW]immortalwrt
 # Use it under GPLv3, please.
 # --------------------------------------------------------
 # Script for creating ACL file for each LuCI APP
