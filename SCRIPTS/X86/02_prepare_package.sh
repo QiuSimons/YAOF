@@ -201,7 +201,7 @@ sed -i 's,Xray:xray ,Xray:xray-core ,g' package/lean/luci-app-ssr-plus/Makefile
 sed -i '/V2ray:v2ray/d' package/lean/luci-app-ssr-plus/Makefile
 sed -i '/result.encrypt_method/a\result.fast_open = "1"' package/lean/luci-app-ssr-plus/root/usr/share/shadowsocksr/subscribe.lua
 sed -i 's,ispip.clang.cn/all_cn.txt,cdn.jsdelivr.net/gh/QiuSimons/Chnroute/dist/chnroute/chnroute.txt,g' package/lean/luci-app-ssr-plus/root/etc/init.d/shadowsocksr
-sed -i 's,YW5vbnltb3Vz/domain-list-community@release/gfwlist.txt,v2ray-rules-dat@release/gfw.txt,g' package/lean/luci-app-ssr-plus/root/etc/init.d/shadowsocksr
+sed -i 's,YW5vbnltb3Vz/domain-list-community@release/gfwlist.txt,Loyalsoldier/v2ray-rules-dat@release/gfw.txt,g' package/lean/luci-app-ssr-plus/root/etc/init.d/shadowsocksr
 #SSRP依赖
 rm -rf ./feeds/packages/net/kcptun
 rm -rf ./feeds/packages/net/shadowsocks-libev
