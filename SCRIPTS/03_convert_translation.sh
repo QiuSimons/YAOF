@@ -1,5 +1,5 @@
 #!/bin/bash
-# [CTCGFW]Project-OpenWrt
+# [CTCGFW]immortalwrt
 # Use it under GPLv3, please.
 # --------------------------------------------------------
 # Convert translation files zh-cn to zh_Hans
