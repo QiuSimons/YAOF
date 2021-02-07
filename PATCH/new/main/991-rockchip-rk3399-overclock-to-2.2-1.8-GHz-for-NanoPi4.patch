@@ -54,11 +54,11 @@ Co-authored-by: gzelvis <gzelvis@gmail.com>
 +		};
 +		opp06 {
 +			opp-hz = /bits/ 64 <1608000000>;
-+			opp-microvolt = <1200000>;
++			opp-microvolt = <1225000>;
 +		};
 +		opp07 {
 +			opp-hz = /bits/ 64 <1800000000>;
-+			opp-microvolt = <1250000>;
++			opp-microvolt = <1275000>;
 +		};
 +	};
 +
@@ -97,7 +97,7 @@ Co-authored-by: gzelvis <gzelvis@gmail.com>
 +		};
 +		opp07 {
 +			opp-hz = /bits/ 64 <1800000000>;
-+			opp-microvolt = <1175000>;
++			opp-microvolt = <1200000>;
 +		};
 +		opp08 {
 +			opp-hz = /bits/ 64 <2016000000>;
@@ -177,4 +177,3 @@ Co-authored-by: gzelvis <gzelvis@gmail.com>
  
  / {
  	chosen {
-
