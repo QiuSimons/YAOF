@@ -404,6 +404,8 @@ svn co https://github.com/1715173329/tencentcloud-openwrt-plugin-ddns/trunk/tenc
 svn co https://github.com/kenzok8/openwrt-packages/trunk/luci-app-aliddns package/new/luci-app-aliddns
 #翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh-r2s ./package/lean/lean-translate
+#WOL
+svn co https://github.com/sundaqiang/openwrt-packages/trunk/luci-app-services-wolplus package/new/luci-app-services-wolplus
 
 ##R2S相关
 #crypto

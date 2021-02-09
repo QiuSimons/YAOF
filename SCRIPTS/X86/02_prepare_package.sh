@@ -365,6 +365,8 @@ cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
 sed -i '/openssl/d' ./package/lean/lean-translate/files/zzz-default-settings
 sed -i '/banirq/d' ./package/lean/lean-translate/files/zzz-default-settings
 sed -i '/rngd/d' ./package/lean/lean-translate/files/zzz-default-settings
+#WOL
+svn co https://github.com/sundaqiang/openwrt-packages/trunk/luci-app-services-wolplus package/new/luci-app-services-wolplus
 
 #Vermagic
 latest_version="$(curl -s https://github.com/openwrt/openwrt/releases |grep -Eo "v[0-9\.]+.tar.gz" |sed -n '/19/p' |sed -n 1p |sed 's/v//g' |sed 's/.tar.gz//g')"
