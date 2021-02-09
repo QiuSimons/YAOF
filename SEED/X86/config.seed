@@ -108,6 +108,10 @@ CONFIG_PACKAGE_subconverter=y
 CONFIG_PACKAGE_uhttpd=y
 CONFIG_PACKAGE_wget=y
 
+CONFIG_PACKAGE_kmod-usb-net-rndis=y
+CONFIG_PACKAGE_kmod-usb-net-ipheth=y
+CONFIG_PACKAGE_usbmuxd=y
+
 CONFIG_PACKAGE_frps=y
 CONFIG_PACKAGE_luci-app-frps=y
 CONFIG_PACKAGE_frpc=y
