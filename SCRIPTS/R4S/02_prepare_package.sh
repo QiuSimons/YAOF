@@ -108,6 +108,7 @@ svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network
 #Ruby
 rm -rf ./feeds/packages/lang/ruby
 svn co https://github.com/openwrt/packages/trunk/lang/ruby feeds/packages/lang/ruby
+patch -p1 < ../PATCH/new/package/ruby.patch
 #更换Node版本
 rm -rf ./feeds/packages/lang/node
 svn co https://github.com/nxhack/openwrt-node-packages/trunk/node feeds/packages/lang/node
