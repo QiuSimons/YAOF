@@ -116,6 +116,9 @@ ln -sf ../../../feeds/packages/libs/lzo ./package/feeds/packages/lzo
 #更换curl
 rm -rf ./package/network/utils/curl
 svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/utils/curl package/network/utils/curl
+#Ruby
+rm -rf ./feeds/packages/lang/ruby
+svn co https://github.com/openwrt/packages/trunk/lang/ruby feeds/packages/lang/ruby
 #更换Node版本
 rm -rf ./feeds/packages/lang/node
 svn co https://github.com/nxhack/openwrt-node-packages/trunk/node feeds/packages/lang/node
