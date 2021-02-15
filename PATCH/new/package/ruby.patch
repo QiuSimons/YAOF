@@ -1,0 +1,24 @@
+From 2c66b4e3691f22cf2cfcb2ec7019b0a145991575 Mon Sep 17 00:00:00 2001
+From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
+Date: Mon, 15 Feb 2021 22:00:41 +0800
+Subject: [PATCH] Update Makefile
+
+---
+ feeds/packages/lang/ruby/Makefile | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/feeds/packages/lang/ruby/Makefile b/feeds/packages/lang/ruby/Makefile
+index ef3dc93cb1f..30ba5f90d24 100644
+--- a/feeds/packages/lang/ruby/Makefile
++++ b/feeds/packages/lang/ruby/Makefile
+@@ -156,6 +156,10 @@ define Package/ruby/config
+
+ endef
+
++define Package/ruby/extra_provides
++      echo 'libruby.so';
++endef
++
+ define Package/ruby/install
+ 	$(INSTALL_DIR) $(1)/usr/bin
+ 	$(INSTALL_DIR) $(1)/usr/lib/ruby/$(PKG_ABI_VERSION)
