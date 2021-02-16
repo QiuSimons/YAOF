@@ -22,6 +22,8 @@ CONFIG_OPENSSL_WITH_ASM=y
 CONFIG_PACKAGE_libopenssl-devcrypto=y
 CONFIG_PACKAGE_libopenssl-conf=y
 
+CONFIG_PACKAGE_libncursesw6=y
+
 CONFIG_PACKAGE_kmod-usb-net-rndis=y
 CONFIG_PACKAGE_kmod-usb-net-ipheth=y
 CONFIG_PACKAGE_usbmuxd=y
