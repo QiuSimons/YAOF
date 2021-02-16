@@ -1,0 +1,184 @@
+name: X86-OpenWrt
+
+on:
+  schedule:
+    - cron: 5 6 * * 5
+  watch:
+    types: started
+
+jobs:
+  
+  Cleanup-Old-Releases:
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:  
+    - name: Delete Older Releases
+      uses: dev-drprasad/delete-older-releases@master
+      with:
+        keep_latest: 9
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  Cleanup-Old-Artifacts:
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+    - name: Cleanup Old Action Artifacts
+      uses: kolpav/purge-artifacts-action@master
+      with:
+        token: ${{ github.token }}
+        expire-in: 14d
+        
+  Cleanup-Workflow-Logs:
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+      - name: Cleanup Workflow Logs
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 14
+          
+  build:
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+    - name: Show system
+      run: |
+        echo -e "Total CPU cores\t: $(nproc)"
+        cat /proc/cpuinfo | grep 'model name'
+        free -h
+        uname -a
+        [ -f /proc/version ] && cat /proc/version
+        [ -f /etc/issue.net ] && cat /etc/issue.net
+        [ -f /etc/issue ] && cat /etc/issue
+        ulimit -a
+    - name: Free disk space
+      run: |
+        sudo -E swapoff -a
+        sudo -E rm -f /swapfile
+        sudo -E docker image prune -a -f
+        sudo -E snap set system refresh.retain=2
+        sudo -E apt-get -y purge azure* dotnet* firefox ghc* google* hhvm llvm* mono* mysql* openjdk* php* zulu*
+        sudo -E apt-get -y autoremove --purge
+        sudo -E apt-get clean
+        sudo -E rm -rf /usr/share/dotnet /usr/local/lib/android/sdk /etc/mysql /etc/php /usr/local/share/boost
+        [ -n "$AGENT_TOOLSDIRECTORY" ] && sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        df -h
+    - name: Init build dependencies
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo -E rm -rf /etc/apt/sources.list.d
+        sudo -E apt-get update -y
+        sudo -E apt-get install -y build-essential rsync asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core p7zip p7zip-full msmtp libssl-dev texinfo libreadline-dev libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint ccache curl wget vim nano python3 python3-pip python3-ply haveged lrzsz device-tree-compiler scons
+        wget -qO - https://raw.githubusercontent.com/friendlyarm/build-env-on-ubuntu-bionic/master/install.sh | sed 's/python-/python3-/g' | /bin/bash
+        sudo -E apt-get clean -y
+        git config --global user.name 'GitHub Actions' && git config --global user.email 'noreply@github.com'
+        df -h
+    - name: Prepare Mixedwrt
+      run: |
+        sudo chown -R runner:runner /home/runner/work/R2S-R4S-X86-OpenWrt
+        cp -r ./SCRIPTS/X86/. ./SCRIPTS/
+        cp -r ./SCRIPTS/. ./
+        /bin/bash 01_get_ready.sh
+    - name: Prepare Package
+      run: |
+        cd openwrt
+        cp -r ../SCRIPTS/. ./
+        /bin/bash 02_prepare_package.sh
+        /bin/bash 02_target_only.sh
+    - name: Convert Translation
+      run: |
+        cd openwrt
+        /bin/bash 03_convert_translation.sh
+    - name: Remove Upx
+      run: |
+        cd openwrt
+        /bin/bash 04_remove_upx.sh
+    - name: Add ACL
+      run: |
+        cd openwrt
+        /bin/bash 05_create_acl_for_luci.sh -a
+    - name: Make Config
+      run: |
+        cd openwrt
+        mv ../SEED/X86/config.seed .config
+        make defconfig
+
+    - name: Smart chmod
+      run: |
+        MY_Filter=$(mktemp)
+        echo '/\.git' >  ${MY_Filter}
+        echo '/\.svn' >> ${MY_Filter}
+        find ./ -maxdepth 1 | grep -v '\./$' | grep -v '/\.git' | xargs -s1024 chmod -R u=rwX,og=rX
+        find ./ -type f | grep -v -f ${MY_Filter} | xargs -s1024 file | grep 'executable\|ELF' | cut -d ':' -f1 | xargs -s1024 chmod 755
+        rm -f ${MY_Filter}
+        unset MY_Filter
+
+    - name: Make Download
+      run: |
+        df -h
+        cd openwrt
+        make download -j10
+    - name: Make Toolchain
+      run: |
+        df -h
+        cd openwrt
+        let make_process=$(nproc)+1
+        make toolchain/install -j${make_process} V=s
+    - name: Compile Openwrt
+      run: |
+        df -h
+        cd openwrt
+        let make_process=$(nproc)+1
+        make -j${make_process} V=s || make -j${make_process} V=s || make -j1 V=s
+    - name: Cleaning
+      run: |
+        df -h
+        cd openwrt/bin/targets/x86/64
+        /bin/bash ../../../../../SCRIPTS/06_cleaning.sh
+    - name: Print Disk Space After
+      run: df -h
+    - name: Assemble Artifact
+      id: assemble_artifact
+      run: |
+        rm -rf ./artifact/
+        mkdir -p ./artifact/
+        cp openwrt/bin/targets/x86/64/*combined-squashfs.img.gz ./artifact/
+        cd openwrt
+        cd ..
+        zip -r artifact.zip ./artifact/
+        release_tag="X86-GC404-$(date +%Y-%m-%d)"
+        echo "##[set-output name=release_tag;]$release_tag"
+    - name: Upload Artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: ${{ steps.assemble_artifact.outputs.release_tag }}-ROM
+        path: ./artifact.zip
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.workflow_token }}
+      with:
+        tag_name: ${{ steps.assemble_artifact.outputs.release_tag }}
+        release_name: 自动发布 ${{ steps.assemble_artifact.outputs.release_tag }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.workflow_token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+        asset_path: ./artifact.zip
+        asset_name: ${{ steps.assemble_artifact.outputs.release_tag }}-ROM.zip
+        asset_content_type: application/zip
