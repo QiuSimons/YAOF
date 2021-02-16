@@ -262,6 +262,8 @@ svn co https://github.com/1715173329/tencentcloud-openwrt-plugin-ddns/trunk/tenc
 svn co https://github.com/kenzok8/openwrt-packages/trunk/luci-app-aliddns package/new/luci-app-aliddns
 #WOL
 svn co https://github.com/sundaqiang/openwrt-packages/trunk/luci-app-services-wolplus package/new/luci-app-services-wolplus
+#凑合解决方案
+cp -rf ../PATCH/duplicate/libncursesw6 ./package/lean/libncursesw6
 
 ##最后的收尾工作
 #Lets Fuck
