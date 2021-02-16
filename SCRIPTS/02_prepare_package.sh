@@ -214,7 +214,6 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-netdata 
 git clone -b master --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 #SeverChan
 git clone -b master --depth 1 https://github.com/tty228/luci-app-serverchan.git package/new/luci-app-serverchan
-svn co https://github.com/openwrt/openwrt/branches/openwrt-19.07/package/network/utils/iputils package/network/utils/iputils
 #SmartDNS
 rm -rf ./feeds/packages/net/smartdns
 mkdir package/new/smartdns
