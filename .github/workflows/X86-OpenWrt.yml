@@ -150,7 +150,7 @@ jobs:
       run: |
         rm -rf ./artifact/
         mkdir -p ./artifact/
-        cp openwrt/bin/targets/x86/64/*combined-squashfs.img.gz ./artifact/
+        cp openwrt/bin/targets/x86/64/*combined.img.gz ./artifact/
         cd openwrt
         cd ..
         zip -r artifact.zip ./artifact/
