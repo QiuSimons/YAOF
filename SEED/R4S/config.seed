@@ -118,7 +118,7 @@ CONFIG_PACKAGE_rpcd-mod-luci=y
 CONFIG_PACKAGE_rpcd-mod-rrdns=y
 CONFIG_PACKAGE_subconverter=y
 CONFIG_PACKAGE_uhttpd=y
-CONFIG_PACKAGE_wget=y
+CONFIG_PACKAGE_wget-ssl=y
 # CONFIG_COLLECT_KERNEL_DEBUG is not set
 # CONFIG_OPENSSL_WITH_ERROR_MESSAGES is not set
 
