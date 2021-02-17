@@ -1,40 +1,24 @@
-#
-# Copyright (C) 2016-2017 GitHub
-#
-# This is free software, licensed under the GNU General Public License v3.
-# See /LICENSE for more information.
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libncursesw6
 PKG_VERSION:=1.0
-PKG_RELEASE:=1
-PKG_LICENSE:=GPLv3
-PKG_LICENSE_FILES:=LICENSE
 
-PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
-
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 include $(INCLUDE_DIR)/package.mk
 
 define Package/libncursesw6
-  SECTION:=luci
-  CATEGORY:=LuCI
+  CATEGORY:=Workaround Solution
   TITLE:=libncursesw6
-  PKGARCH:=all
-  DEPENDS:=+luci-base
 endef
 
-define Package/libncursesw6/description
-	libncursesw6.
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
+define Build/Prepare
+        mkdir -p $(PKG_BUILD_DIR)
+        $(CP) ./src/* $(PKG_BUILD_DIR)/
 endef
 
 define Package/libncursesw6/install
+        $(INSTALL_DIR) $(1)/bin
+        $(INSTALL_BIN) $(PKG_BUILD_DIR)/helloworld $(1)/bin/
 endef
 
 $(eval $(call BuildPackage,libncursesw6))
