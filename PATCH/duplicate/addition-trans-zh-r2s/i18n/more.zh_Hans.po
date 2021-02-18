@@ -1161,3 +1161,30 @@ msgstr "这是 zRam 启用后，zSwap 占用的内存百分比。这也表示未
 
 msgid "Enable FullCone NAT"
 msgstr "启用 FullCone-NAT"
+
+msgid "Compressed swap disk and cache"
+msgstr "压缩交换缓存"
+
+msgid "Configure the compressed memory subsystem, which allows data in memory to be compressed to enhance resource usage."
+msgstr "配置内存压缩系统，允许压缩内存中的数据以提高内存资源利用率（可能会消耗更多的处理器资源）。"
+
+msgid "Configure the compressed RAM disk properties. This section will configure the zram "compressed" block device, which will be used by the kernel as a physical swap disk. <i>If your CPU and RAM are fast or your device does not have external storage, zram is the best alternative to free unused or rarely used memory</i>."
+msgstr "对 RamDisk 压缩参数进行设置。在内存中划分一块空间，作为 Swap 空间。 <i>在处理器和内存性能足够的情况下，zRam 是获额外内存空间的最佳方式</i>。"
+
+msgid "Enable a zram disk as a swap area"
+msgstr "将 zRam 作为 Swap 空间"
+
+msgid "Compressed swap cache [zswap]"
+msgstr "zSwap"
+
+msgid "Compressed RAM disk [zram]"
+msgstr "zRam"
+
+msgid "Configure the compressed swap cache. When used as a cache to a swap device or file, it will reduce the I/O requests to the device or filesystem, allowing faster access to swapped memory areas by keeping them in memory.<br>When used as a cache to zram, it will avoid using the more efficient, yet more expensive, zram block compressor.<br><b>Note that while zram is a compressed block device, this is a compact-page LRU cache, and while zram can work as a stand-alone swap device, zswap always needs a backing swap device, which can be any swap area, including zram</b>."
+msgstr "对 Swap Cache 压缩参数进行设置。这个 Cache 将会减少硬盘 IO。"
+
+msgid "Compressor for zram when using zswap"
+msgstr "zSwap 压缩算法"
+
+msgid "Enable a zswap cache for swap devices"
+msgstr "启用 zSwap Cache"
