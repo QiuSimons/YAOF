@@ -134,6 +134,7 @@ git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config
 git clone -b master --depth 1 https://github.com/garypang13/luci-theme-edge.git package/new/luci-theme-edge
 #AdGuard
 cp -rf ../openwrt-lienol/package/diy/luci-app-adguardhome ./package/new/luci-app-adguardhome
+sed -i '/INSTALL_DIR/i\\t$(STAGING_DIR_HOST)/bin/upx --lzma --best $(GO_PKG_BUILD_BIN_DIR)/AdGuardHome' tools/Makefile
 sed -i '/init/d' feeds/packages/net/adguardhome/Makefile
 #ChinaDNS
 git clone -b luci --depth 1 https://github.com/pexcn/openwrt-chinadns-ng.git package/new/luci-app-chinadns-ng
