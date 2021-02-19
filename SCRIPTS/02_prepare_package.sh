@@ -55,11 +55,13 @@ cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
 #（不用注释这里的任何东西，这不会对提升action的执行速度起到多大的帮助
 #（不需要的包直接修改seed就好
 #luci-app-compressed-memory
-wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/2840.patch | patch -p1
+#wget -O- https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/2840.patch | patch -p1
+wget -O- https://github.com/NoTengoBattery/openwrt/commit/40f1d5.patch | patch -p1
+wget -O- https://github.com/NoTengoBattery/openwrt/commit/a83a0b.patch | patch -p1
+wget -O- https://github.com/NoTengoBattery/openwrt/commit/6d5fb4.patch | patch -p1
 mkdir ./package/new
 cp -rf ../NoTengoBattery/feeds/luci/applications/luci-app-compressed-memory ./package/new/luci-app-compressed-memory
 sed -i 's,include ../..,include $(TOPDIR)/feeds/luci,g' ./package/new/luci-app-compressed-memory/Makefile
-rm -rf ./package/system/compressed-memory
 cp -rf ../NoTengoBattery/package/system/compressed-memory ./package/system/compressed-memory
 #R8168
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/ctcgfw/r8168 package/new/r8168
