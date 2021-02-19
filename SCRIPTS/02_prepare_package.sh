@@ -2,7 +2,7 @@
 clear
 
 #凑合解决方案
-wget -qO - https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3875.patch | patch -p1
+#wget -qO - https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3875.patch | patch -p1
 
 #使用O2级别的优化
 sed -i 's/Os/O2/g' include/target.mk
