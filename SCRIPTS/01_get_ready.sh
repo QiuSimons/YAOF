@@ -5,8 +5,6 @@ curl -LO "https://github.com/openwrt/openwrt/archive/${latest_release}"
 mkdir openwrt_back
 shopt -s extglob 
 tar zxvf ${latest_release}  --strip-components 1 -C ./openwrt_back
-rm -f ./openwrt_back/feeds.conf.default
-wget -P openwrt_back/ https://raw.githubusercontent.com/openwrt/openwrt/openwrt-21.02/feeds.conf.default
 rm -f ${latest_release}
 git clone --single-branch -b openwrt-21.02 https://github.com/openwrt/openwrt openwrt_new
 rm -f ./openwrt_new/include/version.mk
