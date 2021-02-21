@@ -111,9 +111,9 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-uugamebo
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/uugamebooster package/lean/uugamebooster
 #AutoCore
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/autocore package/lean/autocore
-svn co https://github.com/immortalwrt/packages/trunk/utils/coremark feeds/packages/utils/coremark
-ln -sf ../../../feeds/packages/utils/coremark ./package/feeds/packages/coremark
+sed -i 's,default 2,default 8,g' feeds/packages/utils/coremark/Makefile
 sed -i 's,default n,default y,g' feeds/packages/utils/coremark/Makefile
+
 #迅雷快鸟
 git clone --depth 1 https://github.com/garypang13/luci-app-xlnetacc.git package/lean/luci-app-xlnetacc
 #DDNS
