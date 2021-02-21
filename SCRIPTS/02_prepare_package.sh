@@ -111,6 +111,8 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-uugamebo
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/uugamebooster package/lean/uugamebooster
 #AutoCore
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/autocore package/lean/autocore
+rm -rf ./feeds/packages/utils/coremark
+svn co https://github.com/immortalwrt/packages/trunk/utils/coremark feeds/packages/utils/coremark
 sed -i 's,default 2,default 8,g' feeds/packages/utils/coremark/Makefile
 sed -i 's,default n,default y,g' feeds/packages/utils/coremark/Makefile
 
