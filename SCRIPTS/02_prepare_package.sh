@@ -94,6 +94,9 @@ svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/l
 #京东签到
 git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
 git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
+pushd package/new/luci-app-jd-dailybonus
+sed -i 's/wget-ssl/wget/g' root/usr/share/jd-dailybonus/newapp.sh luasrc/controller/jd-dailybonus.lua
+popd
 #arpbind
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-arpbind package/lean/luci-app-arpbind
 patch -p1 < ../PATCH/new/package/arpbind.patch
