@@ -159,8 +159,10 @@ git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git pac
 git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
 sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
 sed -i '/V2ray:v2ray/d' package/lean/luci-app-vssr/Makefile
-sed -i 's,ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305,ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256,g' package/lean/luci-app-vssr/root/usr/share/vssr/genconfig_trojan.lua
-sed -i 's,TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256,TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256,g' package/lean/luci-app-vssr/root/usr/share/vssr/genconfig_trojan.lua
+sed -i '/plugin:v2ray/d' package/lean/luci-app-vssr/Makefile
+sed -i '/result.encrypt_method/a\result.fast_open = "1"' package/lean/luci-app-vssr/root/usr/share/vssr/subscribe.lua
+sed -i 's,ispip.clang.cn/all_cn.txt,cdn.jsdelivr.net/gh/QiuSimons/Chnroute/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/luasrc/controller/vssr.lua
+sed -i 's,ispip.clang.cn/all_cn.txt,cdn.jsdelivr.net/gh/QiuSimons/Chnroute/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/root/usr/share/vssr/update.lua
 #SSRP
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
@@ -199,8 +201,6 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall pac
 sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
 sed -i '/V2ray:v2ray/d' package/new/luci-app-passwall/Makefile
 sed -i '/plugin:v2ray/d' package/new/luci-app-passwall/Makefile
-sed -i 's,ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305,ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256,g' package/new/luci-app-passwall/luasrc/model/cbi/passwall/server/api/trojan.lua
-sed -i 's,TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256,TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256,g' package/new/luci-app-passwall/luasrc/model/cbi/passwall/server/api/trojan.lua
 cp -f ../PATCH/new/script/move_2_services.sh ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
 bash move_2_services.sh
