@@ -54,8 +54,6 @@ cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
 ##获取额外package
 #（不用注释这里的任何东西，这不会对提升action的执行速度起到多大的帮助
 #（不需要的包直接修改seed就好
-#wget
-sed -i '/1)\/usr\/libexec\/wget-ssl/a\\t$(LN) $(1)/usr/libexec/wget-ssl $(1)/usr/bin/wget-ssl' ./feeds/packages/net/wget/Makefile
 #upx
 sed -i '/patchelf pkgconf/i\tools-y += ucl upx' ./tools/Makefile
 sed -i '\/autoconf\/compile :=/i\$(curdir)/upx/compile := $(curdir)/ucl/compile' ./tools/Makefile
