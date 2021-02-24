@@ -7,6 +7,14 @@ CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r2s=y
 CONFIG_TARGET_ROOTFS_PARTSIZE=960
 # CONFIG_COLLECT_KERNEL_DEBUG is not set
 
+### AGGRESSIVE ###
+CONFIG_PACKAGE_node=y
+# CONFIG_NODEJS_10 is not set
+# CONFIG_NODEJS_12 is not set
+CONFIG_NODEJS_14=y
+CONFIG_TOOLCHAINOPTS=y
+CONFIG_GCC_USE_VERSION_10=y
+
 ### ESSENTIAL ###
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
