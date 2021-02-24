@@ -95,11 +95,20 @@ jobs:
         let make_process=$(nproc)+1
         make toolchain/install -j${make_process} V=s
     - name: Compile Openwrt
+      id: compileopenwrt
+      continue-on-error: true
       run: |
         df -h
         cd openwrt
-        let make_process=$(nproc)+1
-        make -j${make_process} V=s || make -j${make_process} V=s || make -j1 V=s
+        let Make_Process=$(nproc)+1
+        make -j${Make_Process} V=w
+        echo $?
+    - name: If Error
+      if: steps.compileopenwrt.outcome == 'failure'
+      run: |
+        cat openwrt/.config
+        echo '================================================================'
+        cd openwrt && make -j1 V=s
     - name: Cleaning
       run: |
         df -h
