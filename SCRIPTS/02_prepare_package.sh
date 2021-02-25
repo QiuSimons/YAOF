@@ -302,3 +302,4 @@ sed -i 's/default "5"/default "0"/g' config/Config-images.in
 #生成默认配置及缓存
 rm -rf .config
 exit 0
+
