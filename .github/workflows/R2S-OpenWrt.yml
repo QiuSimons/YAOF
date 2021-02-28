@@ -1,4 +1,4 @@
-name: R2S-OpenWrt
+name: R2S-OenWrt
 
 on:
   schedule:
