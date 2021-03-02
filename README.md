@@ -27,6 +27,8 @@ https://github.com/QiuSimons/R2S-R4S-OpenWrt/actions
 5.预配置了部分插件(预置了DNS套娃，要用的话勾上adg的启动，并保存应用，就好。然后ssrp的dns上游提前选成本机5335端口，openclash还有passwall自行触类旁通。adg管理端口3000，密码admin)
 如果要作用于路由器本身，可以把lan和wan的dns都配置成127.0.0.1，dhcp高级里设置下发dns 6,192.168.1.1(这里取决于你设定的路由的ip地址)
 
+6.默认关闭了SFE和内核自带的offload加速，有需求请在“网络-防火墙-常规设置”里自行配置，注意，加速模块是二选一的！！！
+
 ### 版本信息：
 LUCI版本：21.02（当日最新）
 
