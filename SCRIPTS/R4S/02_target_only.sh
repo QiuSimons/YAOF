@@ -18,16 +18,36 @@ sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mcpu=cortex-a72.cortex-a53+cr
 #Experimental
 sed -i '/CRYPTO_DEV_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
 sed -i '/HW_RANDOM_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
-sed -i '/CONFIG_DEVFREQ_GOV/d' ./target/linux/rockchip/armv8/config-5.4
-sed -i '/ARM_RK3399_DMC_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
 echo '
 CONFIG_CRYPTO_DEV_ROCKCHIP=y
 CONFIG_HW_RANDOM_ROCKCHIP=y
-CONFIG_DEVFREQ_GOV_PERFORMANCE=y
-CONFIG_DEVFREQ_GOV_POWERSAVE=y
-CONFIG_DEVFREQ_GOV_USERSPACE=y
-CONFIG_ARM_RK3399_DMC_DEVFREQ=y
 ' >> ./target/linux/rockchip/armv8/config-5.4
+
+#Experimental
+sed -i '/PM_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_SIMPLE_ONDEMAND/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_PERFORMANCE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_POWERSAVE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_USERSPACE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_PASSIVE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/ARM_RK3328_DMC_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/ARM_RK3399_DMC_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/PM_DEVFREQ_EVENT/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_EVENT_ROCKCHIP_DFI/d' ./target/linux/rockchip/armv8/config-5.4
+echo '
+CONFIG_PM_DEVFREQ=y
+CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND=y
+CONFIG_DEVFREQ_GOV_PERFORMANCE=m
+CONFIG_DEVFREQ_GOV_POWERSAVE=m
+CONFIG_DEVFREQ_GOV_USERSPACE=m
+CONFIG_DEVFREQ_GOV_PASSIVE=m
+CONFIG_ARM_RK3328_DMC_DEVFREQ=y
+CONFIG_ARM_RK3399_DMC_DEVFREQ=y
+CONFIG_PM_DEVFREQ_EVENT=y
+CONFIG_DEVFREQ_EVENT_ROCKCHIP_DFI=y
+CONFIG_EXTCON=y
+' >> ./target/linux/rockchip/armv8/config-5.4
+
 #IRQ
 sed -i '/set_interface_core 20 "eth1"/a\set_interface_core 8 "ff3c0000" "ff3c0000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 sed -i '/set_interface_core 20 "eth1"/a\ethtool -C eth0 rx-usecs 1000 rx-frames 25 tx-usecs 100 tx-frames 25' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
