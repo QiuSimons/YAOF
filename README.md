@@ -34,7 +34,7 @@
 
 ### 下载
 
-- 选则自己设备对应的固件，并下载[下载通道](https://github.com/QiuSimons/R2S-R4S-OpenWrt/releases)
+- 选则自己设备对应的固件，并[下载](https://github.com/QiuSimons/R2S-R4S-OpenWrt/releases)
 
 ### 截图
 
