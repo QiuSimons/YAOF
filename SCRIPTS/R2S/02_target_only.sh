@@ -26,6 +26,31 @@ zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .v
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 COMMENT
 
+#Experimental
+sed -i '/PM_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_SIMPLE_ONDEMAND/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_PERFORMANCE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_POWERSAVE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_USERSPACE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_GOV_PASSIVE/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/ARM_RK3328_DMC_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/ARM_RK3399_DMC_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/PM_DEVFREQ_EVENT/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/DEVFREQ_EVENT_ROCKCHIP_DFI/d' ./target/linux/rockchip/armv8/config-5.4
+echo '
+CONFIG_PM_DEVFREQ=y
+CONFIG_DEVFREQ_GOV_SIMPLE_ONDEMAND=y
+CONFIG_DEVFREQ_GOV_PERFORMANCE=m
+CONFIG_DEVFREQ_GOV_POWERSAVE=m
+CONFIG_DEVFREQ_GOV_USERSPACE=m
+CONFIG_DEVFREQ_GOV_PASSIVE=m
+CONFIG_ARM_RK3328_DMC_DEVFREQ=y
+CONFIG_ARM_RK3399_DMC_DEVFREQ=y
+CONFIG_PM_DEVFREQ_EVENT=y
+CONFIG_DEVFREQ_EVENT_ROCKCHIP_DFI=y
+CONFIG_EXTCON=y
+' >> ./target/linux/rockchip/armv8/config-5.4
+
 ##R2S相关
 #crypto
 echo '
