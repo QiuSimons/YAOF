@@ -1,9 +1,5 @@
 <p align="center">
-<img width="128" src="https://raw.githubusercontent.com/openwrt/openwrt/master/include/logo.png" >
-</p>
-<p align="center">
-<a href="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt" target="_blank">官网</a>
-<a href="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/pulls" target="_blank">PR</a>
+<img width="512" src="https://raw.githubusercontent.com/openwrt/openwrt/master/include/logo.png" >
 </p>
 <p align="center">
 <img src="https://forthebadge.com/images/badges/built-with-love.svg">
