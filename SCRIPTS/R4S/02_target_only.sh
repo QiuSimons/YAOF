@@ -18,11 +18,15 @@ sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mcpu=cortex-a72.cortex-a53+cr
 #Experimental
 sed -i '/CRYPTO_DEV_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
 sed -i '/HW_RANDOM_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
-sed -i '/CONFIG_SLUB/d' ./target/linux/rockchip/armv8/config-5.4
-sed -i '/CONFIG_PROC_[^V].*/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/CONFIG_DEVFREQ_GOV/d' ./target/linux/rockchip/armv8/config-5.4
+sed -i '/ARM_RK3399_DMC_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
 echo '
 CONFIG_CRYPTO_DEV_ROCKCHIP=y
 CONFIG_HW_RANDOM_ROCKCHIP=y
+CONFIG_DEVFREQ_GOV_PERFORMANCE=y
+CONFIG_DEVFREQ_GOV_POWERSAVE=y
+CONFIG_DEVFREQ_GOV_USERSPACE=y
+CONFIG_ARM_RK3399_DMC_DEVFREQ=y
 ' >> ./target/linux/rockchip/armv8/config-5.4
 #IRQ
 sed -i '/set_interface_core 20 "eth1"/a\set_interface_core 8 "ff3c0000" "ff3c0000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
