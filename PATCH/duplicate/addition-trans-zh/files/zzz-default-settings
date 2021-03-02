@@ -98,4 +98,7 @@ opkg flag hold dnsmasq-full
 rm -rf /tmp/luci-modulecache
 rm -f /tmp/luci-indexcache
 
+service shortcut-fe stop
+service shortcut-fe disable
+
 exit 0
