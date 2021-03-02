@@ -1,45 +1,55 @@
-## R2S/R4S/X86 基于原生OpenWRT 的固件(AS IS, NO WARRANTY!!!)
-![R2S-OpenWrt](https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/R2S-OpenWrt/badge.svg)
-![R4S-OpenWrt](https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/R4S-OpenWrt/badge.svg)
-![X86-OpenWrt](https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/X86-OpenWrt/badge.svg)
+<p align="center">
+<img width="128" src="https://raw.githubusercontent.com/openwrt/openwrt/master/include/logo.png" >
+</p>
+<p align="center">
+<a href="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt" target="_blank">官网</a>
+<a href="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/pulls" target="_blank">PR</a>
+</p>
+<p align="center">
+<img src="https://forthebadge.com/images/badges/built-with-love.svg">
+<p>
+<p align="center">
+<img src="https://github.com/aleen42/badges/raw/master/src/visual_studio_code_flat_square.svg?sanitize=true">
+<img src="https://github.com/aleen42/badges/raw/master/src/vue_flat_square.svg?sanitize=true">
+<img src="https://github.com/aleen42/badges/raw/master/src/javascript_flat_square.svg?sanitize=true">
+<img src="https://github.com/aleen42/badges/raw/master/src/eslint_flat_square.svg?sanitize=true">
+</p>
+<p align="center">
+<img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/QiuSimons/R2S-R4S-X86-OpenWrt/total?style=for-the-badge">
+<img alt="GitHub" src="https://img.shields.io/github/license/QiuSimons/R2S-R4S-X86-OpenWrt?style=for-the-badge">
+<img src="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/R2S-OpenWrt/badge.svg">
+<img src="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/R4S-OpenWrt/badge.svg">
+<img src="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/X86-OpenWrt/badge.svg">
+<p>
 
-### 请勿用于商业用途!!! 请勿用于商业用途!!! 请勿用于商业用途!!! 请勿用于商业用途!!! 请勿用于商业用途!!!
 
-### 下载地址：
-https://github.com/QiuSimons/R2S-R4S-OpenWrt/releases
+<h1 align="center">请勿用于商业用途!!!</h1>
 
-### 追新党可以在Action中取每日更新（可能会翻车，风险自担，需要登陆github后才能下载）：
-https://github.com/QiuSimons/R2S-R4S-OpenWrt/actions
 
-### Docker版本自行fork，修改seed，并在自己的Action中自取
 
-### 注意事项：
-0.R2S核心频率1.6（交换了LAN WAN），R4S核心频率2.2/1.8（特调了电压表，兼容5v3a的供电，但建议使用5v4a）
+### 特性
 
-1.登陆IP：192.168.1.1 密码：无
+- 基于原生 OpenWrt 21.02 编译
+- 同时支持 SFE/Software Offload （选则其一开启，默认均不开启）
+- 内置升级功能可用，物理 Reset 按键可用
+- 预配置了部分插件（包括但不限于 DNS 套娃，使用时先将 SSRP 的 DNS 上游提前选成本机5335端口，然后再 ADG 中勾上启用就好，如果要作用于路由器本身，可以把lan和wan的dns都配置成127.0.0.1，dhcp高级里设置下发dns 6,192.168.1.1。注：这里取决于你设定的路由的ip地址）
+- 正式 Release 版本将具有可无脑 opkg kmod 的特性
+- R2S核心频率1.6（交换了LAN WAN），R4S核心频率2.2/1.8（特调了电压表，兼容5v3a的供电，但建议使用5v4a）
+- O2 编译，性能更可靠
+- 插件包含：SSRP，PassWall，OpenClash，AdguardHome，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，ChinaDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启，默认开启)，流量分载，SFE流量分载，irq优化，京东签到，Zerotier，FRPC，FRPS，无线打印，流量监控，过滤军刀，R2S-OLED
 
-2.OP内置升级可用
+### 下载
 
-3.遇到上不了网的，请自行排查自己的ipv6联通情况。（推荐关闭ipv6，默认已关闭ipv6的dns解析，手动可以在DHCP/DNS里的高级设置中调整）
+- 选则自己设备对应的固件，并下载[下载通道](https://github.com/QiuSimons/R2S-R4S-OpenWrt/releases)
 
-4.刷写或升级后遇到任何问题，可以尝试ssh进路由器，输入fuck，回车后等待重启，或可解决，如仍有异常，建议ssh进路由器，输入firstboot -y && reboot now，回车后等待重启
+### 截图
 
-5.预配置了部分插件(预置了DNS套娃，要用的话勾上adg的启动，并保存应用，就好。然后ssrp的dns上游提前选成本机5335端口，openclash还有passwall自行触类旁通。adg管理端口3000，密码admin)
-如果要作用于路由器本身，可以把lan和wan的dns都配置成127.0.0.1，dhcp高级里设置下发dns 6,192.168.1.1(这里取决于你设定的路由的ip地址)
+|                      组件                       |                      流量分载                       |
+| :----------------------------------------------------------: | :----------------------------------------------------------: |
+| ![主页.png](https://raw.githubusercontent.com/QiuSimons/R4S-OpenWrt/master/PIC/app.png) | ![offload.png](https://raw.githubusercontent.com/QiuSimons/R4S-OpenWrt/master/PIC/offload.png) |
 
-6.默认关闭了SFE和内核自带的offload加速，有需求请在“网络-防火墙-常规设置”里自行配置，注意，加速模块是二选一的！！！
+### 鸣谢
 
-### 版本信息：
-LUCI版本：21.02（当日最新）
-
-其他模块版本：21.02（当日最新）
-
-R4S的支援由[1715173329](https://github.com/1715173329/)完成！
-
-### 特性及功能：
-1.O2编译
-
-2.内置两款主题
-
-3.插件包含：SSRP，PassWall，OpenClash，AdguardHome，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，ChinaDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启，默认开启)，流量分载(防火墙中开启)，SFE流量分载(也就是SFE加速，防火墙中开启，且默认开启)，BBR（默认开启），irq优化，京东签到，Zerotier，FRPC，FRPS，无线打印，流量监控，过滤军刀，R2S-OLED
-
+|          [CTCGFW](https://github.com/immortalwrt)           |           [coolsnowwolf](https://github.com/coolsnowwolf)            |              [Lienol](https://github.com/Lienol)               |              [NoTengoBattery](https://github.com/NoTengoBattery)               |
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| <img width="120" src="https://avatars.githubusercontent.com/u/53193414"/> | <img width="120" src="https://avatars.githubusercontent.com/u/31687149" /> | <img width="120" src="https://avatars.githubusercontent.com/u/23146169" /> | <img width="120" src="https://avatars.githubusercontent.com/u/11285513" /> |
