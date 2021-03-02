@@ -26,6 +26,11 @@ zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .v
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 COMMENT
 
+#Vermagic 2102 SNAPSHOT ONLY
+wget https://downloads.openwrt.org/releases/21.02-SNAPSHOT/targets/rockchip/armv8/packages/Packages.gz
+zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .vermagic
+sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
+
 #Experimental
 sed -i '/PM_DEVFREQ/d' ./target/linux/rockchip/armv8/config-5.4
 sed -i '/DEVFREQ_GOV_SIMPLE_ONDEMAND/d' ./target/linux/rockchip/armv8/config-5.4
