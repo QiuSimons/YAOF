@@ -95,6 +95,6 @@ rm -rf /tmp/luci-modulecache
 rm -f /tmp/luci-indexcache
 
 service shortcut-fe stop
-service shortcut-fe disable
+rm -rf /etc/rc.d/S90shortcut-fe
 
 exit 0
