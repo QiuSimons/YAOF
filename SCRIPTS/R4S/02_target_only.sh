@@ -12,6 +12,12 @@ rm -rf ./target/linux/rockchip/patches-5.4/992-rockchip-rk3399-overclock-to-2.2-
 cp -f ../PATCH/new/main/991-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch ./target/linux/rockchip/patches-5.4/991-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch
 cp -f ../PATCH/new/main/213-RK3399-set-critical-CPU-temperature-for-thermal-throttling.patch ./target/linux/rockchip/patches-5.4/213-RK3399-set-critical-CPU-temperature-for-thermal-throttling.patch
 
+#DMC
+cp -f ../PATCH/new/main/291-ARM64-dts-rk3399-add-dmc-and-dfi-node.patch.patch ./target/linux/rockchip/patches-5.4/291-ARM64-dts-rk3399-add-dmc-and-dfi-node.patch.patch
+cp -f ../PATCH/new/main/292-PM-devfreq-rockchip_dmc-modify-rk3399-dram-default-timing.patch ./target/linux/rockchip/patches-5.4/292-PM-devfreq-rockchip_dmc-modify-rk3399-dram-default-timing.patch
+cp -f ../PATCH/new/main/293-PM-devfreq-rockchip_dmc-add-auto_lp_dis_freq-to-rk3399.patch ./target/linux/rockchip/patches-5.4/293-PM-devfreq-rockchip_dmc-add-auto_lp_dis_freq-to-rk3399.patch
+cp -f ../PATCH/new/main/294-arm64-dts-rockchip-support-lpddr4-for-rk3399.patch ./target/linux/rockchip/patches-5.4/294-arm64-dts-rockchip-support-lpddr4-for-rk3399.patch
+
 #使用特定的优化
 sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mcpu=cortex-a72.cortex-a53+crypto+crc -mtune=cortex-a72.cortex-a53,g' include/target.mk
 
