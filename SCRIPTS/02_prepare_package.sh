@@ -248,7 +248,7 @@ git clone -b master --depth 1 https://github.com/destan19/OpenAppFilter.git pack
 #Docker
 #rm -rf ./feeds/luci/applications/luci-app-dockerman
 #git clone --depth=1 https://github.com/KFERMercer/luci-app-dockerman feeds/luci/applications/luci-app-dockerman
-sed -i 's/+dockerd/+docker \\\n\t+dockerd/g' ./feeds/luci/applications/luci-app-dockerman/Makefile
+sed -i 's/+docker/+docker \\\n\t+dockerd/g' ./feeds/luci/applications/luci-app-dockerman/Makefile
 #ipv6-helper
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/ipv6-helper package/lean/ipv6-helper
 #IPSEC
