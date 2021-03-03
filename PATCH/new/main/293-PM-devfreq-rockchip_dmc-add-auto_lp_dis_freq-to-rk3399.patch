@@ -1,0 +1,28 @@
+From b9d770c7dea641bbdf23ee639c91365c9003e8a6 Mon Sep 17 00:00:00 2001
+From: YouMin Chen <cym@rock-chips.com>
+Date: Tue, 19 Sep 2017 19:51:24 +0800
+Subject: [PATCH] PM / devfreq: rockchip_dmc: add auto_lp_dis_freq to rk3399
+ dram timing table
+
+When DRAM frequency greater than or equal to this setting value,
+the function of auto power-down will disable.
+
+Change-Id: I0c7faee045ff00de0dc36adc45e21389c41aa81f
+Signed-off-by: YouMin Chen <cym@rock-chips.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-dram-default-timing.dtsi | 1 +
+ drivers/devfreq/rockchip_dmc.c                               | 3 +++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-dram-default-timing.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-dram-default-timing.dtsi
+index f797ee9f9624..72cf3eb5b2b4 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-dram-default-timing.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-dram-default-timing.dtsi
+@@ -50,6 +50,7 @@
+ 		sr_mc_gate_idle = <0>;
+ 		srpd_lite_idle	= <0>;
+ 		standby_idle = <0>;
++		auto_lp_dis_freq = <666>;
+ 		ddr3_dll_dis_freq = <300>;
+ 		phy_dll_dis_freq = <260>;
+ 
