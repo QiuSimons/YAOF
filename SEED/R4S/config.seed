@@ -176,6 +176,16 @@ CONFIG_LIBCURL_OPENSSL=y
 # CONFIG_LIBCURL_GNUTLS is not set
 # CONFIG_LIBCURL_NOSSL is not set
 
+### 其他插件 请大佬添加 ### (麻烦大佬加入以下插件可以注释掉 但基本都是常用的)
+
+CONFIG_PACKAGE_block-mount=y
+CONFIG_PACKAGE_mount-utils=y
+CONFIG_PACKAGE_luci-app-nlbwmon=y
+CONFIG_PACKAGE_luci-app-ttyd=y
+CONFIG_PACKAGE_luci-app-hd-idle=y
+CONFIG_PACKAGE_luci-app-samba4=y
+CONFIG_PACKAGE_luci-app-qbittorrent=y
+
 
 ### DOCKER ###（实验性,有需要的删掉下面三行的注释)
 #CONFIG_PACKAGE_luci-app-dockerman=y
