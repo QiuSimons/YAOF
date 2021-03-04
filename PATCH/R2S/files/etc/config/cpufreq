@@ -1,8 +1,5 @@
 
 config settings 'cpufreq'
-	option governor 'schedutil'
-	option minfreq '816000'
-	option maxfreq '1608000'
-	option upthreshold '50'
-	option factor '10'
-
+	option governor0 'schedutil'
+	option minfreq0 '1008000'
+	option maxfreq0 '1608000'
