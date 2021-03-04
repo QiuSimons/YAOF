@@ -1,4 +1,4 @@
-name: R4S-OpenWrt
+name: R4S-xmh-OpenWrt
 
 on:
   schedule:
