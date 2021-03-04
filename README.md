@@ -29,6 +29,7 @@
 - R2S核心频率1.6（交换了LAN WAN），R4S核心频率2.2/1.8（特调了电压表，兼容5v3a的供电，但建议使用5v4a）
 - O2 编译，性能更可靠
 - 插件包含：SSRP，PassWall，OpenClash，AdguardHome，BearDropper，微信推送，网易云解锁，SQM，SmartDNS，ChinaDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启，默认开启)，流量分载，SFE流量分载，irq优化，京东签到，Zerotier，FRPC，FRPS，无线打印，流量监控，过滤军刀，R2S-OLED
+- 如有任何问题，请先尝试ssh进入后台，输入fuck后回车，等待机器重启后确认问题是否已经解决
 
 ### 下载
 
