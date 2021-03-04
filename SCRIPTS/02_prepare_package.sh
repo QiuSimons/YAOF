@@ -273,6 +273,8 @@ svn co https://github.com/QiuSimons/OpenWrt_luci-app/trunk/others/luci-app-tence
 svn co https://github.com/kenzok8/openwrt-packages/trunk/luci-app-aliddns package/new/luci-app-aliddns
 #WOL
 svn co https://github.com/sundaqiang/openwrt-packages/trunk/luci-app-services-wolplus package/new/luci-app-services-wolplus
+#Docker
+sed -i 's/+docker/+docker \\\n\t+dockerd/g' ./feeds/luci/applications/luci-app-dockerman/Makefile
 
 ##最后的收尾工作
 #Lets Fuck
