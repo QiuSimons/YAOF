@@ -34,7 +34,7 @@ jobs:
         df -h
     - name: Prepare Mixedwrt
       run: |
-        sudo chown -R jore:jore /home/jore/actions-runner/micu/R2S-R4S-X86-OpenWrt
+        sudo chown -R linlinsanly:linlinsanly /home/linlinsanly/actions-runner/micu/R2S-R4S-X86-OpenWrt
         cp -r ./SCRIPTS/R2S/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
