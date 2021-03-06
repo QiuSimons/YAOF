@@ -127,7 +127,7 @@ jobs:
           cd ../openwrt
           cp .config ../artifact/R2S-config-full.seed
           ./scripts/diffconfig.sh > ../artifact/R2S-config-diff.seed
-          release_tag="R2S-R4S-clash-snapshot-$(date +%Y-%m-%d)"
+          release_tag="R2S-clash-snapshot-$(date +%Y-%m-%d)"
           echo "##[set-output name=release_tag;]$release_tag"
       - name: Upload Artifact
         uses: actions/upload-artifact@main
