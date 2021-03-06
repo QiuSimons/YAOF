@@ -1,14 +1,12 @@
-name: R4S-OpenWrt
+name: R2S-OpenWrt
 
 on:
-  schedule:
-    - cron: 5 6 * * 0
-  watch:
-    types: started
+  repository_dispatch:
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
@@ -24,18 +22,6 @@ jobs:
         [ -f /etc/issue.net ] && cat /etc/issue.net
         [ -f /etc/issue ] && cat /etc/issue
         ulimit -a
-    - name: Free disk space
-      run: |
-        sudo -E swapoff -a
-        sudo -E rm -f /swapfile
-        sudo -E docker image prune -a -f
-        sudo -E snap set system refresh.retain=2
-        sudo -E apt-get -y purge azure* dotnet* firefox ghc* google* hhvm llvm* mono* mysql* openjdk* php* zulu*
-        sudo -E apt-get -y autoremove --purge
-        sudo -E apt-get clean
-        sudo -E rm -rf /usr/share/dotnet /usr/local/lib/android/sdk /etc/mysql /etc/php /usr/local/share/boost
-        [ -n "$AGENT_TOOLSDIRECTORY" ] && sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-        df -h
     - name: Init build dependencies
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -50,7 +36,7 @@ jobs:
     - name: Prepare Mixedwrt
       run: |
         sudo chown -R runner:runner /home/runner/work/R2S-R4S-X86-OpenWrt
-        cp -r ./SCRIPTS/R4S/. ./SCRIPTS/
+        cp -r ./SCRIPTS/R2S/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
     - name: Prepare Package
@@ -70,9 +56,8 @@ jobs:
     - name: Make Config
       run: |
         cd openwrt
-        mv ../SEED/R4S/config.seed .config
+        mv ../SEED/R2S/config.seed .config
         make defconfig
-
     - name: Smart chmod
       run: |
         MY_Filter=$(mktemp)
@@ -82,7 +67,6 @@ jobs:
         find ./ -type f | grep -v -f ${MY_Filter} | xargs -s1024 file | grep 'executable\|ELF' | cut -d ':' -f1 | xargs -s1024 chmod 755
         rm -f ${MY_Filter}
         unset MY_Filter
-
     - name: Make Download
       run: |
         df -h
@@ -125,31 +109,23 @@ jobs:
         cd openwrt
         cd ..
         zip -r artifact.zip ./artifact/
-        release_tag="R4S-GC404-$(date +%Y-%m-%d)"
+        release_tag="R2S-clash-$(date +%Y-%m-%d)"
         echo "##[set-output name=release_tag;]$release_tag"
     - name: Upload Artifact
       uses: actions/upload-artifact@main
       with:
         name: ${{ steps.assemble_artifact.outputs.release_tag }}-ROM
         path: ./artifact.zip
-    - name: Create Release
+    - name: Create release
       id: create_release
-      uses: actions/create-release@main
-      env:
-        GITHUB_TOKEN: ${{ secrets.workflow_token }}
+      uses: ncipollo/release-action@v1.8.0
       with:
-        tag_name: ${{ steps.assemble_artifact.outputs.release_tag }}
-        release_name: 自动发布 ${{ steps.assemble_artifact.outputs.release_tag }}
+        name: ${{ steps.assemble_artifact.outputs.release_tag }}-ROM
+        allowUpdates: true
+        tag: ${{ steps.assemble_artifact.outputs.release_tag }}
+        commit: master
+        replacesArtifacts: true
         draft: false
         prerelease: false
-
-    - name: Upload Release Asset
-      id: upload-release-asset
-      uses: actions/upload-release-asset@main
-      env:
-        GITHUB_TOKEN: ${{ secrets.workflow_token }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-        asset_path: ./artifact.zip
-        asset_name: ${{ steps.assemble_artifact.outputs.release_tag }}-ROM.zip
-        asset_content_type: application/zip
+        token: ${{ secrets.workflow_token }}
+        artifacts: ./artifact/*.gz,./artifact/*.seed,./artifact/*.sha256sum
