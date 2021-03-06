@@ -6,7 +6,8 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
     - name: Checkout
@@ -34,7 +35,7 @@ jobs:
         df -h
     - name: Prepare Mixedwrt
       run: |
-        sudo chown -R linlinsanly:linlinsanly /home/linlinsanly/actions-runner/micu/R2S-R4S-X86-OpenWrt
+        sudo chown -R runner:runner /home/runner/work/R2S-R4S-X86-OpenWrt
         cp -r ./SCRIPTS/R2S/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
