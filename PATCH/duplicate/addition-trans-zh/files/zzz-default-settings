@@ -54,8 +54,8 @@ echo "20 2 * * * /usr/share/MosChinaDNS/update_list.sh &" >> /etc/crontabs/root 
 #openclash
 echo "/etc/openclash/" >> /etc/sysupgrade.conf && cat /etc/sysupgrade.conf | sort | uniq > /tmp/tmp_sysupgrade_conf && cat /tmp/tmp_sysupgrade_conf > /etc/sysupgrade.conf
 
-#dockerman
-sed -i 's,/opt,/overlay,g' /etc/config/dockerman
+#dockerman（现在已经没有这个文件了/etc/config/dockerman，现在叫 /etc/config/dockerd）
+#sed -i 's,/opt,/overlay,g' /etc/config/dockerman
 
 #dnsmasq
 uci set dhcp.lan.ra='hybrid'
