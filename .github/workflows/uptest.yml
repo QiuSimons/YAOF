@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
+  upload:
     - name: Create Release
       id: create_release
       uses: actions/create-release@main
