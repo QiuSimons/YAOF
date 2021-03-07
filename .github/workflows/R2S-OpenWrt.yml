@@ -110,6 +110,19 @@ jobs:
         df -h
         cd openwrt/bin/targets/rockchip/armv8
         /bin/bash ../../../../../SCRIPTS/06_cleaning.sh
+    - name: Print Disk Space After
+      run: df -h
+    - name: Assemble Artifact
+      id: assemble_artifact
+      run: |
+        rm -rf ./artifact/
+        mkdir -p ./artifact/
+        cp openwrt/bin/targets/rockchip/armv8/*squashfs-sysupgrade.img.gz ./artifact/
+        cd openwrt
+        cd ..
+        zip -r artifact.zip ./artifact/
+        release_tag="R2S-mini-$(date +%Y-%m-%d)"
+        echo "##[set-output name=release_tag;]$release_tag"
     - name: Upload Artifact
       uses: actions/upload-artifact@main
       with:
@@ -119,7 +132,7 @@ jobs:
       id: create_release
       uses: actions/create-release@main
       env:
-        GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.workflow_token }}
       with:
         tag_name: ${{ steps.assemble_artifact.outputs.release_tag }}
         release_name: 自动发布 ${{ steps.assemble_artifact.outputs.release_tag }}
@@ -130,7 +143,7 @@ jobs:
       id: upload-release-asset
       uses: actions/upload-release-asset@main
       env:
-        GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.workflow_token }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
         asset_path: ./artifact.zip
