@@ -1,4 +1,4 @@
-name: R2S-OpenWrt
+name: Upload
 
 on:
   repository_dispatch:
