@@ -1,10 +1,8 @@
 name: Cleaning
 
 on:
-  schedule:
-    - cron: 1 1 * * 1
-  watch:
-    types: started
+  repository_dispatch:
+  workflow_dispatch:
 
 jobs:
   
