@@ -96,7 +96,7 @@ jobs:
       run: |
         df -h
         cd openwrt
-        let Make_Process=$(nproc)
+        let Make_Process=$(nproc)+1
         make -j${Make_Process} V=w
         echo $?
     - name: If Error
@@ -121,7 +121,7 @@ jobs:
         cd openwrt
         cd ..
         zip -r artifact.zip ./artifact/
-        release_tag="R2S-mini-$(date +%Y-%m-%d)"
+        release_tag="R2S-GC404-$(date +%Y-%m-%d)"
         echo "##[set-output name=release_tag;]$release_tag"
     - name: Upload Artifact
       uses: actions/upload-artifact@main
