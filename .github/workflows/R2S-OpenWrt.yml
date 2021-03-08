@@ -5,40 +5,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
-  Cleanup-Old-Releases:
-    runs-on: ubuntu-20.04
-    if: github.event.repository.owner.id == github.event.sender.id
-    steps:
-    - name: Delete Older Releases
-      uses: dev-drprasad/delete-older-releases@master
-      with:
-        keep_latest: 9
-        delete_tags: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  Cleanup-Old-Artifacts:
-    runs-on: ubuntu-20.04
-    if: github.event.repository.owner.id == github.event.sender.id
-    steps:
-    - name: Cleanup Old Action Artifacts
-      uses: kolpav/purge-artifacts-action@master
-      with:
-        token: ${{ github.token }}
-        expire-in: 14d
-
-  Cleanup-Workflow-Logs:
-    runs-on: ubuntu-20.04
-    if: github.event.repository.owner.id == github.event.sender.id
-    steps:
-      - name: Cleanup Workflow Logs
-        uses: Mattraks/delete-workflow-runs@main
-        with:
-          token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          retain_days: 14
-
   build:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
@@ -90,14 +56,11 @@ jobs:
         cd openwrt
         cp -r ../SCRIPTS/. ./
         /bin/bash 02_prepare_package.sh
+        /bin/bash 02_target_only.sh
     - name: Convert Translation
       run: |
         cd openwrt
         /bin/bash 03_convert_translation.sh
-    - name: Remove Upx
-      run: |
-        cd openwrt
-        /bin/bash 04_remove_upx.sh
     - name: Add ACL
       run: |
         cd openwrt
@@ -128,11 +91,20 @@ jobs:
         let make_process=$(nproc)+1
         make toolchain/install -j${make_process} V=s
     - name: Compile Openwrt
+      id: compileopenwrt
+      continue-on-error: true
       run: |
         df -h
         cd openwrt
-        let make_process=$(nproc)+1
-        make -j${make_process} V=s || make -j${make_process} V=s || make -j1 V=s
+        let Make_Process=$(nproc)+1
+        make -j${Make_Process} V=w
+        echo $?
+    - name: If Error
+      if: steps.compileopenwrt.outcome == 'failure'
+      run: |
+        cat openwrt/.config
+        echo '================================================================'
+        cd openwrt && make -j1 V=s
     - name: Cleaning
       run: |
         df -h
