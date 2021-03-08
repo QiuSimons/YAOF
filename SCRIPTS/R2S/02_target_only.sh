@@ -9,7 +9,7 @@ svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/u
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/arm-trusted-firmware-rk3328 package/boot/arm-trusted-firmware-rk3328
 
 #使用专属优化
-sed -i 's,-mcpu=generic,-mlittle-endian -mabi=lp64 -march=armv8-a+crypto+crc,g' include/target.mk
+sed -i 's,-mcpu=generic,-march=armv8-a+crypto+crc -mabi=lp64,g' include/target.mk
 cp -f ../PATCH/new/package/100-Implements-AES-and-GCM-with-ARMv8-Crypto-Extensions.patch ./package/libs/mbedtls/patches/100-Implements-AES-and-GCM-with-ARMv8-Crypto-Extensions.patch
 
 #IRQ
