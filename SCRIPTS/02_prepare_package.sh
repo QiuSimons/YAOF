@@ -5,7 +5,7 @@ clear
 #wget -qO - https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3875.patch | patch -p1
 
 #使用O2级别的优化
-sed -i 's/Os/O2/g' include/target.mk
+#sed -i 's/Os/O2/g' include/target.mk
 #更新feed
 ./scripts/feeds update -a
 ./scripts/feeds install -a -f
