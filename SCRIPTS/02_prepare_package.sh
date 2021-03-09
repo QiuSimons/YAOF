@@ -117,10 +117,14 @@ git clone --depth 1 https://github.com/linkease/ddnsto-openwrt.git package/netwo
 #文件助手
 git clone --depth 1 https://github.com/siryle1213/luci-app-fileassistant.git package/new/luci-app-fileassistant
 #koolproxyR
-git clone --depth=1 https://github.com/jefferymvp/luci-app-koolproxyR.git package/luci-app-koolproxyR
+git clone --depth 1 https://github.com/jefferymvp/luci-app-koolproxyR.git package/luci-app-koolproxyR
 #baidupcs
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-baidupcs-web package/lean/luci-app-baidupcs-web
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/baidupcs-web package/lean/baidupcs-web
+#diskman
+git clone --depth 1 https://github.com/SuLingGG/luci-app-diskman.git package/new/luci-app-diskman
+mkdir ./package/new/luci-app-diskman/parted
+cp ./packages/new/luci-app-diskman/Parted.Makefile ./packages/new/luci-app-diskman/parted/Makefile
 #迅雷快鸟
 git clone --depth 1 https://github.com/garypang13/luci-app-xlnetacc.git package/lean/luci-app-xlnetacc
 #DDNS
