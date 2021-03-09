@@ -28,7 +28,7 @@ cp -f ../PATCH/new/package/900-add-filter-aaaa-option.patch ./package/network/se
 pushd target/linux/generic/hack-5.4
 wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
 popd
-#Patch FireWall 以增添fullcone功能 
+#Patch FireWall 以增添fullcone功能
 mkdir package/network/config/firewall/patches
 wget -P package/network/config/firewall/patches/ https://github.com/immortalwrt/immortalwrt/raw/master/package/network/config/firewall/patches/fullconenat.patch
 # Patch LuCI 以增添fullcone开关
@@ -112,7 +112,15 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/uugamebooster pac
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/autocore package/lean/autocore
 rm -rf ./feeds/packages/utils/coremark
 svn co https://github.com/immortalwrt/packages/trunk/utils/coremark feeds/packages/utils/coremark
-
+#Ddnsto
+git clone --depth 1 https://github.com/linkease/ddnsto-openwrt.git package/network/services/ddnsto-openwrt
+#文件助手
+git clone --depth 1 https://github.com/siryle1213/luci-app-fileassistant.git package/new/luci-app-fileassistant
+#koolproxyR
+git clone --depth=1 https://github.com/jefferymvp/luci-app-koolproxyR.git package/new/luci-app-koolproxyR
+#baidupcs
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-baidupcs-web package/lean/luci-app-baidupcs-web
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/baidupcs-web package/lean/baidupcs-web
 #迅雷快鸟
 git clone --depth 1 https://github.com/garypang13/luci-app-xlnetacc.git package/lean/luci-app-xlnetacc
 #DDNS
