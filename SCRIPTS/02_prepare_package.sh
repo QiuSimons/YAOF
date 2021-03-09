@@ -139,7 +139,7 @@ git clone --depth 1 https://github.com/immortalwrt/luci-app-unblockneteasemusic.
 #定时重启
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-autoreboot package/lean/luci-app-autoreboot
 #argon主题
-git clone -b master --depth 1 https://github.com/jerrykuku/luci-theme-argon.git package/new/luci-theme-argon
+git clone -b 18.06 --depth 1 https://github.com/jerrykuku/luci-theme-argon.git package/new/luci-theme-argon
 git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git package/new/luci-app-argon-config
 #edge主题
 git clone -b master --depth 1 https://github.com/garypang13/luci-theme-edge.git package/new/luci-theme-edge
