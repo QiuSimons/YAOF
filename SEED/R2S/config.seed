@@ -110,7 +110,7 @@ CONFIG_PACKAGE_luci-app-oled=y
 CONFIG_PACKAGE_luci-app-ddnsto=y
 CONFIG_PACKAGE_ddnsto=y
 CONFIG_PACKAGE_luci-app-fileassistant=y
-CONFIG_PACKAGE_luci-app-koolproxyR
+CONFIG_PACKAGE_luci-app-koolproxyR=y
 CONFIG_PACKAGE_luci-app-baidupcs-web=y
 CONFIG_PACKAGE_baidupcs-web=y
 CONFIG_PACKAGE_luci-app-transmission=y
