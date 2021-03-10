@@ -117,7 +117,7 @@ git clone --depth 1 https://github.com/linkease/ddnsto-openwrt.git package/netwo
 #文件助手
 git clone --depth 1 https://github.com/siryle1213/luci-app-fileassistant.git package/new/luci-app-fileassistant
 #koolproxyR
-git clone --depth 1 https://github.com/jefferymvp/luci-app-koolproxyR.git package/luci-app-koolproxyR
+git clone --depth 1 https://github.com/jefferymvp/luci-app-koolproxyR.git package/new/luci-app-koolproxyR
 #baidupcs
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-baidupcs-web package/lean/luci-app-baidupcs-web
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/baidupcs-web package/lean/baidupcs-web
