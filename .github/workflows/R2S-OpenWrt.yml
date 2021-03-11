@@ -88,7 +88,7 @@ jobs:
       run: |
         df -h
         cd openwrt
-        let make_process=$(nproc)+1
+        let make_process=$(nproc)-1
         make toolchain/install -j${make_process} V=s
     - name: Compile Openwrt
       id: compileopenwrt
@@ -96,7 +96,7 @@ jobs:
       run: |
         df -h
         cd openwrt
-        let Make_Process=$(nproc)+1
+        let Make_Process=$(nproc)-1
         make -j${Make_Process} V=w
         echo $?
     - name: If Error
