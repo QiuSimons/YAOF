@@ -73,10 +73,12 @@ uci commit network
 
 #R4S_LED
 uci del system.led_wan.mode
+uci set system.led_wan.dev='eth0'
 uci add_list system.led_wan.mode='link'
 uci add_list system.led_wan.mode='tx'
 uci add_list system.led_wan.mode='rx'
 uci del system.led_lan.mode
+uci set system.led_lan.dev='eth1'
 uci add_list system.led_lan.mode='link'
 uci add_list system.led_lan.mode='tx'
 uci add_list system.led_lan.mode='rx'
