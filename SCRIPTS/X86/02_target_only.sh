@@ -4,6 +4,9 @@ cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
 sed -i '/openssl/d' ./package/lean/lean-translate/files/zzz-default-settings
 sed -i '/banirq/d' ./package/lean/lean-translate/files/zzz-default-settings
 sed -i '/rngd/d' ./package/lean/lean-translate/files/zzz-default-settings
+sed -i '/system.led/d' ./package/lean/lean-translate/files/zzz-default-settings
+sed -i '/network.wan/d' ./package/lean/lean-translate/files/zzz-default-settings
+sed -i '/network.lan/d' ./package/lean/lean-translate/files/zzz-default-settings
 
 <<'COMMENT'
 #Vermagic
