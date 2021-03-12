@@ -282,8 +282,6 @@ cp -f ../PATCH/new/script/fuck package/base-files/files/usr/bin/fuck
 cp -f ../PATCH/new/script/chinadnslist package/base-files/files/usr/bin/chinadnslist
 #最大连接
 sed -i 's/16384/65536/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
-#修改启动等待（可能无效）
-sed -i 's/default "5"/default "0"/g' config/Config-images.in
 #生成默认配置及缓存
 rm -rf .config
 exit 0
