@@ -29,7 +29,7 @@
 - R2S核心频率1.6（交换了LAN WAN），R4S核心频率2.2/1.8（建议使用5v4a电源，死机大多数情况下，都是因为<b>你用的电源过于垃圾</b>，另外，你也可以选择使用<b>自带的app限制最大频率</b>，茄子🍆）
 - O3 编译
 - 插件包含：SSRP，PassWall，OpenClash，AdguardHome，微信推送，网易云解锁，SQM，SmartDNS，ChinaDNS，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启，默认开启)，流量分载，SFE流量分载，irq优化，京东签到，Zerotier，FRPC，FRPS，无线打印，流量监控，过滤军刀，R2S-OLED
-- ss协议在armv8上实现了aes硬件加速
+- ss协议在armv8上实现了aes硬件加速（请<b>仅使用aead加密</b>的连接方式）
 - 如有任何问题，请先尝试ssh进入后台，输入fuck后回车，等待机器重启后确认问题是否已经解决
 
 ### 下载
