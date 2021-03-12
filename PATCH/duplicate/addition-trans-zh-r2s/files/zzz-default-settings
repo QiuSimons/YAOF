@@ -40,6 +40,19 @@ uci del upnpd.config.enable_natpmp
 uci set upnpd.config.external_iface='wan'
 uci commit upnpd
 
+#R2S
+uci del system.led_wan.mode
+uci set system.led_wan.dev='eth1'
+uci add_list system.led_wan.mode='link'
+uci add_list system.led_wan.mode='tx'
+uci add_list system.led_wan.mode='rx'
+uci del system.led_lan.mode
+uci set system.led_lan.dev='eth0'
+uci add_list system.led_lan.mode='link'
+uci add_list system.led_lan.mode='tx'
+uci add_list system.led_lan.mode='rx'
+uci commit
+
 #SSL
 sed -i 's,#devcrypto,devcrypto,g' /etc/ssl/openssl.cnf
 sed -i 's,#USE_SOFTDRIVERS = 2,USE_SOFTDRIVERS = 1,g' /etc/ssl/openssl.cnf
