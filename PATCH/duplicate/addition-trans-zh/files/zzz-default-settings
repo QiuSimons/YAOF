@@ -70,7 +70,23 @@ echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 #packet_steering
 uci set network.globals.packet_steering='1'
 uci commit network
-/etc/init.d/network restart
+
+#R4S_LED
+uci del system.led_wan.mode
+uci add_list system.led_wan.mode='link'
+uci add_list system.led_wan.mode='tx'
+uci add_list system.led_wan.mode='rx'
+uci del system.led_lan.mode
+uci add_list system.led_lan.mode='link'
+uci add_list system.led_lan.mode='tx'
+uci add_list system.led_lan.mode='rx'
+uci commit
+
+#R4S_LANWAN
+uci set network.wan.ifname='eth0'
+uci set network.lan.ifname='eth1'
+uci del network.wan6
+uci commit network
 
 #SSRP
 uci set shadowsocksr.@global[0].gfwlist_url='https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt'
