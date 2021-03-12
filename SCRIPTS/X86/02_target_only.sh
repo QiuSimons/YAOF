@@ -7,6 +7,7 @@ sed -i '/rngd/d' ./package/lean/lean-translate/files/zzz-default-settings
 sed -i '/system.led/d' ./package/lean/lean-translate/files/zzz-default-settings
 sed -i '/network.wan/d' ./package/lean/lean-translate/files/zzz-default-settings
 sed -i '/network.lan/d' ./package/lean/lean-translate/files/zzz-default-settings
+sed -i '/system.@led/d' ./package/lean/lean-translate/files/zzz-default-settings
 
 <<'COMMENT'
 #Vermagic
