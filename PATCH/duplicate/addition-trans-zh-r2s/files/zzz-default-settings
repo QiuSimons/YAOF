@@ -29,6 +29,7 @@ uci commit uhttpd
 
 #firewall
 uci set firewall.@defaults[0].fullcone='1'
+uci set firewall.@defaults[0].flow_offloading='1'
 uci commit firewall
 
 #upnp
