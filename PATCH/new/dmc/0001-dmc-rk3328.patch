@@ -1,0 +1,1591 @@
+From 7a811c035ed752cad2a6705fe2391a7312bc8834 Mon Sep 17 00:00:00 2001
+This is free software, licensed under the GNU General Public License v3
+From: Immortalwrt <https://immortalwrt.org>
+Repatch From: Nicholas Sun <OpenWrt-Autobuild@noreply.github.com>
+Date: Sun, 14 Mar 2021 04:34:10 +1100
+Subject: [PATCH] DMC for Nanopi R2S
+
+---
+ .../boot/arm-trusted-firmware-rk3328/Makefile |  55 ++
+ .../arm-trusted-firmware-rk3328/src/trust.ini |  15 +
+ package/boot/uboot-rockchip/Makefile          |  14 +-
+ .../rockchip/rk3328-dram-nanopi2-timing.dtsi  | 311 +++++++
+ .../files/drivers/devfreq/rk3328_dmc.c        | 852 ++++++++++++++++++
+ .../include/dt-bindings/clock/rockchip-ddr.h  |  63 ++
+ .../include/dt-bindings/memory/rk3328-dram.h  | 159 ++++
+ target/linux/rockchip/image/Makefile          |  14 +
+ target/linux/rockchip/image/armv8.mk          |   2 +-
+ 9 files changed, 1481 insertions(+), 4 deletions(-)
+ create mode 100644 package/boot/arm-trusted-firmware-rk3328/Makefile
+ create mode 100644 package/boot/arm-trusted-firmware-rk3328/src/trust.ini
+ create mode 100644 target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3328-dram-nanopi2-timing.dtsi
+ create mode 100644 target/linux/rockchip/files/drivers/devfreq/rk3328_dmc.c
+ create mode 100644 target/linux/rockchip/files/include/dt-bindings/clock/rockchip-ddr.h
+ create mode 100644 target/linux/rockchip/files/include/dt-bindings/memory/rk3328-dram.h
+
+diff --git a/package/boot/arm-trusted-firmware-rk3328/Makefile b/package/boot/arm-trusted-firmware-rk3328/Makefile
+new file mode 100644
+index 0000000..243fcac
+--- /dev/null
++++ b/package/boot/arm-trusted-firmware-rk3328/Makefile
+@@ -0,0 +1,55 @@
++#
++# Copyright (C) 2021 ImmortalWrt
++# (https://immortalwrt.org)
++#
++# This is free software, licensed under the GNU General Public License v2.
++# See /LICENSE for more information.
++#
++
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=arm-trusted-firmware-rk3328
++PKG_RELEASE:=1
++
++PKG_SOURCE_PROTO:=git
++PKG_SOURCE_URL=https://github.com/rockchip-linux/rkbin.git
++PKG_SOURCE_DATE:=2020-10-30
++PKG_SOURCE_VERSION:=0bb1c512492386a72a3a0b5a0e18e49c636577b9
++PKG_MIRROR_HASH:=6dffe95b83f37a280f98c105fce529f45e39ce333b24709a9645aac1352457ce
++
++PKG_MAINTAINER:=AmadeusGhost <amadeus@immortalwrt.org>
++
++MAKE_PATH:=$(PKG_NAME)
++
++include $(INCLUDE_DIR)/package.mk
++
++define Package/arm-trusted-firmware-rk3328
++    SECTION:=boot
++    CATEGORY:=Boot Loaders
++    TITLE:=ARM Trusted Firmware for Rockchip
++    DEPENDS:=@TARGET_rockchip_armv8
++endef
++
++define Build/Configure
++	$(SED) 's,$$$$(PKG_BUILD_DIR),$(PKG_BUILD_DIR),g' $(PKG_BUILD_DIR)/trust.ini
++	$(call Build/Configure/Default)
++endef
++
++define Build/Compile
++	mkimage -n rk3328 -T rksd -d $(PKG_BUILD_DIR)/bin/rk33/rk3328_ddr_333MHz_v1.16.bin $(PKG_BUILD_DIR)/idbloader.bin
++	cat $(PKG_BUILD_DIR)/bin/rk33/rk322xh_miniloader_v2.50.bin >> $(PKG_BUILD_DIR)/idbloader.bin
++	$(PKG_BUILD_DIR)/tools/trust_merger --replace bl31.elf $(PKG_BUILD_DIR)/bin/rk33/rk322xh_bl31_v1.44.elf $(PKG_BUILD_DIR)/trust.ini
++endef
++
++define Build/InstallDev
++	$(INSTALL_DIR) -p $(STAGING_DIR_IMAGE)
++	$(CP) $(PKG_BUILD_DIR)/bin/rk33/rk322xh_bl31_v1.44.elf $(STAGING_DIR_IMAGE)/
++	$(CP) $(PKG_BUILD_DIR)/tools/loaderimage $(STAGING_DIR_IMAGE)/
++	$(CP) $(PKG_BUILD_DIR)/idbloader.bin $(STAGING_DIR_IMAGE)/
++	$(CP) $(PKG_BUILD_DIR)/trust.bin $(STAGING_DIR_IMAGE)/
++endef
++
++define Package/arm-trusted-firmware-rk3328/install
++endef
++
++$(eval $(call BuildPackage,arm-trusted-firmware-rk3328))
+diff --git a/package/boot/arm-trusted-firmware-rk3328/src/trust.ini b/package/boot/arm-trusted-firmware-rk3328/src/trust.ini
+new file mode 100644
+index 0000000..b957974
+--- /dev/null
++++ b/package/boot/arm-trusted-firmware-rk3328/src/trust.ini
+@@ -0,0 +1,15 @@
++[VERSION]
++MAJOR=1
++MINOR=0
++[BL30_OPTION]
++SEC=0
++[BL31_OPTION]
++SEC=1
++PATH=bl31.elf
++ADDR=0x10000
++[BL32_OPTION]
++SEC=0
++[BL33_OPTION]
++SEC=0
++[OUTPUT]
++PATH=$(PKG_BUILD_DIR)/trust.bin
+diff --git a/package/boot/uboot-rockchip/Makefile b/package/boot/uboot-rockchip/Makefile
+index 393e8c3..cbd9d7d 100644
+--- a/package/boot/uboot-rockchip/Makefile
++++ b/package/boot/uboot-rockchip/Makefile
+@@ -29,9 +29,10 @@ define U-Boot/nanopi-r2s-rk3328
+   NAME:=NanoPi R2S
+   BUILD_DEVICES:= \
+     friendlyarm_nanopi-r2s
+-  DEPENDS:=+PACKAGE_u-boot-nanopi-r2s-rk3328:arm-trusted-firmware-rockchip
+-  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip
+-  ATF:=rk3328_bl31.elf
++  DEPENDS:=+PACKAGE_u-boot-nanopi-r2s-rk3328:arm-trusted-firmware-rk3328
++  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rk3328
++  ATF:=rk322xh_bl31_v1.44.elf
++  USE_RKBIN:=1
+   OF_PLATDATA:=$(1)
+ endef
+ 
+@@ -85,8 +86,15 @@ endef
+ 
+ define Build/InstallDev
+ 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
++ifneq ($(USE_RKBIN),)
++	$(STAGING_DIR_IMAGE)/loaderimage --pack --uboot $(PKG_BUILD_DIR)/u-boot-dtb.bin $(PKG_BUILD_DIR)/uboot.img 0x200000
++	$(CP) $(PKG_BUILD_DIR)/uboot.img $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-uboot.img
++	$(CP) $(STAGING_DIR_IMAGE)/idbloader.bin $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-idbloader.bin
++	$(CP) $(STAGING_DIR_IMAGE)/trust.bin $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-trust.bin
++else
+ 	$(CP) $(PKG_BUILD_DIR)/idbloader.img $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-idbloader.img
+ 	$(CP) $(PKG_BUILD_DIR)/u-boot.itb $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-u-boot.itb
++endif
+ endef
+ 
+ define Package/u-boot/install/default
+diff --git a/target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3328-dram-nanopi2-timing.dtsi b/target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3328-dram-nanopi2-timing.dtsi
+new file mode 100644
+index 0000000..a3f5ff4
+--- /dev/null
++++ b/target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3328-dram-nanopi2-timing.dtsi
+@@ -0,0 +1,311 @@
++/*
++ * Copyright (c) 2017 Fuzhou Rockchip Electronics Co., Ltd
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This library is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This library is distributed in the hope that it will be useful,
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ * Or, alternatively,
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use,
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++#include <dt-bindings/clock/rockchip-ddr.h>
++#include <dt-bindings/memory/rk3328-dram.h>
++
++/ {
++	ddr_timing: ddr_timing {
++		compatible = "rockchip,ddr-timing";
++		ddr3_speed_bin = <DDR3_DEFAULT>;
++		ddr4_speed_bin = <DDR4_DEFAULT>;
++		pd_idle = <0>;
++		sr_idle = <0>;
++		sr_mc_gate_idle = <0>;
++		srpd_lite_idle	= <0>;
++		standby_idle = <0>;
++
++		auto_pd_dis_freq = <1066>;
++		auto_sr_dis_freq = <800>;
++		ddr3_dll_dis_freq = <300>;
++		ddr4_dll_dis_freq = <625>;
++		phy_dll_dis_freq = <400>;
++
++		ddr3_odt_dis_freq = <100>;
++		phy_ddr3_odt_dis_freq = <100>;
++		ddr3_drv = <DDR3_DS_40ohm>;
++		ddr3_odt = <DDR3_ODT_120ohm>;
++		phy_ddr3_ca_drv = <PHY_DDR3_RON_RTT_34ohm>;
++		phy_ddr3_ck_drv = <PHY_DDR3_RON_RTT_45ohm>;
++		phy_ddr3_dq_drv = <PHY_DDR3_RON_RTT_34ohm>;
++		phy_ddr3_odt = <PHY_DDR3_RON_RTT_225ohm>;
++
++		lpddr3_odt_dis_freq = <666>;
++		phy_lpddr3_odt_dis_freq = <666>;
++		lpddr3_drv = <LP3_DS_40ohm>;
++		lpddr3_odt = <LP3_ODT_240ohm>;
++		phy_lpddr3_ca_drv = <PHY_DDR4_LPDDR3_RON_RTT_34ohm>;
++		phy_lpddr3_ck_drv = <PHY_DDR4_LPDDR3_RON_RTT_43ohm>;
++		phy_lpddr3_dq_drv = <PHY_DDR4_LPDDR3_RON_RTT_34ohm>;
++		phy_lpddr3_odt = <PHY_DDR4_LPDDR3_RON_RTT_240ohm>;
++
++		lpddr4_odt_dis_freq = <800>;
++		phy_lpddr4_odt_dis_freq = <800>;
++		lpddr4_drv = <LP4_PDDS_60ohm>;
++		lpddr4_dq_odt = <LP4_DQ_ODT_40ohm>;
++		lpddr4_ca_odt = <LP4_CA_ODT_40ohm>;
++		phy_lpddr4_ca_drv = <PHY_DDR4_LPDDR3_RON_RTT_40ohm>;
++		phy_lpddr4_ck_cs_drv = <PHY_DDR4_LPDDR3_RON_RTT_80ohm>;
++		phy_lpddr4_dq_drv = <PHY_DDR4_LPDDR3_RON_RTT_80ohm>;
++		phy_lpddr4_odt = <PHY_DDR4_LPDDR3_RON_RTT_60ohm>;
++
++		ddr4_odt_dis_freq = <666>;
++		phy_ddr4_odt_dis_freq = <666>;
++		ddr4_drv = <DDR4_DS_34ohm>;
++		ddr4_odt = <DDR4_RTT_NOM_240ohm>;
++		phy_ddr4_ca_drv = <PHY_DDR4_LPDDR3_RON_RTT_34ohm>;
++		phy_ddr4_ck_drv = <PHY_DDR4_LPDDR3_RON_RTT_43ohm>;
++		phy_ddr4_dq_drv = <PHY_DDR4_LPDDR3_RON_RTT_34ohm>;
++		phy_ddr4_odt = <PHY_DDR4_LPDDR3_RON_RTT_240ohm>;
++
++		/* CA de-skew, one step is 47.8ps, range 0-15 */
++		ddr3a1_ddr4a9_de-skew = <7>;
++		ddr3a0_ddr4a10_de-skew = <7>;
++		ddr3a3_ddr4a6_de-skew = <8>;
++		ddr3a2_ddr4a4_de-skew = <8>;
++		ddr3a5_ddr4a8_de-skew = <7>;
++		ddr3a4_ddr4a5_de-skew = <9>;
++		ddr3a7_ddr4a11_de-skew = <7>;
++		ddr3a6_ddr4a7_de-skew = <9>;
++		ddr3a9_ddr4a0_de-skew = <8>;
++		ddr3a8_ddr4a13_de-skew = <7>;
++		ddr3a11_ddr4a3_de-skew = <9>;
++		ddr3a10_ddr4cs0_de-skew = <7>;
++		ddr3a13_ddr4a2_de-skew = <8>;
++		ddr3a12_ddr4ba1_de-skew = <7>;
++		ddr3a15_ddr4odt0_de-skew = <7>;
++		ddr3a14_ddr4a1_de-skew = <8>;
++		ddr3ba1_ddr4a15_de-skew = <7>;
++		ddr3ba0_ddr4bg0_de-skew = <7>;
++		ddr3ras_ddr4cke_de-skew = <7>;
++		ddr3ba2_ddr4ba0_de-skew = <8>;
++		ddr3we_ddr4bg1_de-skew = <8>;
++		ddr3cas_ddr4a12_de-skew = <7>;
++		ddr3ckn_ddr4ckn_de-skew = <8>;
++		ddr3ckp_ddr4ckp_de-skew = <8>;
++		ddr3cke_ddr4a16_de-skew = <8>;
++		ddr3odt0_ddr4a14_de-skew = <7>;
++		ddr3cs0_ddr4act_de-skew = <8>;
++		ddr3reset_ddr4reset_de-skew = <7>;
++		ddr3cs1_ddr4cs1_de-skew = <7>;
++		ddr3odt1_ddr4odt1_de-skew = <7>;
++
++		/* DATA de-skew
++		 * RX one step is 25.1ps, range 0-15
++		 * TX one step is 47.8ps, range 0-15
++		 */
++		cs0_dm0_rx_de-skew = <7>;
++		cs0_dm0_tx_de-skew = <8>;
++		cs0_dq0_rx_de-skew = <7>;
++		cs0_dq0_tx_de-skew = <8>;
++		cs0_dq1_rx_de-skew = <7>;
++		cs0_dq1_tx_de-skew = <8>;
++		cs0_dq2_rx_de-skew = <7>;
++		cs0_dq2_tx_de-skew = <8>;
++		cs0_dq3_rx_de-skew = <7>;
++		cs0_dq3_tx_de-skew = <8>;
++		cs0_dq4_rx_de-skew = <7>;
++		cs0_dq4_tx_de-skew = <8>;
++		cs0_dq5_rx_de-skew = <7>;
++		cs0_dq5_tx_de-skew = <8>;
++		cs0_dq6_rx_de-skew = <7>;
++		cs0_dq6_tx_de-skew = <8>;
++		cs0_dq7_rx_de-skew = <7>;
++		cs0_dq7_tx_de-skew = <8>;
++		cs0_dqs0_rx_de-skew = <6>;
++		cs0_dqs0p_tx_de-skew = <9>;
++		cs0_dqs0n_tx_de-skew = <9>;
++
++		cs0_dm1_rx_de-skew = <7>;
++		cs0_dm1_tx_de-skew = <7>;
++		cs0_dq8_rx_de-skew = <7>;
++		cs0_dq8_tx_de-skew = <8>;
++		cs0_dq9_rx_de-skew = <7>;
++		cs0_dq9_tx_de-skew = <7>;
++		cs0_dq10_rx_de-skew = <7>;
++		cs0_dq10_tx_de-skew = <8>;
++		cs0_dq11_rx_de-skew = <7>;
++		cs0_dq11_tx_de-skew = <7>;
++		cs0_dq12_rx_de-skew = <7>;
++		cs0_dq12_tx_de-skew = <8>;
++		cs0_dq13_rx_de-skew = <7>;
++		cs0_dq13_tx_de-skew = <7>;
++		cs0_dq14_rx_de-skew = <7>;
++		cs0_dq14_tx_de-skew = <8>;
++		cs0_dq15_rx_de-skew = <7>;
++		cs0_dq15_tx_de-skew = <7>;
++		cs0_dqs1_rx_de-skew = <7>;
++		cs0_dqs1p_tx_de-skew = <9>;
++		cs0_dqs1n_tx_de-skew = <9>;
++
++		cs0_dm2_rx_de-skew = <7>;
++		cs0_dm2_tx_de-skew = <8>;
++		cs0_dq16_rx_de-skew = <7>;
++		cs0_dq16_tx_de-skew = <8>;
++		cs0_dq17_rx_de-skew = <7>;
++		cs0_dq17_tx_de-skew = <8>;
++		cs0_dq18_rx_de-skew = <7>;
++		cs0_dq18_tx_de-skew = <8>;
++		cs0_dq19_rx_de-skew = <7>;
++		cs0_dq19_tx_de-skew = <8>;
++		cs0_dq20_rx_de-skew = <7>;
++		cs0_dq20_tx_de-skew = <8>;
++		cs0_dq21_rx_de-skew = <7>;
++		cs0_dq21_tx_de-skew = <8>;
++		cs0_dq22_rx_de-skew = <7>;
++		cs0_dq22_tx_de-skew = <8>;
++		cs0_dq23_rx_de-skew = <7>;
++		cs0_dq23_tx_de-skew = <8>;
++		cs0_dqs2_rx_de-skew = <6>;
++		cs0_dqs2p_tx_de-skew = <9>;
++		cs0_dqs2n_tx_de-skew = <9>;
++
++		cs0_dm3_rx_de-skew = <7>;
++		cs0_dm3_tx_de-skew = <7>;
++		cs0_dq24_rx_de-skew = <7>;
++		cs0_dq24_tx_de-skew = <8>;
++		cs0_dq25_rx_de-skew = <7>;
++		cs0_dq25_tx_de-skew = <7>;
++		cs0_dq26_rx_de-skew = <7>;
++		cs0_dq26_tx_de-skew = <7>;
++		cs0_dq27_rx_de-skew = <7>;
++		cs0_dq27_tx_de-skew = <7>;
++		cs0_dq28_rx_de-skew = <7>;
++		cs0_dq28_tx_de-skew = <7>;
++		cs0_dq29_rx_de-skew = <7>;
++		cs0_dq29_tx_de-skew = <7>;
++		cs0_dq30_rx_de-skew = <7>;
++		cs0_dq30_tx_de-skew = <7>;
++		cs0_dq31_rx_de-skew = <7>;
++		cs0_dq31_tx_de-skew = <7>;
++		cs0_dqs3_rx_de-skew = <7>;
++		cs0_dqs3p_tx_de-skew = <9>;
++		cs0_dqs3n_tx_de-skew = <9>;
++
++		cs1_dm0_rx_de-skew = <7>;
++		cs1_dm0_tx_de-skew = <8>;
++		cs1_dq0_rx_de-skew = <7>;
++		cs1_dq0_tx_de-skew = <8>;
++		cs1_dq1_rx_de-skew = <7>;
++		cs1_dq1_tx_de-skew = <8>;
++		cs1_dq2_rx_de-skew = <7>;
++		cs1_dq2_tx_de-skew = <8>;
++		cs1_dq3_rx_de-skew = <7>;
++		cs1_dq3_tx_de-skew = <8>;
++		cs1_dq4_rx_de-skew = <7>;
++		cs1_dq4_tx_de-skew = <8>;
++		cs1_dq5_rx_de-skew = <7>;
++		cs1_dq5_tx_de-skew = <8>;
++		cs1_dq6_rx_de-skew = <7>;
++		cs1_dq6_tx_de-skew = <8>;
++		cs1_dq7_rx_de-skew = <7>;
++		cs1_dq7_tx_de-skew = <8>;
++		cs1_dqs0_rx_de-skew = <6>;
++		cs1_dqs0p_tx_de-skew = <9>;
++		cs1_dqs0n_tx_de-skew = <9>;
++
++		cs1_dm1_rx_de-skew = <7>;
++		cs1_dm1_tx_de-skew = <7>;
++		cs1_dq8_rx_de-skew = <7>;
++		cs1_dq8_tx_de-skew = <8>;
++		cs1_dq9_rx_de-skew = <7>;
++		cs1_dq9_tx_de-skew = <7>;
++		cs1_dq10_rx_de-skew = <7>;
++		cs1_dq10_tx_de-skew = <8>;
++		cs1_dq11_rx_de-skew = <7>;
++		cs1_dq11_tx_de-skew = <7>;
++		cs1_dq12_rx_de-skew = <7>;
++		cs1_dq12_tx_de-skew = <8>;
++		cs1_dq13_rx_de-skew = <7>;
++		cs1_dq13_tx_de-skew = <7>;
++		cs1_dq14_rx_de-skew = <7>;
++		cs1_dq14_tx_de-skew = <8>;
++		cs1_dq15_rx_de-skew = <7>;
++		cs1_dq15_tx_de-skew = <7>;
++		cs1_dqs1_rx_de-skew = <7>;
++		cs1_dqs1p_tx_de-skew = <9>;
++		cs1_dqs1n_tx_de-skew = <9>;
++
++		cs1_dm2_rx_de-skew = <7>;
++		cs1_dm2_tx_de-skew = <8>;
++		cs1_dq16_rx_de-skew = <7>;
++		cs1_dq16_tx_de-skew = <8>;
++		cs1_dq17_rx_de-skew = <7>;
++		cs1_dq17_tx_de-skew = <8>;
++		cs1_dq18_rx_de-skew = <7>;
++		cs1_dq18_tx_de-skew = <8>;
++		cs1_dq19_rx_de-skew = <7>;
++		cs1_dq19_tx_de-skew = <8>;
++		cs1_dq20_rx_de-skew = <7>;
++		cs1_dq20_tx_de-skew = <8>;
++		cs1_dq21_rx_de-skew = <7>;
++		cs1_dq21_tx_de-skew = <8>;
++		cs1_dq22_rx_de-skew = <7>;
++		cs1_dq22_tx_de-skew = <8>;
++		cs1_dq23_rx_de-skew = <7>;
++		cs1_dq23_tx_de-skew = <8>;
++		cs1_dqs2_rx_de-skew = <6>;
++		cs1_dqs2p_tx_de-skew = <9>;
++		cs1_dqs2n_tx_de-skew = <9>;
++
++		cs1_dm3_rx_de-skew = <7>;
++		cs1_dm3_tx_de-skew = <7>;
++		cs1_dq24_rx_de-skew = <7>;
++		cs1_dq24_tx_de-skew = <8>;
++		cs1_dq25_rx_de-skew = <7>;
++		cs1_dq25_tx_de-skew = <7>;
++		cs1_dq26_rx_de-skew = <7>;
++		cs1_dq26_tx_de-skew = <7>;
++		cs1_dq27_rx_de-skew = <7>;
++		cs1_dq27_tx_de-skew = <7>;
++		cs1_dq28_rx_de-skew = <7>;
++		cs1_dq28_tx_de-skew = <7>;
++		cs1_dq29_rx_de-skew = <7>;
++		cs1_dq29_tx_de-skew = <7>;
++		cs1_dq30_rx_de-skew = <7>;
++		cs1_dq30_tx_de-skew = <7>;
++		cs1_dq31_rx_de-skew = <7>;
++		cs1_dq31_tx_de-skew = <7>;
++		cs1_dqs3_rx_de-skew = <7>;
++		cs1_dqs3p_tx_de-skew = <9>;
++		cs1_dqs3n_tx_de-skew = <9>;
++	};
++};
+diff --git a/target/linux/rockchip/files/drivers/devfreq/rk3328_dmc.c b/target/linux/rockchip/files/drivers/devfreq/rk3328_dmc.c
+new file mode 100644
+index 0000000..72601a0
+--- /dev/null
++++ b/target/linux/rockchip/files/drivers/devfreq/rk3328_dmc.c
+@@ -0,0 +1,852 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Copyright (c) 2016, Fuzhou Rockchip Electronics Co., Ltd.
++ * Author: Lin Huang <hl@rock-chips.com>
++ */
++
++#include <linux/arm-smccc.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/devfreq.h>
++#include <linux/devfreq-event.h>
++#include <linux/interrupt.h>
++#include <linux/iversion.h>
++#include <linux/mfd/syscon.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/pm_opp.h>
++#include <linux/regmap.h>
++#include <linux/regulator/consumer.h>
++#include <linux/rwsem.h>
++#include <linux/suspend.h>
++#include <linux/version.h>
++
++#include <soc/rockchip/rockchip_sip.h>
++
++#define DTS_PAR_OFFSET		(4096)
++
++struct share_params {
++	u32 hz;
++	u32 lcdc_type;
++	u32 vop;
++	u32 vop_dclk_mode;
++	u32 sr_idle_en;
++	u32 addr_mcu_el3;
++	/*
++	 * 1: need to wait flag1
++	 * 0: never wait flag1
++	 */
++	u32 wait_flag1;
++	/*
++	 * 1: need to wait flag1
++	 * 0: never wait flag1
++	 */
++	u32 wait_flag0;
++	u32 complt_hwirq;
++	/* if need, add parameter after */
++};
++
++static struct share_params *ddr_psci_param;
++
++/* hope this define can adapt all future platform */
++static const char * const rk3328_dts_timing[] = {
++	"ddr3_speed_bin",
++	"ddr4_speed_bin",
++	"pd_idle",
++	"sr_idle",
++	"sr_mc_gate_idle",
++	"srpd_lite_idle",
++	"standby_idle",
++
++	"auto_pd_dis_freq",
++	"auto_sr_dis_freq",
++	"ddr3_dll_dis_freq",
++	"ddr4_dll_dis_freq",
++	"phy_dll_dis_freq",
++
++	"ddr3_odt_dis_freq",
++	"phy_ddr3_odt_dis_freq",
++	"ddr3_drv",
++	"ddr3_odt",
++	"phy_ddr3_ca_drv",
++	"phy_ddr3_ck_drv",
++	"phy_ddr3_dq_drv",
++	"phy_ddr3_odt",
++
++	"lpddr3_odt_dis_freq",
++	"phy_lpddr3_odt_dis_freq",
++	"lpddr3_drv",
++	"lpddr3_odt",
++	"phy_lpddr3_ca_drv",
++	"phy_lpddr3_ck_drv",
++	"phy_lpddr3_dq_drv",
++	"phy_lpddr3_odt",
++
++	"lpddr4_odt_dis_freq",
++	"phy_lpddr4_odt_dis_freq",
++	"lpddr4_drv",
++	"lpddr4_dq_odt",
++	"lpddr4_ca_odt",
++	"phy_lpddr4_ca_drv",
++	"phy_lpddr4_ck_cs_drv",
++	"phy_lpddr4_dq_drv",
++	"phy_lpddr4_odt",
++
++	"ddr4_odt_dis_freq",
++	"phy_ddr4_odt_dis_freq",
++	"ddr4_drv",
++	"ddr4_odt",
++	"phy_ddr4_ca_drv",
++	"phy_ddr4_ck_drv",
++	"phy_ddr4_dq_drv",
++	"phy_ddr4_odt",
++};
++
++static const char * const rk3328_dts_ca_timing[] = {
++	"ddr3a1_ddr4a9_de-skew",
++	"ddr3a0_ddr4a10_de-skew",
++	"ddr3a3_ddr4a6_de-skew",
++	"ddr3a2_ddr4a4_de-skew",
++	"ddr3a5_ddr4a8_de-skew",
++	"ddr3a4_ddr4a5_de-skew",
++	"ddr3a7_ddr4a11_de-skew",
++	"ddr3a6_ddr4a7_de-skew",
++	"ddr3a9_ddr4a0_de-skew",
++	"ddr3a8_ddr4a13_de-skew",
++	"ddr3a11_ddr4a3_de-skew",
++	"ddr3a10_ddr4cs0_de-skew",
++	"ddr3a13_ddr4a2_de-skew",
++	"ddr3a12_ddr4ba1_de-skew",
++	"ddr3a15_ddr4odt0_de-skew",
++	"ddr3a14_ddr4a1_de-skew",
++	"ddr3ba1_ddr4a15_de-skew",
++	"ddr3ba0_ddr4bg0_de-skew",
++	"ddr3ras_ddr4cke_de-skew",
++	"ddr3ba2_ddr4ba0_de-skew",
++	"ddr3we_ddr4bg1_de-skew",
++	"ddr3cas_ddr4a12_de-skew",
++	"ddr3ckn_ddr4ckn_de-skew",
++	"ddr3ckp_ddr4ckp_de-skew",
++	"ddr3cke_ddr4a16_de-skew",
++	"ddr3odt0_ddr4a14_de-skew",
++	"ddr3cs0_ddr4act_de-skew",
++	"ddr3reset_ddr4reset_de-skew",
++	"ddr3cs1_ddr4cs1_de-skew",
++	"ddr3odt1_ddr4odt1_de-skew",
++};
++
++static const char * const rk3328_dts_cs0_timing[] = {
++	"cs0_dm0_rx_de-skew",
++	"cs0_dm0_tx_de-skew",
++	"cs0_dq0_rx_de-skew",
++	"cs0_dq0_tx_de-skew",
++	"cs0_dq1_rx_de-skew",
++	"cs0_dq1_tx_de-skew",
++	"cs0_dq2_rx_de-skew",
++	"cs0_dq2_tx_de-skew",
++	"cs0_dq3_rx_de-skew",
++	"cs0_dq3_tx_de-skew",
++	"cs0_dq4_rx_de-skew",
++	"cs0_dq4_tx_de-skew",
++	"cs0_dq5_rx_de-skew",
++	"cs0_dq5_tx_de-skew",
++	"cs0_dq6_rx_de-skew",
++	"cs0_dq6_tx_de-skew",
++	"cs0_dq7_rx_de-skew",
++	"cs0_dq7_tx_de-skew",
++	"cs0_dqs0_rx_de-skew",
++	"cs0_dqs0p_tx_de-skew",
++	"cs0_dqs0n_tx_de-skew",
++
++	"cs0_dm1_rx_de-skew",
++	"cs0_dm1_tx_de-skew",
++	"cs0_dq8_rx_de-skew",
++	"cs0_dq8_tx_de-skew",
++	"cs0_dq9_rx_de-skew",
++	"cs0_dq9_tx_de-skew",
++	"cs0_dq10_rx_de-skew",
++	"cs0_dq10_tx_de-skew",
++	"cs0_dq11_rx_de-skew",
++	"cs0_dq11_tx_de-skew",
++	"cs0_dq12_rx_de-skew",
++	"cs0_dq12_tx_de-skew",
++	"cs0_dq13_rx_de-skew",
++	"cs0_dq13_tx_de-skew",
++	"cs0_dq14_rx_de-skew",
++	"cs0_dq14_tx_de-skew",
++	"cs0_dq15_rx_de-skew",
++	"cs0_dq15_tx_de-skew",
++	"cs0_dqs1_rx_de-skew",
++	"cs0_dqs1p_tx_de-skew",
++	"cs0_dqs1n_tx_de-skew",
++
++	"cs0_dm2_rx_de-skew",
++	"cs0_dm2_tx_de-skew",
++	"cs0_dq16_rx_de-skew",
++	"cs0_dq16_tx_de-skew",
++	"cs0_dq17_rx_de-skew",
++	"cs0_dq17_tx_de-skew",
++	"cs0_dq18_rx_de-skew",
++	"cs0_dq18_tx_de-skew",
++	"cs0_dq19_rx_de-skew",
++	"cs0_dq19_tx_de-skew",
++	"cs0_dq20_rx_de-skew",
++	"cs0_dq20_tx_de-skew",
++	"cs0_dq21_rx_de-skew",
++	"cs0_dq21_tx_de-skew",
++	"cs0_dq22_rx_de-skew",
++	"cs0_dq22_tx_de-skew",
++	"cs0_dq23_rx_de-skew",
++	"cs0_dq23_tx_de-skew",
++	"cs0_dqs2_rx_de-skew",
++	"cs0_dqs2p_tx_de-skew",
++	"cs0_dqs2n_tx_de-skew",
++
++	"cs0_dm3_rx_de-skew",
++	"cs0_dm3_tx_de-skew",
++	"cs0_dq24_rx_de-skew",
++	"cs0_dq24_tx_de-skew",
++	"cs0_dq25_rx_de-skew",
++	"cs0_dq25_tx_de-skew",
++	"cs0_dq26_rx_de-skew",
++	"cs0_dq26_tx_de-skew",
++	"cs0_dq27_rx_de-skew",
++	"cs0_dq27_tx_de-skew",
++	"cs0_dq28_rx_de-skew",
++	"cs0_dq28_tx_de-skew",
++	"cs0_dq29_rx_de-skew",
++	"cs0_dq29_tx_de-skew",
++	"cs0_dq30_rx_de-skew",
++	"cs0_dq30_tx_de-skew",
++	"cs0_dq31_rx_de-skew",
++	"cs0_dq31_tx_de-skew",
++	"cs0_dqs3_rx_de-skew",
++	"cs0_dqs3p_tx_de-skew",
++	"cs0_dqs3n_tx_de-skew",
++};
++
++static const char * const rk3328_dts_cs1_timing[] = {
++	"cs1_dm0_rx_de-skew",
++	"cs1_dm0_tx_de-skew",
++	"cs1_dq0_rx_de-skew",
++	"cs1_dq0_tx_de-skew",
++	"cs1_dq1_rx_de-skew",
++	"cs1_dq1_tx_de-skew",
++	"cs1_dq2_rx_de-skew",
++	"cs1_dq2_tx_de-skew",
++	"cs1_dq3_rx_de-skew",
++	"cs1_dq3_tx_de-skew",
++	"cs1_dq4_rx_de-skew",
++	"cs1_dq4_tx_de-skew",
++	"cs1_dq5_rx_de-skew",
++	"cs1_dq5_tx_de-skew",
++	"cs1_dq6_rx_de-skew",
++	"cs1_dq6_tx_de-skew",
++	"cs1_dq7_rx_de-skew",
++	"cs1_dq7_tx_de-skew",
++	"cs1_dqs0_rx_de-skew",
++	"cs1_dqs0p_tx_de-skew",
++	"cs1_dqs0n_tx_de-skew",
++
++	"cs1_dm1_rx_de-skew",
++	"cs1_dm1_tx_de-skew",
++	"cs1_dq8_rx_de-skew",
++	"cs1_dq8_tx_de-skew",
++	"cs1_dq9_rx_de-skew",
++	"cs1_dq9_tx_de-skew",
++	"cs1_dq10_rx_de-skew",
++	"cs1_dq10_tx_de-skew",
++	"cs1_dq11_rx_de-skew",
++	"cs1_dq11_tx_de-skew",
++	"cs1_dq12_rx_de-skew",
++	"cs1_dq12_tx_de-skew",
++	"cs1_dq13_rx_de-skew",
++	"cs1_dq13_tx_de-skew",
++	"cs1_dq14_rx_de-skew",
++	"cs1_dq14_tx_de-skew",
++	"cs1_dq15_rx_de-skew",
++	"cs1_dq15_tx_de-skew",
++	"cs1_dqs1_rx_de-skew",
++	"cs1_dqs1p_tx_de-skew",
++	"cs1_dqs1n_tx_de-skew",
++
++	"cs1_dm2_rx_de-skew",
++	"cs1_dm2_tx_de-skew",
++	"cs1_dq16_rx_de-skew",
++	"cs1_dq16_tx_de-skew",
++	"cs1_dq17_rx_de-skew",
++	"cs1_dq17_tx_de-skew",
++	"cs1_dq18_rx_de-skew",
++	"cs1_dq18_tx_de-skew",
++	"cs1_dq19_rx_de-skew",
++	"cs1_dq19_tx_de-skew",
++	"cs1_dq20_rx_de-skew",
++	"cs1_dq20_tx_de-skew",
++	"cs1_dq21_rx_de-skew",
++	"cs1_dq21_tx_de-skew",
++	"cs1_dq22_rx_de-skew",
++	"cs1_dq22_tx_de-skew",
++	"cs1_dq23_rx_de-skew",
++	"cs1_dq23_tx_de-skew",
++	"cs1_dqs2_rx_de-skew",
++	"cs1_dqs2p_tx_de-skew",
++	"cs1_dqs2n_tx_de-skew",
++
++	"cs1_dm3_rx_de-skew",
++	"cs1_dm3_tx_de-skew",
++	"cs1_dq24_rx_de-skew",
++	"cs1_dq24_tx_de-skew",
++	"cs1_dq25_rx_de-skew",
++	"cs1_dq25_tx_de-skew",
++	"cs1_dq26_rx_de-skew",
++	"cs1_dq26_tx_de-skew",
++	"cs1_dq27_rx_de-skew",
++	"cs1_dq27_tx_de-skew",
++	"cs1_dq28_rx_de-skew",
++	"cs1_dq28_tx_de-skew",
++	"cs1_dq29_rx_de-skew",
++	"cs1_dq29_tx_de-skew",
++	"cs1_dq30_rx_de-skew",
++	"cs1_dq30_tx_de-skew",
++	"cs1_dq31_rx_de-skew",
++	"cs1_dq31_tx_de-skew",
++	"cs1_dqs3_rx_de-skew",
++	"cs1_dqs3p_tx_de-skew",
++	"cs1_dqs3n_tx_de-skew",
++};
++
++struct rk3328_ddr_dts_config_timing {
++	unsigned int ddr3_speed_bin;
++	unsigned int ddr4_speed_bin;
++	unsigned int pd_idle;
++	unsigned int sr_idle;
++	unsigned int sr_mc_gate_idle;
++	unsigned int srpd_lite_idle;
++	unsigned int standby_idle;
++
++	unsigned int auto_pd_dis_freq;
++	unsigned int auto_sr_dis_freq;
++	/* for ddr3 only */
++	unsigned int ddr3_dll_dis_freq;
++	/* for ddr4 only */
++	unsigned int ddr4_dll_dis_freq;
++	unsigned int phy_dll_dis_freq;
++
++	unsigned int ddr3_odt_dis_freq;
++	unsigned int phy_ddr3_odt_dis_freq;
++	unsigned int ddr3_drv;
++	unsigned int ddr3_odt;
++	unsigned int phy_ddr3_ca_drv;
++	unsigned int phy_ddr3_ck_drv;
++	unsigned int phy_ddr3_dq_drv;
++	unsigned int phy_ddr3_odt;
++
++	unsigned int lpddr3_odt_dis_freq;
++	unsigned int phy_lpddr3_odt_dis_freq;
++	unsigned int lpddr3_drv;
++	unsigned int lpddr3_odt;
++	unsigned int phy_lpddr3_ca_drv;
++	unsigned int phy_lpddr3_ck_drv;
++	unsigned int phy_lpddr3_dq_drv;
++	unsigned int phy_lpddr3_odt;
++
++	unsigned int lpddr4_odt_dis_freq;
++	unsigned int phy_lpddr4_odt_dis_freq;
++	unsigned int lpddr4_drv;
++	unsigned int lpddr4_dq_odt;
++	unsigned int lpddr4_ca_odt;
++	unsigned int phy_lpddr4_ca_drv;
++	unsigned int phy_lpddr4_ck_cs_drv;
++	unsigned int phy_lpddr4_dq_drv;
++	unsigned int phy_lpddr4_odt;
++
++	unsigned int ddr4_odt_dis_freq;
++	unsigned int phy_ddr4_odt_dis_freq;
++	unsigned int ddr4_drv;
++	unsigned int ddr4_odt;
++	unsigned int phy_ddr4_ca_drv;
++	unsigned int phy_ddr4_ck_drv;
++	unsigned int phy_ddr4_dq_drv;
++	unsigned int phy_ddr4_odt;
++
++	unsigned int ca_skew[15];
++	unsigned int cs0_skew[44];
++	unsigned int cs1_skew[44];
++
++	unsigned int available;
++};
++
++struct rk3328_ddr_de_skew_setting {
++	unsigned int ca_de_skew[30];
++	unsigned int cs0_de_skew[84];
++	unsigned int cs1_de_skew[84];
++};
++
++struct rk3328_dmcfreq {
++	struct device *dev;
++	struct devfreq *devfreq;
++	struct devfreq_simple_ondemand_data ondemand_data;
++	struct clk *dmc_clk;
++	struct devfreq_event_dev *edev;
++	struct mutex lock;
++	struct regulator *vdd_center;
++	unsigned long rate, target_rate;
++	unsigned long volt, target_volt;
++
++	int (*set_auto_self_refresh)(u32 en);
++};
++
++static void
++rk3328_de_skew_setting_2_register(struct rk3328_ddr_de_skew_setting *de_skew,
++				  struct rk3328_ddr_dts_config_timing *tim)
++{
++	u32 n;
++	u32 offset;
++	u32 shift;
++
++	memset_io(tim->ca_skew, 0, sizeof(tim->ca_skew));
++	memset_io(tim->cs0_skew, 0, sizeof(tim->cs0_skew));
++	memset_io(tim->cs1_skew, 0, sizeof(tim->cs1_skew));
++
++	/* CA de-skew */
++	for (n = 0; n < ARRAY_SIZE(de_skew->ca_de_skew); n++) {
++		offset = n / 2;
++		shift = n % 2;
++		/* 0 => 4; 1 => 0 */
++		shift = (shift == 0) ? 4 : 0;
++		tim->ca_skew[offset] &= ~(0xf << shift);
++		tim->ca_skew[offset] |= (de_skew->ca_de_skew[n] << shift);
++	}
++
++	/* CS0 data de-skew */
++	for (n = 0; n < ARRAY_SIZE(de_skew->cs0_de_skew); n++) {
++		offset = ((n / 21) * 11) + ((n % 21) / 2);
++		shift = ((n % 21) % 2);
++		if ((n % 21) == 20)
++			shift = 0;
++		else
++			/* 0 => 4; 1 => 0 */
++			shift = (shift == 0) ? 4 : 0;
++		tim->cs0_skew[offset] &= ~(0xf << shift);
++		tim->cs0_skew[offset] |= (de_skew->cs0_de_skew[n] << shift);
++	}
++
++	/* CS1 data de-skew */
++	for (n = 0; n < ARRAY_SIZE(de_skew->cs1_de_skew); n++) {
++		offset = ((n / 21) * 11) + ((n % 21) / 2);
++		shift = ((n % 21) % 2);
++		if ((n % 21) == 20)
++			shift = 0;
++		else
++			/* 0 => 4; 1 => 0 */
++			shift = (shift == 0) ? 4 : 0;
++		tim->cs1_skew[offset] &= ~(0xf << shift);
++		tim->cs1_skew[offset] |= (de_skew->cs1_de_skew[n] << shift);
++	}
++}
++
++static void of_get_rk3328_timings(struct device *dev,
++				  struct device_node *np, uint32_t *timing)
++{
++	struct device_node *np_tim;
++	u32 *p;
++	struct rk3328_ddr_dts_config_timing *dts_timing;
++	struct rk3328_ddr_de_skew_setting *de_skew;
++	int ret = 0;
++	u32 i;
++
++	dts_timing =
++		(struct rk3328_ddr_dts_config_timing *)(timing +
++							DTS_PAR_OFFSET / 4);
++
++	np_tim = of_parse_phandle(np, "ddr_timing", 0);
++	if (!np_tim) {
++		ret = -EINVAL;
++		goto end;
++	}
++	de_skew = kmalloc(sizeof(*de_skew), GFP_KERNEL);
++	if (!de_skew) {
++		ret = -ENOMEM;
++		goto end;
++	}
++
++	p = (u32 *)dts_timing;
++	for (i = 0; i < ARRAY_SIZE(rk3328_dts_timing); i++) {
++		ret |= of_property_read_u32(np_tim, rk3328_dts_timing[i],
++					p + i);
++	}
++	p = (u32 *)de_skew->ca_de_skew;
++	for (i = 0; i < ARRAY_SIZE(rk3328_dts_ca_timing); i++) {
++		ret |= of_property_read_u32(np_tim, rk3328_dts_ca_timing[i],
++					p + i);
++	}
++	p = (u32 *)de_skew->cs0_de_skew;
++	for (i = 0; i < ARRAY_SIZE(rk3328_dts_cs0_timing); i++) {
++		ret |= of_property_read_u32(np_tim, rk3328_dts_cs0_timing[i],
++					p + i);
++	}
++	p = (u32 *)de_skew->cs1_de_skew;
++	for (i = 0; i < ARRAY_SIZE(rk3328_dts_cs1_timing); i++) {
++		ret |= of_property_read_u32(np_tim, rk3328_dts_cs1_timing[i],
++					p + i);
++	}
++	if (!ret)
++		rk3328_de_skew_setting_2_register(de_skew, dts_timing);
++
++	kfree(de_skew);
++end:
++	if (!ret) {
++		dts_timing->available = 1;
++	} else {
++		dts_timing->available = 0;
++		dev_err(dev, "of_get_ddr_timings: fail\n");
++	}
++
++	of_node_put(np_tim);
++}
++
++static int rockchip_ddr_set_auto_self_refresh(uint32_t en)
++{
++	struct arm_smccc_res res;
++
++	ddr_psci_param->sr_idle_en = en;
++
++	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ,
++		      SHARE_PAGE_TYPE_DDR, 0, ROCKCHIP_SIP_CONFIG_DRAM_SET_AT_SR,
++		      0, 0, 0, 0, &res);
++
++	return res.a0;
++}
++
++static int rk3328_dmc_init(struct platform_device *pdev,
++			   struct rk3328_dmcfreq *dmcfreq)
++{
++	struct arm_smccc_res res;
++	u32 size, page_num;
++
++	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ,
++		      0, 0, ROCKCHIP_SIP_CONFIG_DRAM_GET_VERSION,
++		      0, 0, 0, 0, &res);
++	if (res.a0 || (res.a1 < 0x101)) {
++		dev_err(&pdev->dev,
++			"trusted firmware need to update or is invalid\n");
++		return -ENXIO;
++	}
++
++	dev_notice(&pdev->dev, "current ATF version 0x%lx\n", res.a1);
++
++	/*
++	 * first 4KB is used for interface parameters
++	 * after 4KB * N is dts parameters
++	 */
++	size = sizeof(struct rk3328_ddr_dts_config_timing);
++	page_num = DIV_ROUND_UP(size, 4096) + 1;
++
++	arm_smccc_smc(ROCKCHIP_SIP_SHARE_MEM,
++		      page_num, SHARE_PAGE_TYPE_DDR, 0,
++		      0, 0, 0, 0, &res);
++	if (res.a0 != 0) {
++		dev_err(&pdev->dev, "no ATF memory for init\n");
++		return -ENOMEM;
++	}
++
++	ddr_psci_param = ioremap(res.a1, page_num << 12);
++	of_get_rk3328_timings(&pdev->dev, pdev->dev.of_node,
++			      (uint32_t *)ddr_psci_param);
++
++	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ,
++		      SHARE_PAGE_TYPE_DDR, 0, ROCKCHIP_SIP_CONFIG_DRAM_INIT,
++		      0, 0, 0, 0, &res);
++	if (res.a0) {
++		dev_err(&pdev->dev, "Rockchip dram init error %lx\n", res.a0);
++		return -ENOMEM;
++	}
++
++	dmcfreq->set_auto_self_refresh = rockchip_ddr_set_auto_self_refresh;
++
++	return 0;
++}
++
++static int rk3328_dmcfreq_target(struct device *dev, unsigned long *freq,
++				 u32 flags)
++{
++	struct rk3328_dmcfreq *dmcfreq = dev_get_drvdata(dev);
++	struct dev_pm_opp *opp;
++	unsigned long old_clk_rate = dmcfreq->rate;
++	unsigned long target_volt, target_rate;
++	int err;
++
++	opp = devfreq_recommended_opp(dev, freq, flags);
++	if (IS_ERR(opp))
++		return PTR_ERR(opp);
++
++	target_rate = dev_pm_opp_get_freq(opp);
++	target_volt = dev_pm_opp_get_voltage(opp);
++	dev_pm_opp_put(opp);
++
++	if (dmcfreq->rate == target_rate)
++		return 0;
++
++	mutex_lock(&dmcfreq->lock);
++
++	/*
++	 * If frequency scaling from low to high, adjust voltage first.
++	 * If frequency scaling from high to low, adjust frequency first.
++	 */
++	if (old_clk_rate < target_rate) {
++		err = regulator_set_voltage(dmcfreq->vdd_center, target_volt,
++					    target_volt);
++		if (err) {
++			dev_err(dev, "Cannot set voltage %lu uV\n",
++				target_volt);
++			goto out;
++		}
++	}
++
++	err = clk_set_rate(dmcfreq->dmc_clk, target_rate);
++	if (err) {
++		dev_err(dev, "Cannot set frequency %lu (%d)\n", target_rate,
++			err);
++		regulator_set_voltage(dmcfreq->vdd_center, dmcfreq->volt,
++				      dmcfreq->volt);
++		goto out;
++	}
++
++	/*
++	 * Check the dpll rate,
++	 * There only two result we will get,
++	 * 1. Ddr frequency scaling fail, we still get the old rate.
++	 * 2. Ddr frequency scaling sucessful, we get the rate we set.
++	 */
++	dmcfreq->rate = clk_get_rate(dmcfreq->dmc_clk);
++
++	/* If get the incorrect rate, set voltage to old value. */
++	if (dmcfreq->rate != target_rate) {
++		dev_err(dev, "Got wrong frequency, Request %lu, Current %lu\n",
++			target_rate, dmcfreq->rate);
++		regulator_set_voltage(dmcfreq->vdd_center, dmcfreq->volt,
++				      dmcfreq->volt);
++		goto out;
++	} else if (old_clk_rate > target_rate)
++		err = regulator_set_voltage(dmcfreq->vdd_center, target_volt,
++					    target_volt);
++	if (err)
++		dev_err(dev, "Cannot set voltage %lu uV\n", target_volt);
++
++	dmcfreq->rate = target_rate;
++	dmcfreq->volt = target_volt;
++
++out:
++	mutex_unlock(&dmcfreq->lock);
++	return err;
++}
++
++static int rk3328_dmcfreq_get_dev_status(struct device *dev,
++					 struct devfreq_dev_status *stat)
++{
++	struct rk3328_dmcfreq *dmcfreq = dev_get_drvdata(dev);
++	struct devfreq_event_data edata;
++	int ret = 0;
++
++	ret = devfreq_event_get_event(dmcfreq->edev, &edata);
++	if (ret < 0)
++		return ret;
++
++	stat->current_frequency = dmcfreq->rate;
++	stat->busy_time = edata.load_count;
++	stat->total_time = edata.total_count;
++
++	return ret;
++}
++
++static int rk3328_dmcfreq_get_cur_freq(struct device *dev, unsigned long *freq)
++{
++	struct rk3328_dmcfreq *dmcfreq = dev_get_drvdata(dev);
++
++	*freq = dmcfreq->rate;
++
++	return 0;
++}
++
++static struct devfreq_dev_profile rk3328_devfreq_dmc_profile = {
++	.polling_ms	= 200,
++	.target		= rk3328_dmcfreq_target,
++	.get_dev_status	= rk3328_dmcfreq_get_dev_status,
++	.get_cur_freq	= rk3328_dmcfreq_get_cur_freq,
++};
++
++static __maybe_unused int rk3328_dmcfreq_suspend(struct device *dev)
++{
++	struct rk3328_dmcfreq *dmcfreq = dev_get_drvdata(dev);
++	int ret = 0;
++
++	ret = devfreq_event_disable_edev(dmcfreq->edev);
++	if (ret < 0) {
++		dev_err(dev, "failed to disable the devfreq-event devices\n");
++		return ret;
++	}
++
++	ret = devfreq_suspend_device(dmcfreq->devfreq);
++	if (ret < 0) {
++		dev_err(dev, "failed to suspend the devfreq devices\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static __maybe_unused int rk3328_dmcfreq_resume(struct device *dev)
++{
++	struct rk3328_dmcfreq *dmcfreq = dev_get_drvdata(dev);
++	int ret = 0;
++
++	ret = devfreq_event_enable_edev(dmcfreq->edev);
++	if (ret < 0) {
++		dev_err(dev, "failed to enable the devfreq-event devices\n");
++		return ret;
++	}
++
++	ret = devfreq_resume_device(dmcfreq->devfreq);
++	if (ret < 0) {
++		dev_err(dev, "failed to resume the devfreq devices\n");
++		return ret;
++	}
++	return ret;
++}
++
++static SIMPLE_DEV_PM_OPS(rk3328_dmcfreq_pm, rk3328_dmcfreq_suspend,
++			 rk3328_dmcfreq_resume);
++
++static int rk3328_dmcfreq_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *np = pdev->dev.of_node;
++	struct rk3328_dmcfreq *data;
++	struct dev_pm_opp *opp;
++	int ret;
++
++	data = devm_kzalloc(dev, sizeof(struct rk3328_dmcfreq), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	mutex_init(&data->lock);
++
++	data->vdd_center = devm_regulator_get(dev, "center");
++	if (IS_ERR(data->vdd_center)) {
++		if (PTR_ERR(data->vdd_center) == -EPROBE_DEFER)
++			return -EPROBE_DEFER;
++
++		dev_err(dev, "Cannot get the regulator \"center\"\n");
++		return PTR_ERR(data->vdd_center);
++	}
++
++	data->dmc_clk = devm_clk_get(dev, "dmc_clk");
++	if (IS_ERR(data->dmc_clk)) {
++		if (PTR_ERR(data->dmc_clk) == -EPROBE_DEFER)
++			return -EPROBE_DEFER;
++
++		dev_err(dev, "Cannot get the clk dmc_clk\n");
++		return PTR_ERR(data->dmc_clk);
++	}
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
++	data->edev = devfreq_event_get_edev_by_phandle(dev, 0);
++#else
++	data->edev = devfreq_event_get_edev_by_phandle(dev, "devfreq-events", 0);
++#endif
++	if (IS_ERR(data->edev))
++		return -EPROBE_DEFER;
++
++	ret = devfreq_event_enable_edev(data->edev);
++	if (ret < 0) {
++		dev_err(dev, "failed to enable devfreq-event devices\n");
++		return ret;
++	}
++
++	ret = rk3328_dmc_init(pdev, data);
++	if (ret)
++		return ret;
++
++	/*
++	 * We add a devfreq driver to our parent since it has a device tree node
++	 * with operating points.
++	 */
++	if (dev_pm_opp_of_add_table(dev)) {
++		dev_err(dev, "Invalid operating-points in device tree.\n");
++		return -EINVAL;
++	}
++
++	of_property_read_u32(np, "upthreshold",
++			     &data->ondemand_data.upthreshold);
++	of_property_read_u32(np, "downdifferential",
++			     &data->ondemand_data.downdifferential);
++
++	data->rate = clk_get_rate(data->dmc_clk);
++
++	opp = devfreq_recommended_opp(dev, &data->rate, 0);
++	if (IS_ERR(opp)) {
++		ret = PTR_ERR(opp);
++		goto err_free_opp;
++	}
++
++	data->rate = dev_pm_opp_get_freq(opp);
++	data->volt = dev_pm_opp_get_voltage(opp);
++	dev_pm_opp_put(opp);
++
++	rk3328_devfreq_dmc_profile.initial_freq = data->rate;
++
++	data->devfreq = devm_devfreq_add_device(dev,
++					   &rk3328_devfreq_dmc_profile,
++					   DEVFREQ_GOV_SIMPLE_ONDEMAND,
++					   &data->ondemand_data);
++	if (IS_ERR(data->devfreq)) {
++		ret = PTR_ERR(data->devfreq);
++		goto err_free_opp;
++	}
++
++	devm_devfreq_register_opp_notifier(dev, data->devfreq);
++
++	data->dev = dev;
++	platform_set_drvdata(pdev, data);
++
++	return 0;
++
++err_free_opp:
++	dev_pm_opp_of_remove_table(&pdev->dev);
++	return ret;
++}
++
++static int rk3328_dmcfreq_remove(struct platform_device *pdev)
++{
++	struct rk3328_dmcfreq *dmcfreq = dev_get_drvdata(&pdev->dev);
++
++	/*
++	 * Before remove the opp table we need to unregister the opp notifier.
++	 */
++	devm_devfreq_unregister_opp_notifier(dmcfreq->dev, dmcfreq->devfreq);
++	dev_pm_opp_of_remove_table(dmcfreq->dev);
++
++	return 0;
++}
++
++static const struct of_device_id rk3328dmc_devfreq_of_match[] = {
++	{ .compatible = "rockchip,rk3328-dmc" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, rk3328dmc_devfreq_of_match);
++
++static struct platform_driver rk3328_dmcfreq_driver = {
++	.probe	= rk3328_dmcfreq_probe,
++	.remove = rk3328_dmcfreq_remove,
++	.driver = {
++		.name	= "rk3328-dmc-freq",
++		.pm	= &rk3328_dmcfreq_pm,
++		.of_match_table = rk3328dmc_devfreq_of_match,
++	},
++};
++module_platform_driver(rk3328_dmcfreq_driver);
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Lin Huang <hl@rock-chips.com>");
++MODULE_DESCRIPTION("RK3328 dmcfreq driver with devfreq framework");
+diff --git a/target/linux/rockchip/files/include/dt-bindings/clock/rockchip-ddr.h b/target/linux/rockchip/files/include/dt-bindings/clock/rockchip-ddr.h
+new file mode 100644
+index 0000000..b065432
+--- /dev/null
++++ b/target/linux/rockchip/files/include/dt-bindings/clock/rockchip-ddr.h
+@@ -0,0 +1,63 @@
++/*
++ *
++ * Copyright (C) 2017 ROCKCHIP, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#ifndef _DT_BINDINGS_CLOCK_ROCKCHIP_DDR_H
++#define _DT_BINDINGS_CLOCK_ROCKCHIP_DDR_H
++
++#define DDR2_DEFAULT	(0)
++
++#define DDR3_800D	(0)	/* 5-5-5 */
++#define DDR3_800E	(1)	/* 6-6-6 */
++#define DDR3_1066E	(2)	/* 6-6-6 */
++#define DDR3_1066F	(3)	/* 7-7-7 */
++#define DDR3_1066G	(4)	/* 8-8-8 */
++#define DDR3_1333F	(5)	/* 7-7-7 */
++#define DDR3_1333G	(6)	/* 8-8-8 */
++#define DDR3_1333H	(7)	/* 9-9-9 */
++#define DDR3_1333J	(8)	/* 10-10-10 */
++#define DDR3_1600G	(9)	/* 8-8-8 */
++#define DDR3_1600H	(10)	/* 9-9-9 */
++#define DDR3_1600J	(11)	/* 10-10-10 */
++#define DDR3_1600K	(12)	/* 11-11-11 */
++#define DDR3_1866J	(13)	/* 10-10-10 */
++#define DDR3_1866K	(14)	/* 11-11-11 */
++#define DDR3_1866L	(15)	/* 12-12-12 */
++#define DDR3_1866M	(16)	/* 13-13-13 */
++#define DDR3_2133K	(17)	/* 11-11-11 */
++#define DDR3_2133L	(18)	/* 12-12-12 */
++#define DDR3_2133M	(19)	/* 13-13-13 */
++#define DDR3_2133N	(20)	/* 14-14-14 */
++#define DDR3_DEFAULT	(21)
++#define DDR_DDR2	(22)
++#define DDR_LPDDR	(23)
++#define DDR_LPDDR2	(24)
++
++#define DDR4_1600J	(0)	/* 10-10-10 */
++#define DDR4_1600K	(1)	/* 11-11-11 */
++#define DDR4_1600L	(2)	/* 12-12-12 */
++#define DDR4_1866L	(3)	/* 12-12-12 */
++#define DDR4_1866M	(4)	/* 13-13-13 */
++#define DDR4_1866N	(5)	/* 14-14-14 */
++#define DDR4_2133N	(6)	/* 14-14-14 */
++#define DDR4_2133P	(7)	/* 15-15-15 */
++#define DDR4_2133R	(8)	/* 16-16-16 */
++#define DDR4_2400P	(9)	/* 15-15-15 */
++#define DDR4_2400R	(10)	/* 16-16-16 */
++#define DDR4_2400U	(11)	/* 18-18-18 */
++#define DDR4_DEFAULT	(12)
++
++#define PAUSE_CPU_STACK_SIZE	16
++
++#endif
+diff --git a/target/linux/rockchip/files/include/dt-bindings/memory/rk3328-dram.h b/target/linux/rockchip/files/include/dt-bindings/memory/rk3328-dram.h
+new file mode 100644
+index 0000000..171f41c
+--- /dev/null
++++ b/target/linux/rockchip/files/include/dt-bindings/memory/rk3328-dram.h
+@@ -0,0 +1,159 @@
++/*
++ * Copyright (c) 2017 Fuzhou Rockchip Electronics Co., Ltd
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This library is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This library is distributed in the hope that it will be useful,
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ * Or, alternatively,
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use,
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++#ifndef _DT_BINDINGS_DRAM_ROCKCHIP_RK3328_H
++#define _DT_BINDINGS_DRAM_ROCKCHIP_RK3328_H
++
++#define DDR3_DS_34ohm			(34)
++#define DDR3_DS_40ohm			(40)
++
++#define DDR3_ODT_DIS			(0)
++#define DDR3_ODT_40ohm			(40)
++#define DDR3_ODT_60ohm			(60)
++#define DDR3_ODT_120ohm			(120)
++
++#define LP2_DS_34ohm			(34)
++#define LP2_DS_40ohm			(40)
++#define LP2_DS_48ohm			(48)
++#define LP2_DS_60ohm			(60)
++#define LP2_DS_68_6ohm			(68)	/* optional */
++#define LP2_DS_80ohm			(80)
++#define LP2_DS_120ohm			(120)	/* optional */
++
++#define LP3_DS_34ohm			(34)
++#define LP3_DS_40ohm			(40)
++#define LP3_DS_48ohm			(48)
++#define LP3_DS_60ohm			(60)
++#define LP3_DS_80ohm			(80)
++#define LP3_DS_34D_40U			(3440)
++#define LP3_DS_40D_48U			(4048)
++#define LP3_DS_34D_48U			(3448)
++
++#define LP3_ODT_DIS			(0)
++#define LP3_ODT_60ohm			(60)
++#define LP3_ODT_120ohm			(120)
++#define LP3_ODT_240ohm			(240)
++
++#define LP4_PDDS_40ohm			(40)
++#define LP4_PDDS_48ohm			(48)
++#define LP4_PDDS_60ohm			(60)
++#define LP4_PDDS_80ohm			(80)
++#define LP4_PDDS_120ohm			(120)
++#define LP4_PDDS_240ohm			(240)
++
++#define LP4_DQ_ODT_40ohm		(40)
++#define LP4_DQ_ODT_48ohm		(48)
++#define LP4_DQ_ODT_60ohm		(60)
++#define LP4_DQ_ODT_80ohm		(80)
++#define LP4_DQ_ODT_120ohm		(120)
++#define LP4_DQ_ODT_240ohm		(240)
++#define LP4_DQ_ODT_DIS			(0)
++
++#define LP4_CA_ODT_40ohm		(40)
++#define LP4_CA_ODT_48ohm		(48)
++#define LP4_CA_ODT_60ohm		(60)
++#define LP4_CA_ODT_80ohm		(80)
++#define LP4_CA_ODT_120ohm		(120)
++#define LP4_CA_ODT_240ohm		(240)
++#define LP4_CA_ODT_DIS			(0)
++
++#define DDR4_DS_34ohm			(34)
++#define DDR4_DS_48ohm			(48)
++#define DDR4_RTT_NOM_DIS		(0)
++#define DDR4_RTT_NOM_60ohm		(60)
++#define DDR4_RTT_NOM_120ohm		(120)
++#define DDR4_RTT_NOM_40ohm		(40)
++#define DDR4_RTT_NOM_240ohm		(240)
++#define DDR4_RTT_NOM_48ohm		(48)
++#define DDR4_RTT_NOM_80ohm		(80)
++#define DDR4_RTT_NOM_34ohm		(34)
++
++#define PHY_DDR3_RON_RTT_DISABLE	(0)
++#define PHY_DDR3_RON_RTT_451ohm		(1)
++#define PHY_DDR3_RON_RTT_225ohm		(2)
++#define PHY_DDR3_RON_RTT_150ohm		(3)
++#define PHY_DDR3_RON_RTT_112ohm		(4)
++#define PHY_DDR3_RON_RTT_90ohm		(5)
++#define PHY_DDR3_RON_RTT_75ohm		(6)
++#define PHY_DDR3_RON_RTT_64ohm		(7)
++#define PHY_DDR3_RON_RTT_56ohm		(16)
++#define PHY_DDR3_RON_RTT_50ohm		(17)
++#define PHY_DDR3_RON_RTT_45ohm		(18)
++#define PHY_DDR3_RON_RTT_41ohm		(19)
++#define PHY_DDR3_RON_RTT_37ohm		(20)
++#define PHY_DDR3_RON_RTT_34ohm		(21)
++#define PHY_DDR3_RON_RTT_33ohm		(22)
++#define PHY_DDR3_RON_RTT_30ohm		(23)
++#define PHY_DDR3_RON_RTT_28ohm		(24)
++#define PHY_DDR3_RON_RTT_26ohm		(25)
++#define PHY_DDR3_RON_RTT_25ohm		(26)
++#define PHY_DDR3_RON_RTT_23ohm		(27)
++#define PHY_DDR3_RON_RTT_22ohm		(28)
++#define PHY_DDR3_RON_RTT_21ohm		(29)
++#define PHY_DDR3_RON_RTT_20ohm		(30)
++#define PHY_DDR3_RON_RTT_19ohm		(31)
++
++#define PHY_DDR4_LPDDR3_RON_RTT_DISABLE (0)
++#define PHY_DDR4_LPDDR3_RON_RTT_480ohm	(1)
++#define PHY_DDR4_LPDDR3_RON_RTT_240ohm	(2)
++#define PHY_DDR4_LPDDR3_RON_RTT_160ohm	(3)
++#define PHY_DDR4_LPDDR3_RON_RTT_120ohm	(4)
++#define PHY_DDR4_LPDDR3_RON_RTT_96ohm	(5)
++#define PHY_DDR4_LPDDR3_RON_RTT_80ohm	(6)
++#define PHY_DDR4_LPDDR3_RON_RTT_68ohm	(7)
++#define PHY_DDR4_LPDDR3_RON_RTT_60ohm	(16)
++#define PHY_DDR4_LPDDR3_RON_RTT_53ohm	(17)
++#define PHY_DDR4_LPDDR3_RON_RTT_48ohm	(18)
++#define PHY_DDR4_LPDDR3_RON_RTT_43ohm	(19)
++#define PHY_DDR4_LPDDR3_RON_RTT_40ohm	(20)
++#define PHY_DDR4_LPDDR3_RON_RTT_37ohm	(21)
++#define PHY_DDR4_LPDDR3_RON_RTT_34ohm	(22)
++#define PHY_DDR4_LPDDR3_RON_RTT_32ohm	(23)
++#define PHY_DDR4_LPDDR3_RON_RTT_30ohm	(24)
++#define PHY_DDR4_LPDDR3_RON_RTT_28ohm	(25)
++#define PHY_DDR4_LPDDR3_RON_RTT_26ohm	(26)
++#define PHY_DDR4_LPDDR3_RON_RTT_25ohm	(27)
++#define PHY_DDR4_LPDDR3_RON_RTT_24ohm	(28)
++#define PHY_DDR4_LPDDR3_RON_RTT_22ohm	(29)
++#define PHY_DDR4_LPDDR3_RON_RTT_21ohm	(30)
++#define PHY_DDR4_LPDDR3_RON_RTT_20ohm	(31)
++
++#endif /*_DT_BINDINGS_DRAM_ROCKCHIP_RK3328_H*/
+diff --git a/target/linux/rockchip/image/Makefile b/target/linux/rockchip/image/Makefile
+index f5fdff6..3741bee 100644
+--- a/target/linux/rockchip/image/Makefile
++++ b/target/linux/rockchip/image/Makefile
+@@ -45,6 +45,20 @@ define Build/pine64-img
+ 	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-u-boot.itb of="$@" seek=16384 conv=notrunc
+ endef
+ 
++define Build/pine64-bin
++	# This is a copy of pine64-img, but uses rockchip ddrloader
++
++	$(SCRIPT_DIR)/gen_image_generic.sh \
++		$@ \
++		$(CONFIG_TARGET_KERNEL_PARTSIZE) $@.boot \
++		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(IMAGE_ROOTFS) \
++		32768
++
++	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-idbloader.bin of="$@" seek=64 conv=notrunc
++	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-uboot.img of="$@" seek=16384 conv=notrunc
++	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-trust.bin of="$@" seek=24576 conv=notrunc
++endef
++
+ ### Devices ###
+ define Device/Default
+   PROFILES := Default
+diff --git a/target/linux/rockchip/image/armv8.mk b/target/linux/rockchip/image/armv8.mk
+index 24b1c38..04a9aa8 100644
+--- a/target/linux/rockchip/image/armv8.mk
++++ b/target/linux/rockchip/image/armv8.mk
+@@ -7,7 +7,7 @@ define Device/friendlyarm_nanopi-r2s
+   DEVICE_MODEL := NanoPi R2S
+   SOC := rk3328
+   UBOOT_DEVICE_NAME := nanopi-r2s-rk3328
+-  IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r2s | pine64-img | gzip | append-metadata
++  IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r2s | pine64-bin | gzip | append-metadata
+   DEVICE_PACKAGES := kmod-usb-net-rtl8152
+ endef
+ TARGET_DEVICES += friendlyarm_nanopi-r2s
+-- 
+2.30.1
+

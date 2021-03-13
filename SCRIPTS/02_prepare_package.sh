@@ -1,14 +1,10 @@
 #!/bin/bash
 clear
 
-#凑合解决方案
-#wget -qO - https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3875.patch | patch -p1
-
-#使用O2级别的优化
+#使用O3级别的优化
 sed -i 's/Os/O3/g' include/target.mk
 #更新feed
-./scripts/feeds update -a
-./scripts/feeds install -a -f
+./scripts/feeds update -a && ./scripts/feeds install -a
 #irqbalance
 sed -i 's/0/1/g' feeds/packages/utils/irqbalance/files/irqbalance.config
 #remove annoying snapshot tag
