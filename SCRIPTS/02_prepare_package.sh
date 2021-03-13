@@ -162,6 +162,7 @@ rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
 pushd package/lean
 wget -qO - https://patch-diff.githubusercontent.com/raw/fw876/helloworld/pull/426.patch | patch -p1
 popd
+sed -i 's,8e461614154d0d395f4e704ea170a6dac67401d92fe75e57e59ee33370bf1db6,318e0538386e52025448e7dc1e67b71bd399981e386ba0a54802ff3c13b25016,g' package/lean/shadowsocks-rust/Makefile
 sed -i 's,default n,default y,g' package/lean/luci-app-ssr-plus/Makefile
 sed -i 's,Xray:xray ,Xray:xray-core ,g' package/lean/luci-app-ssr-plus/Makefile
 sed -i '/V2ray:v2ray/d' package/lean/luci-app-ssr-plus/Makefile
