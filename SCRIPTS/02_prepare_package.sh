@@ -63,7 +63,7 @@ sed -i 's,include ../..,include $(TOPDIR)/feeds/luci,g' ./package/new/luci-app-c
 cp -rf ../NoTengoBattery/package/system/compressed-memory ./package/system/compressed-memory
 #R8168
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/ctcgfw/r8168 package/new/r8168
-patch -p1 < ../PATCH/new/main/r8168-fix_LAN_led-for_r4s-from_TL.patch
+#patch -p1 < ../PATCH/new/main/r8168-fix_LAN_led-for_r4s-from_TL.patch
 sed -i '/r8169/d' ./target/linux/rockchip/image/armv8.mk
 #更换cryptodev-linux
 rm -rf ./package/kernel/cryptodev-linux
