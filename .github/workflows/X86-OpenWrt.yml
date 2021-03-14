@@ -3,8 +3,8 @@ name: X86-OpenWrt
 on:
   schedule:
     - cron: 5 6 * * 5
-  watch:
-    types: started
+#  watch:
+#    types: started
 
 jobs:
   build:
