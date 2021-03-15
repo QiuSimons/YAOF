@@ -1,13 +1,7 @@
 #!/bin/bash
+
 #翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
-sed -i '/openssl/d' ./package/lean/lean-translate/files/zzz-default-settings
-sed -i '/banirq/d' ./package/lean/lean-translate/files/zzz-default-settings
-sed -i '/rngd/d' ./package/lean/lean-translate/files/zzz-default-settings
-sed -i '/system.led/d' ./package/lean/lean-translate/files/zzz-default-settings
-sed -i '/network.wan/d' ./package/lean/lean-translate/files/zzz-default-settings
-sed -i '/network.lan/d' ./package/lean/lean-translate/files/zzz-default-settings
-sed -i '/system.@led/d' ./package/lean/lean-translate/files/zzz-default-settings
 
 <<'COMMENT'
 #Vermagic
@@ -17,13 +11,16 @@ zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .v
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 COMMENT
 
-#Vermagic 2102 SNAPSHOT ONLY
+#对齐内核 Vermagic
 wget https://downloads.openwrt.org/releases/21.02-SNAPSHOT/targets/x86/64/packages/Packages.gz
 zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .vermagic
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 
 #预配置一些插件
 cp -rf ../PATCH/X86/files ./files
+echo "
+exit 0
 
+" >> ./package/lean/lean-translate/files/zzz-default-settings
 
 exit 0
