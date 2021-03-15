@@ -12,6 +12,8 @@ cp -f ../PATCH/new/dmc/804-clk-rockchip-support-setting-ddr-clock-via-SIP-Versio
 cp -f ../PATCH/new/dmc/805-PM-devfreq-rockchip-dfi-add-more-soc-support.patch ./target/linux/rockchip/patches-5.4/805-PM-devfreq-rockchip-dfi-add-more-soc-support.patch
 cp -f ../PATCH/new/dmc/806-arm64-dts-rockchip-rk3328-add-dfi-node.patch ./target/linux/rockchip/patches-5.4/806-arm64-dts-rockchip-rk3328-add-dfi-node.patch
 cp -f ../PATCH/new/dmc/807-arm64-dts-nanopi-r2s-add-rk3328-dmc-relate-node.patch ./target/linux/rockchip/patches-5.4/807-arm64-dts-nanopi-r2s-add-rk3328-dmc-relate-node.patch
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/target/linux/rockchip/files target/linux/rockchip/files
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/arm-trusted-firmware-rk3328 package/boot/arm-trusted-firmware-rk3328
 
 #3328 Add idle
 wget -P target/linux/rockchip/patches-5.4 https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/rockchip/patches-5.4/007-arm64-dts-rockchip-Add-RK3328-idle-state.patch
