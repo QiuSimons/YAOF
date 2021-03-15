@@ -118,6 +118,7 @@ CONFIG_PACKAGE_frpc=y
 CONFIG_PACKAGE_coremark=y
 CONFIG_PACKAGE_htop=y
 CONFIG_PACKAGE_subconverter=y
+#CONFIG_PACKAGE_luci-app-qbittorrent=y
 
 ### THEME ###
 CONFIG_PACKAGE_luci-theme-argon=y
@@ -176,7 +177,6 @@ CONFIG_LIBCURL_OPENSSL=y
 # CONFIG_LIBCURL_NOSSL is not set
 
 
-### DOCKER ###（实验性,有需要的删掉下面三行的注释)
+### DOCKER ###（实验性,有需要的删掉下面两行的注释)
 #CONFIG_PACKAGE_docker=y
 #CONFIG_PACKAGE_luci-app-dockerman=y
-

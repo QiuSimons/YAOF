@@ -57,6 +57,9 @@ echo "/etc/openclash/" >> /etc/sysupgrade.conf && cat /etc/sysupgrade.conf | sor
 #dockerman
 sed -i 's,/opt,/overlay,g' /etc/config/dockerman
 
+#add qBittorrent nobody:nobody group
+echo "nobody:x:65534:" >> /etc/group
+
 #dnsmasq
 uci set dhcp.lan.ra='hybrid'
 uci set dhcp.lan.ndp='hybrid'
