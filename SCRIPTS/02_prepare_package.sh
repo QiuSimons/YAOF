@@ -274,6 +274,10 @@ svn co https://github.com/sundaqiang/openwrt-packages/trunk/luci-app-services-wo
 #sed -i 's/+docker/+docker \\\n\t+dockerd/g' ./feeds/luci/applications/luci-app-dockerman/Makefile
 rm -rf ./feeds/luci/applications/luci-app-dockerman
 cp -rf ../openwrt-lienol/package/diy/luci-app-dockerman ./feeds/luci/applications/luci-app-dockerman
+#qBittorrent
+cp -rf ../PATCH/duplicate/qBittorrent-Enhanced-Edition ./package/lean/qBittorrent-Enhanced-Edition
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-qbittorrent package/lean/luci-app-qbittorrent
+cp -rf ../PATCH/duplicate/luci-app-qbittorrent/Makefile ./package/lean/luci-app-qbittorrent
 
 ##最后的收尾工作
 #Lets Fuck
