@@ -43,6 +43,11 @@ patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/lean/shortcut-fe
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/lean/fast-classifier
 cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
+#call it magic
+rm -rf ./scripts/download.pl
+rm -rf ./include/download.mk
+wget -P scripts/ https://github.com/immortalwrt/immortalwrt/raw/master/scripts/download.pl
+wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/download.mk
 
 ##获取额外package
 #（不用注释这里的任何东西，这不会对提升action的执行速度起到多大的帮助
