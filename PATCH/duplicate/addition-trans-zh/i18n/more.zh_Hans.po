@@ -1188,3 +1188,21 @@ msgstr "zSwap 压缩算法"
 
 msgid "Enable a zswap cache for swap devices"
 msgstr "启用 zSwap Cache"
+
+msgid "MiniUPnP extra settings"
+msgstr "MiniUPnP 补充设置"
+
+msgid "Settings for router behined DMZ"
+msgstr "二级路由设置"
+
+msgid "External Network Interface"
+msgstr "外部网络接口"
+
+msgid "Internal Network Interface"
+msgstr "内部网络接口"
+
+msgid "usually is wan"
+msgstr "通常为 wan"
+
+msgid "usually is lan"
+msgstr "通常为 lan"
