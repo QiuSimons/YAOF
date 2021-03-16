@@ -1,4 +1,5 @@
 #!/bin/bash
+
 <<'COMMENT'
 latest_release="$(curl -s https://github.com/openwrt/openwrt/releases |grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" |sed -n '/21/p' |sed -n 1p)"
 curl -LO "https://github.com/openwrt/openwrt/archive/${latest_release}"
@@ -18,9 +19,12 @@ cp -rf ./openwrt_back/target/linux/* ./openwrt_new/target/linux/
 mkdir openwrt
 cp -rf ./openwrt_new/* ./openwrt/
 COMMENT
+
+# 获取源代码
 git clone --single-branch -b openwrt-21.02 https://github.com/openwrt/openwrt openwrt
 git clone -b main --depth 1 https://github.com/Lienol/openwrt.git openwrt-lienol
 git clone -b main --depth 1 https://github.com/Lienol/openwrt-packages packages-lienol
 git clone -b main --depth 1 https://github.com/Lienol/openwrt-luci luci-lienol
 git clone -b linksys-ea6350v3-mastertrack --depth 1 https://github.com/NoTengoBattery/openwrt NoTengoBattery
+
 exit 0

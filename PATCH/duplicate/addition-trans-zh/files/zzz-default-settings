@@ -1,38 +1,39 @@
 #!/bin/sh
 
+#Argon 主题
 uci set luci.main.mediaurlbase='/luci-static/argon'
 uci commit luci
 
-#timezone
+#时区设置
 uci set system.@system[0].timezone=CST-8
 uci set system.@system[0].zonename=Asia/Shanghai
 uci commit system
 
-#ssrp
-#sed -i 's/local ucic = uci.cursor()/local ucic = luci.model.uci.cursor()/g' /usr/share/shadowsocksr/subscribe.lua
-#sed -i "s/'cbid.shadowsocksr.'/'widget.cbid.shadowsocksr.'/g" /usr/lib/lua/luci/view/shadowsocksr/ssrurl.htm
+#SSRP
+uci set shadowsocksr.@global[0].gfwlist_url='https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt'
+uci set shadowsocksr.@global[0].chnroute_url='https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt'
+uci commit shadowsocksr
 
-#HW-RNG
-#uci set system.@rngd[0].enabled="1"
-#uci set system.@rngd[0].device="/dev/hwrng"
-#uci commit system
-
-#feed
+#Feeds 更换镜像源
 sed -i 's,21.02,21.02-SNAPSHOT,g' /etc/opkg/distfeeds.conf
 sed -i 's,downloads.openwrt.org,mirror.sjtu.edu.cn/openwrt,g' /etc/opkg/distfeeds.conf
 
-#uhttpd
+#uhttpd 设置
 uci set uhttpd.main.rfc1918_filter=0
 uci set uhttpd.main.redirect_https=0
 uci commit uhttpd
 /etc/init.d/uhttpd restart
 
-#firewall
+#在防火墙默认开启全锥形 NAT 以及 Flow Offloading
 uci set firewall.@defaults[0].fullcone='1'
 uci set firewall.@defaults[0].flow_offloading='1'
 uci commit firewall
 
-#upnp
+#默认开启 Packet Steering
+uci set network.globals.packet_steering='1'
+uci commit network
+
+#通用即插即用
 uci set upnpd.config.igdv1='1'
 uci set upnpd.config.enabled='1'
 uci del upnpd.config.enable_upnp
@@ -40,27 +41,23 @@ uci del upnpd.config.enable_natpmp
 uci set upnpd.config.external_iface='wan'
 uci commit upnpd
 
-#SSL
-#sed -i 's,#devcrypto,devcrypto,g' /etc/ssl/openssl.cnf
-#sed -i 's,#USE_SOFTDRIVERS = 2,USE_SOFTDRIVERS = 1,g' /etc/ssl/openssl.cnf
-
-#neteasemusic
+#网易云音乐
 #echo "59.111.239.62 httpdns.n.netease.com" >> /etc/hosts && cat /etc/hosts | sort | uniq > /tmp/tmp_hosts && cat /tmp/tmp_hosts > /etc/hosts
 
-#chinalist
+#MosChinaDNS 设置
 echo "10 2 * * * chinadnslist &" >> /etc/crontabs/root && cat /etc/crontabs/root | sort | uniq > /tmp/tmp_cron_root && cat /tmp/tmp_cron_root > /etc/crontabs/root
 echo "20 2 * * * /usr/share/MosChinaDNS/update_list.sh &" >> /etc/crontabs/root && cat /etc/crontabs/root | sort | uniq > /tmp/tmp_cron2_root && cat /tmp/tmp_cron2_root > /etc/crontabs/root
 
-#openclash
+#OpenClash 设置
 echo "/etc/openclash/" >> /etc/sysupgrade.conf && cat /etc/sysupgrade.conf | sort | uniq > /tmp/tmp_sysupgrade_conf && cat /tmp/tmp_sysupgrade_conf > /etc/sysupgrade.conf
 
-#dockerman
-sed -i 's,/opt,/overlay,g' /etc/config/dockerman
+#Dockerman 设置
+#sed -i 's,/opt,/overlay,g' /etc/config/dockerman
 
-#add qBittorrent nobody:nobody group
-echo "nobody:x:65534:" >> /etc/group
+#qBittorrent 设置
+#echo "nobody:x:65534:" >> /etc/group
 
-#dnsmasq
+#dnsmasq 设置以及开启 IPv6
 uci set dhcp.lan.ra='hybrid'
 uci set dhcp.lan.ndp='hybrid'
 uci set dhcp.lan.dhcpv6='hybrid'
@@ -70,46 +67,11 @@ uci commit dhcp
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 
-#packet_steering
-uci set network.globals.packet_steering='1'
-uci commit network
-
-#R4S_LED
-uci del system.led_wan.mode
-uci del system.led_lan.mode
-uci del system.@led[-1]
-uci del system.@led[-1]
-uci add system led
-uci set system.@led[-1].name='LAN'
-uci set system.@led[-1].sysfs='nanopi-r4s:green:lan'
-uci set system.@led[-1].trigger='netdev'
-uci set system.@led[-1].dev='eth1'
-uci add_list system.@led[-1].mode='link'
-uci add_list system.@led[-1].mode='tx'
-uci add_list system.@led[-1].mode='rx'
-uci add system led
-uci set system.@led[-1].name='WAN'
-uci set system.@led[-1].sysfs='nanopi-r4s:green:wan'
-uci set system.@led[-1].trigger='netdev'
-uci set system.@led[-1].dev='eth0'
-uci add_list system.@led[-1].mode='link'
-uci add_list system.@led[-1].mode='tx'
-uci commit
-
-#R4S_LANWAN
-uci set network.wan.ifname='eth0'
-uci set network.lan.ifname='eth1'
-uci del network.wan6
-uci commit network
-
-#SSRP
-uci set shadowsocksr.@global[0].gfwlist_url='https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt'
-uci set shadowsocksr.@global[0].chnroute_url='https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt'
-uci commit shadowsocksr
-
+#软链接
 ln -sf /sbin/ip /usr/bin/ip
 ln -sf /usr/bin/wget /usr/bin/wget-ssl
 
+#Flag packages
 opkg flag hold luci-app-ddns
 opkg flag hold luci-i18n-ddns-zh-cn
 opkg flag hold ddns-scripts
@@ -118,13 +80,13 @@ opkg flag hold luci-app-firewall
 opkg flag hold firewall
 opkg flag hold dnsmasq-full
 
+#清理内存缓存
 #sync; echo 3 > /proc/sys/vm/drop_caches
 
-#luci cache
+#清除 LuCI 残留缓存
 rm -rf /tmp/luci-modulecache
 rm -f /tmp/luci-indexcache
 
+#默认关闭 Shortcut-FE
 service shortcut-fe stop
 rm -rf /etc/rc.d/S90shortcut-fe
-
-exit 0
