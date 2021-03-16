@@ -3,8 +3,10 @@
 #翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
 
-#SSRP
+#在 X86 架构下移除 Rust-SS
 sed -i '/Rust:/d' package/lean/luci-app-ssr-plus/Makefile
+sed -i '/Rust:/d' package/new/luci-app-passwall/Makefile
+sed -i '/Rust:/d' package/lean/luci-app-vssr/Makefile
 
 <<'COMMENT'
 #Vermagic
