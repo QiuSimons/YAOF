@@ -140,5 +140,5 @@ jobs:
         tag: 2102
         commit: 21.02
         replacesArtifacts: true
-        token: ${{ secrets.RELEASES_TOKEN }}
+        token: ${{ secrets.workflow_token }}
         artifacts: ./artifact/*.zip,./artifact/*.sha256sum
