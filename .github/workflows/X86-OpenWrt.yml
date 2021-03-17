@@ -124,7 +124,6 @@ jobs:
         ls -Ahl
         sha256sum openwrt*x86* | tee X86-GC404-$(date +%Y-%m-%d)-21.02.sha256sum
         zip X86-GC404-$(date +%Y-%m-%d)-21.02-sfs.zip *combined.img
-        cp ../openwrt/*.config ./
         ls -Ahl
     - name: Upload artifact
       uses: actions/upload-artifact@main
