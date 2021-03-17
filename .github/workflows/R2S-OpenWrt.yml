@@ -142,4 +142,4 @@ jobs:
         commit: 21.02
         replacesArtifacts: true
         token: ${{ secrets.RELEASES_TOKEN }}
-        artifacts: ./artifact/*.zip,./artifact/*.config,./artifact/*.sha256sum
+        artifacts: ./artifact/*.zip,./artifact/*.sha256sum
