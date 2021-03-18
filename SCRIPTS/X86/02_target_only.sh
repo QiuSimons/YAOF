@@ -1,9 +1,13 @@
 #!/bin/bash
 
-#翻译及部分功能优化
+# 翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
+echo "
+exit 0
 
-#在 X86 架构下移除 Rust-SS
+" >> ./package/lean/lean-translate/files/zzz-default-settings
+
+# 在 X86 架构下移除 Shadowsocks-rust
 sed -i '/Rust:/d' package/lean/luci-app-ssr-plus/Makefile
 sed -i '/Rust:/d' package/new/luci-app-passwall/Makefile
 sed -i '/Rust:/d' package/lean/luci-app-vssr/Makefile
@@ -16,16 +20,12 @@ zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .v
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 COMMENT
 
-#对齐内核 Vermagic
+# 对齐内核 Vermagic
 wget https://downloads.openwrt.org/releases/21.02-SNAPSHOT/targets/x86/64/packages/Packages.gz
 zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .vermagic
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 
-#预配置一些插件
+# 预配置一些插件
 cp -rf ../PATCH/X86/files ./files
-echo "
-exit 0
-
-" >> ./package/lean/lean-translate/files/zzz-default-settings
 
 exit 0
