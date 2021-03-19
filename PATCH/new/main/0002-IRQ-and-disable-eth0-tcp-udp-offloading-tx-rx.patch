@@ -1,0 +1,25 @@
+From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
+Repatch From: Nicholas Sun <OpenWrt-Autobuild@noreply.github.com>
+Date: Sun, 7 Mar 2021 21:06:48 +1100
+Subject: [PATCH] IRQ and disable eth0 tcp/udp offloading tx/rx
+
+---
+ .../armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity     | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity b/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+index 9e4a4cf..db3b258 100644
+--- a/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
++++ b/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
+@@ -25,6 +25,9 @@
+ friendlyarm,nanopi-r2s)
+ 	set_interface_core 2 "eth0"
+ 	set_interface_core 4 "eth1" "xhci-hcd:usb3"
++	set_interface_core 1 "ff150000" "ff150000.i2c"
++	set_interface_core 8 "ff160000" "ff160000.i2c"
++	ethtool -K eth0 rx off tx off && logger -t disable-offloading "disabed rk3328 ethernet tcp/udp offloading tx/rx"
+ 	;;
+ friendlyarm,nanopi-r4s)
+ 	set_interface_core 10 "eth0"
+-- 
+2.30.1

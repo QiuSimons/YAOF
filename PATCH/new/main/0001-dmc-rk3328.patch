@@ -1,0 +1,88 @@
+From 7a811c035ed752cad2a6705fe2391a7312bc8834 Mon Sep 17 00:00:00 2001
+This is free software, licensed under the GNU General Public License v3
+From: Immortalwrt <https://immortalwrt.org>
+Repatch From: Nicholas Sun <OpenWrt-Autobuild@noreply.github.com>
+Date: Sun, 14 Mar 2021 04:34:10 +1100
+Subject: [PATCH] DMC for Nanopi R2S
+
+---
+ package/boot/uboot-rockchip/Makefile          |  14 +-
+ target/linux/rockchip/image/Makefile          |  14 +
+ target/linux/rockchip/image/armv8.mk          |   2 +-
+ 3 files changed, 30 insertions(+), 4 deletions(-)
+
+diff --git a/package/boot/uboot-rockchip/Makefile b/package/boot/uboot-rockchip/Makefile
+index 393e8c3..cbd9d7d 100644
+--- a/package/boot/uboot-rockchip/Makefile
++++ b/package/boot/uboot-rockchip/Makefile
+@@ -29,9 +29,10 @@ define U-Boot/nanopi-r2s-rk3328
+   NAME:=NanoPi R2S
+   BUILD_DEVICES:= \
+     friendlyarm_nanopi-r2s
+-  DEPENDS:=+PACKAGE_u-boot-nanopi-r2s-rk3328:arm-trusted-firmware-rockchip
+-  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip
+-  ATF:=rk3328_bl31.elf
++  DEPENDS:=+PACKAGE_u-boot-nanopi-r2s-rk3328:arm-trusted-firmware-rk3328
++  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rk3328
++  ATF:=rk322xh_bl31_v1.44.elf
++  USE_RKBIN:=1
+   OF_PLATDATA:=$(1)
+ endef
+ 
+@@ -85,8 +86,15 @@ endef
+ 
+ define Build/InstallDev
+ 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
++ifneq ($(USE_RKBIN),)
++	$(STAGING_DIR_IMAGE)/loaderimage --pack --uboot $(PKG_BUILD_DIR)/u-boot-dtb.bin $(PKG_BUILD_DIR)/uboot.img 0x200000
++	$(CP) $(PKG_BUILD_DIR)/uboot.img $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-uboot.img
++	$(CP) $(STAGING_DIR_IMAGE)/idbloader.bin $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-idbloader.bin
++	$(CP) $(STAGING_DIR_IMAGE)/trust.bin $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-trust.bin
++else
+ 	$(CP) $(PKG_BUILD_DIR)/idbloader.img $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-idbloader.img
+ 	$(CP) $(PKG_BUILD_DIR)/u-boot.itb $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-u-boot.itb
++endif
+ endef
+ 
+ define Package/u-boot/install/default
+diff --git a/target/linux/rockchip/image/Makefile b/target/linux/rockchip/image/Makefile
+index f5fdff6..3741bee 100644
+--- a/target/linux/rockchip/image/Makefile
++++ b/target/linux/rockchip/image/Makefile
+@@ -45,6 +45,20 @@ define Build/pine64-img
+ 	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-u-boot.itb of="$@" seek=16384 conv=notrunc
+ endef
+ 
++define Build/pine64-bin
++	# This is a copy of pine64-img, but uses rockchip ddrloader
++
++	$(SCRIPT_DIR)/gen_image_generic.sh \
++		$@ \
++		$(CONFIG_TARGET_KERNEL_PARTSIZE) $@.boot \
++		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(IMAGE_ROOTFS) \
++		32768
++
++	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-idbloader.bin of="$@" seek=64 conv=notrunc
++	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-uboot.img of="$@" seek=16384 conv=notrunc
++	dd if="$(STAGING_DIR_IMAGE)"/$(UBOOT_DEVICE_NAME)-trust.bin of="$@" seek=24576 conv=notrunc
++endef
++
+ ### Devices ###
+ define Device/Default
+   PROFILES := Default
+diff --git a/target/linux/rockchip/image/armv8.mk b/target/linux/rockchip/image/armv8.mk
+index 24b1c38..04a9aa8 100644
+--- a/target/linux/rockchip/image/armv8.mk
++++ b/target/linux/rockchip/image/armv8.mk
+@@ -7,7 +7,7 @@ define Device/friendlyarm_nanopi-r2s
+   DEVICE_MODEL := NanoPi R2S
+   SOC := rk3328
+   UBOOT_DEVICE_NAME := nanopi-r2s-rk3328
+-  IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r2s | pine64-img | gzip | append-metadata
++  IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r2s | pine64-bin | gzip | append-metadata
+   DEVICE_PACKAGES := kmod-usb-net-rtl8152
+ endef
+ TARGET_DEVICES += friendlyarm_nanopi-r2s
+-- 
+2.30.1
+
