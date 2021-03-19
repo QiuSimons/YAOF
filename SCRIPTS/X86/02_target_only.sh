@@ -5,10 +5,6 @@ sed -i 's/O3/O2/g' include/target.mk
 
 # 翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
-echo "
-exit 0
-
-" >> ./package/lean/lean-translate/files/zzz-default-settings
 
 # 在 X86 架构下移除 Shadowsocks-rust
 sed -i '/Rust:/d' package/lean/luci-app-ssr-plus/Makefile
@@ -30,5 +26,7 @@ sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic
 
 # 预配置一些插件
 cp -rf ../PATCH/X86/files ./files
+
+chmod -R 755 ./
 
 exit 0
