@@ -28,11 +28,6 @@ CONFIG_HW_RANDOM_ROCKCHIP=y
 sed -i '/set_interface_core 20 "eth1"/a\set_interface_core 8 "ff3c0000" "ff3c0000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 sed -i '/set_interface_core 20 "eth1"/a\ethtool -C eth0 rx-usecs 1000 rx-frames 25 tx-usecs 100 tx-frames 25' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 
-# ShadowsocksR Plus+
-pushd package/lean
-wget -qO - https://github.com/fw876/helloworld/pull/439.patch | patch -Rp1
-popd
-
 # 翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
 echo "
