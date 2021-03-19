@@ -80,4 +80,6 @@ CONFIG_CRYPTO_SM4_ARM64_CE=y
 # 预配置一些插件
 cp -rf ../PATCH/R2S/files ./files
 
+chmod -R 755 ./
+
 exit 0
