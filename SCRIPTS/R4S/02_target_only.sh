@@ -30,36 +30,6 @@ sed -i '/set_interface_core 20 "eth1"/a\ethtool -C eth0 rx-usecs 1000 rx-frames 
 
 # 翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
-echo "
-#R4S_LED
-uci del system.led_wan.mode
-uci del system.led_lan.mode
-uci del system.@led[-1]
-uci del system.@led[-1]
-uci add system led
-uci set system.@led[-1].name='LAN'
-uci set system.@led[-1].sysfs='nanopi-r4s:green:lan'
-uci set system.@led[-1].trigger='netdev'
-uci set system.@led[-1].dev='eth1'
-uci add_list system.@led[-1].mode='link'
-uci add_list system.@led[-1].mode='tx'
-uci add_list system.@led[-1].mode='rx'
-uci add system led
-uci set system.@led[-1].name='WAN'
-uci set system.@led[-1].sysfs='nanopi-r4s:green:wan'
-uci set system.@led[-1].trigger='netdev'
-uci set system.@led[-1].dev='eth0'
-uci add_list system.@led[-1].mode='link'
-uci add_list system.@led[-1].mode='tx'
-uci commit
-#R4S_LANWAN
-uci set network.wan.ifname='eth0'
-uci set network.lan.ifname='eth1'
-uci del network.wan6
-uci commit network
-exit 0
-
-" >> ./package/lean/lean-translate/files/zzz-default-settings
 
 # 内核加解密模块
 echo '
@@ -100,5 +70,7 @@ sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic
 
 # 预配置一些插件
 cp -rf ../PATCH/R4S/files ./files
+
+chmod -R 755 ./
 
 exit 0
