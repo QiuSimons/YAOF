@@ -86,3 +86,5 @@ rm -f /tmp/luci-indexcache
 #默认关闭 Shortcut-FE
 service shortcut-fe stop
 rm -rf /etc/rc.d/S90shortcut-fe
+
+exit 0
