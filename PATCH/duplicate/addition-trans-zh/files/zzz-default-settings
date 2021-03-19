@@ -10,8 +10,8 @@ uci set system.@system[0].zonename=Asia/Shanghai
 uci commit system
 
 #SSRP
-uci set shadowsocksr.@global[0].gfwlist_url='https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt'
-uci set shadowsocksr.@global[0].chnroute_url='https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt'
+uci set shadowsocksr.@global[0].gfwlist_url='https://raw.sevencdn.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt'
+uci set shadowsocksr.@global[0].chnroute_url='https://raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt'
 uci commit shadowsocksr
 
 #Feeds 更换镜像源
