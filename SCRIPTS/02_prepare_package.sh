@@ -17,6 +17,7 @@ rm -rf ./scripts/download.pl
 rm -rf ./include/download.mk
 wget -P scripts/ https://github.com/immortalwrt/immortalwrt/raw/master/scripts/download.pl
 wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/download.mk
+wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/package-immortalwrt.mk
 
 ### 必要的 Patches ###
 # Patch arm64 型号名称
