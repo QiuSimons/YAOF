@@ -253,10 +253,10 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/le
 svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
 svn co https://github.com/fw876/helloworld/trunk/shadowsocks-rust package/lean/shadowsocks-rust
 # 订阅转换
-svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/ctcgfw/subconverter package/new/subconverter
-svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/ctcgfw/jpcre2 package/new/jpcre2
-svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/ctcgfw/rapidjson package/new/rapidjson
-svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/ctcgfw/duktape package/new/duktape
+svn co https://github.com/immortalwrt/packages/trunk/net/subconverter package/new/subconverter
+svn co https://github.com/immortalwrt/packages/trunk/libs/jpcre2 package/new/jpcre2
+svn co https://github.com/immortalwrt/packages/trunk/libs/rapidjson package/new/rapidjson
+svn co https://github.com/immortalwrt/packages/trunk/libs/duktape package/new/duktape
 # 网易云音乐解锁
 git clone --depth 1 https://github.com/immortalwrt/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
 # USB 打印机
