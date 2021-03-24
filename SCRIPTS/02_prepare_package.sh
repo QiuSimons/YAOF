@@ -165,6 +165,9 @@ popd
 # 回滚通用即插即用
 #rm -rf ./feeds/packages/net/miniupnpd
 #svn co https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
+# MentoHUST
+git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
+git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
 # Moschinadns
 svn co https://github.com/QiuSimons/openwrt-packages/branches/main/mos-chinadns package/new/mos-chinadns
 svn co https://github.com/QiuSimons/openwrt-packages/branches/main/luci-app-moschinadns package/new/luci-app-moschinadns
