@@ -92,7 +92,7 @@ filters:
   name: Peter Lowe's List
   id: 1595502661
 - enabled: true
-  url: https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/nocoin.txt
+  url: https://raw.sevencdn.com/hoshsadiq/adblock-nocoin-list/master/nocoin.txt
   name: NoCoin Filter List
   id: 1595502662
 - enabled: true
@@ -104,11 +104,11 @@ filters:
   name: 乘风 视频广告过滤规则
   id: 1600600708
 - enabled: true
-  url: https://gitee.com/cjx82630/cjxlist/raw/master/cjx-ublock.txt
+  url: https://raw.sevencdn.com/cjx82630/cjxlist/master/cjx-ublock.txt
   name: CJX's uBlock list
   id: 1600600709
 - enabled: true
-  url: https://gitee.com/cjx82630/cjxlist/raw/master/cjx-annoyance.txt
+  url: https://raw.sevencdn.com/cjx82630/cjxlist/master/cjx-annoyance.txt
   name: CJX's Annoyance List
   id: 1600600710
 - enabled: true
