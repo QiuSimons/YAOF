@@ -32,6 +32,12 @@ sed -i '/set_interface_core 20 "eth1"/a\ethtool -C eth0 rx-usecs 1000 rx-frames 
 # 翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
 
+# 添加 DRM 硬件解码
+wget https://github.com/coolsnowwolf/lede/raw/757e42d70727fe6b937bb31794a9ad4f5ce98081/target/linux/rockchip/config-default -NP target/linux/rockchip/
+wget https://github.com/coolsnowwolf/lede/commit/f341ef96fe4b509a728ba1281281da96bac23673.patch
+git apply f341ef96fe4b509a728ba1281281da96bac23673.patch
+rm f341ef96fe4b509a728ba1281281da96bac23673.patch
+
 # 内核加解密模块
 echo '
 CONFIG_ARM64_CRYPTO=y
