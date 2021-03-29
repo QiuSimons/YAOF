@@ -8,11 +8,11 @@ Subject: [PATCH] IRQ and disable eth0 tcp/udp offloading tx/rx
  1 file changed, 3 insertions(+)
 
 diff --git a/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity b/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-index 9e4a4cf..db3b258 100644
+index d8e513f..eea0979 100644
 --- a/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 +++ b/target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-@@ -25,6 +25,9 @@
- friendlyarm,nanopi-r2s)
+@@ -26,6 +26,9 @@ friendlyarm,nanopi-r2s|\
+ xunlong,orangepi-r1-plus)
  	set_interface_core 2 "eth0"
  	set_interface_core 4 "eth1" "xhci-hcd:usb3"
 +	set_interface_core 1 "ff150000" "ff150000.i2c"
