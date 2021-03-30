@@ -126,7 +126,7 @@ cp -rf ../NoTengoBattery/package/system/compressed-memory ./package/system/compr
 # CPU 控制相关
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/luci-app-cpufreq package/lean/luci-app-cpufreq
 cp -rf ../PATCH/duplicate/luci-app-cpulimit ./package/lean/luci-app-cpulimit
-svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/ntlf9t/cpulimit package/lean/cpulimit
+svn co https://github.com/immortalwrt/packages/trunk/utils/cpulimit package/lean/cpulimit
 # 动态DNS
 #rm -rf ./feeds/packages/net/ddns-scripts
 #rm -rf ./feeds/luci/applications/luci-app-ddns
