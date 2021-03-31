@@ -179,3 +179,17 @@ CONFIG_LIBCURL_OPENSSL=y
 ### DOCKER ###（实验性,有需要的删掉下面两行的注释)
 #CONFIG_PACKAGE_docker=y
 #CONFIG_PACKAGE_luci-app-dockerman=y
+
+### Video Support ###
+CONFIG_PACKAGE_kmod-backlight=y
+CONFIG_PACKAGE_kmod-drm=y
+CONFIG_PACKAGE_kmod-drm-kms-helper=y
+CONFIG_PACKAGE_kmod-drm-rockchip=y
+CONFIG_PACKAGE_kmod-fb=y
+CONFIG_PACKAGE_kmod-fb-cfb-copyarea=y
+CONFIG_PACKAGE_kmod-fb-cfb-fillrect=y
+CONFIG_PACKAGE_kmod-fb-cfb-imgblt=y
+CONFIG_PACKAGE_kmod-fb-sys-fops=y
+CONFIG_PACKAGE_kmod-fb-sys-ram=y
+CONFIG_PACKAGE_kmod-gpu-lima=y
+CONFIG_PACKAGE_kmod-multimedia-input=y
