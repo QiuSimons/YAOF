@@ -210,8 +210,8 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/v2ray-plugin package/
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray-plugin package/new/xray-plugin
 # qBittorrent 下载
 svn co https://github.com/garypang13/openwrt-static-qb/trunk/qBittorrent-Enhanced-Edition package/lean/qBittorrent-Enhanced-Edition
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-qbittorrent package/lean/luci-app-qbittorrent
-sed -i 's/+qBittorrent +python3/+qBittorrent-Enhanced-Edition/g' package/lean/luci-app-qbittorrent/Makefile
+sed -i 's/4.3.3.10/4.3.4.10/g' package/lean/qBittorrent-Enhanced-Edition/Makefile
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/luci-app-qbittorrent package/lean/luci-app-qbittorrent
 # 清理内存
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ramfree package/lean/luci-app-ramfree
 # ServerChan 微信推送
