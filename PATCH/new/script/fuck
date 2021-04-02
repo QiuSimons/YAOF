@@ -14,6 +14,7 @@ rm -rf `ls | egrep -v '(config|smartdns|ssrplus|bench.log|shadow|openclash)'`
 cd /overlay/upper/etc/config
 rm -rf `ls | egrep -v '(arpbind|autoreboot|ddns|firewall|jd-dailybonus|network|oled|openclash|passwall|serverchan|shadowsocksr|sqm|unblockneteasemusic|weburl|zerotier|vssr|zero|dhcp)'`
 cd
+cp -rf /rom/etc/rpcd_10_system.js /etc/rpcd_10_system.js
 sed -i '/Source Code/d' /etc/rpcd_10_system.js
 sed -i '/Source Code/d' /www/luci-static/resources/view/status/include/10_system.js
 sleep 5 && touch /etc/banner && reboot
