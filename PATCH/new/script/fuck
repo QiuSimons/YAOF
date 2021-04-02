@@ -10,7 +10,7 @@ rm -rf `ls | egrep -v '(share)'`
 cd /overlay/upper/usr/share
 rm -rf `ls | egrep -v '(unblockneteasemusic|passwall)'`
 cd /overlay/upper/etc
-rm -rf `ls | egrep -v '(config|smartdns|ssrplus|bench.log|shadow|openclash)'`
+rm -rf `ls | egrep -v '(config|smartdns|ssrplus|bench.log|shadow|openclash| rpcd_10_system.js)'`
 cd /overlay/upper/etc/config
 rm -rf `ls | egrep -v '(arpbind|autoreboot|ddns|firewall|jd-dailybonus|network|oled|openclash|passwall|serverchan|shadowsocksr|sqm|unblockneteasemusic|weburl|zerotier|vssr|zero|dhcp)'`
 cd
