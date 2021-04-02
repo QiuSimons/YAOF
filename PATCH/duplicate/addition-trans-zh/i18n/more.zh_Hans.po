@@ -1206,3 +1206,6 @@ msgstr "通常为 wan"
 
 msgid "usually is lan"
 msgstr "通常为 lan"
+
+msgid "Source Code"
+msgstr "源代码"
