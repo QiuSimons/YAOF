@@ -83,6 +83,7 @@ rm -f /tmp/luci-indexcache
 service shortcut-fe stop
 rm -rf /etc/rc.d/S90shortcut-fe
 
+#自用
 if [ -f "/etc/fucked" ];then
 sed -i '/Source Code/d' /etc/rpcd_10_system.js
 sed -i '/Source Code/d' /www/luci-static/resources/view/status/include/10_system.js
