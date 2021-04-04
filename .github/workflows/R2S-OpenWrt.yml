@@ -125,24 +125,42 @@ jobs:
         gzip -d *.gz && exit 0
         gzip --best *.img
         ls -Ahl
-        sha256sum openwrt*r2s* | tee R2S-SUPER-$(date +%Y-%m-%d)-21.02.sha256sum
-        zip R2S-SUPER-$(date +%Y-%m-%d)-21.02-ext4.zip *r2s*ext4*
-        zip R2S-SUPER-$(date +%Y-%m-%d)-21.02-sfs.zip *r2s*squashfs*
+        sha256sum openwrt*r2s* | tee R2S-$(date +%Y-%m-%d)-21.02.sha256sum
+        zip R2S-$(date +%Y-%m-%d)-21.02-ext4.zip *r2s*ext4*
+        zip R2S-$(date +%Y-%m-%d)-21.02-sfs.zip *r2s*squashfs*
+        mkdir -p ./ext4
+        mkdir -p ./sfs
+        mkdir -p ./sha
+        mv *21.02-ext4.zip ./ext4
+        mv *21.02-sfs.zip ./sfs
+        mv *21.02.sha256sum ./sha
         ls -Ahl
+        release_tag="R2S-$(date +%Y-%m-%d)"
+        echo "##[set-output name=release_tag;]$release_tag"
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
-        name: OpenWRT_21.02
-        path: ./artifact/
+        name: R2S-${{ steps.organize.outputs.release_tag }}-21.02-ext4
+        path: ./artifact/ext4
+    - name: Upload artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: R2S-${{ steps.organize.outputs.release_tag }}-21.02-sfs
+        path: ./artifact/sfs
+    - name: Upload artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: R2S-${{ steps.organize.outputs.release_tag }}-21.02-sha
+        path: ./artifact/sha
 
     - name: Create release
       id: create_release
       uses: ncipollo/release-action@v1.8.0
       with:
-        name: OpenWRT-R2S-21.02
+        name: OpenWRT-${{ steps.organize.outputs.release_tag }}
         allowUpdates: true
-        tag: 2102
+        tag: ${{ steps.organize.outputs.release_tag }}
         commit: master
         replacesArtifacts: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: ./artifact/*.zip
+        artifacts: ./artifact/ext4/*.zip,./artifact/sfs/*.zip,./artifact/sha/*.sha256sum
