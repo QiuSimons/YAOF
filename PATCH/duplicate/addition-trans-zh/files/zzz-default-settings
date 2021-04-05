@@ -75,20 +75,19 @@ opkg flag hold dnsmasq-full
 #清理内存缓存
 #sync; echo 3 > /proc/sys/vm/drop_caches
 
-#清除 LuCI 残留缓存
-rm -rf /tmp/luci-modulecache
-rm -f /tmp/luci-indexcache
-
 #默认关闭 Shortcut-FE
 service shortcut-fe stop
 rm -rf /etc/rc.d/S90shortcut-fe
 
 #自用
-if [ -f "/etc/fucked" ];then
-sed -i '/Source Code/d' /etc/rpcd_10_system.js
-sed -i '/Source Code/d' /www/luci-static/resources/view/status/include/10_system.js
-else
-echo "Sunshine"
-fi
+rm -f /etc/rpcd_10_system.js
+rm -f /www/luci-static/resources/view/status/include/10_system.js
+cp -f /rom/etc/rpcd_10_system.js /www/luci-static/resources/view/status/include/10_system.js
+[ -f '/etc/fucked' ] && sed -i '/Source Code/d' /www/luci-static/resources/view/status/include/10_system.js
+touch /etc/fucked
+
+#清除 LuCI 残留缓存
+rm -rf /tmp/luci-modulecache
+rm -f /tmp/luci-indexcache
 
 exit 0
