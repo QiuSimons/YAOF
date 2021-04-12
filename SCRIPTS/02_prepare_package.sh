@@ -19,6 +19,9 @@ wget -P scripts/ https://github.com/immortalwrt/immortalwrt/raw/master/scripts/d
 wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/download.mk
 wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/package-immortalwrt.mk
 
+#临时补丁
+wget -qO - https://github.com/openwrt/openwrt/commit/7fae64.patch | patch -p1
+
 ### 必要的 Patches ###
 # Patch arm64 型号名称
 wget -P target/linux/generic/pending-5.4 https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
