@@ -100,7 +100,7 @@ jobs:
       run: |
         df -h
         cd openwrt
-        let Make_Process=$(nproc)+1
+        let Make_Process=$(nproc)+2
         make -j${Make_Process} V=w
         echo $?
     - name: If Error
