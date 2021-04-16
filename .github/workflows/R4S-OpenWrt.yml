@@ -87,12 +87,12 @@ jobs:
       run: |
         df -h
         cd openwrt
-        make download -j10
+        make download -j250
     - name: Make Toolchain
       run: |
         df -h
         cd openwrt
-        let make_process=$(nproc)+1
+        let make_process=$(nproc)+2
         make toolchain/install -j${make_process} V=s
     - name: Compile Openwrt
       id: compileopenwrt
