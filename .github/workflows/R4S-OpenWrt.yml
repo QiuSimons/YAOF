@@ -87,7 +87,7 @@ jobs:
       run: |
         df -h
         cd openwrt
-        make download -j250
+        make download -j50
     - name: Make Toolchain
       run: |
         df -h
