@@ -18,6 +18,7 @@ rm -rf ./include/download.mk
 wget -P scripts/ https://github.com/immortalwrt/immortalwrt/raw/master/scripts/download.pl
 wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/download.mk
 wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/package-immortalwrt.mk
+sed -i '/unshift/d' scripts/download.pl
 
 #临时补丁
 #wget -qO - https://github.com/openwrt/openwrt/commit/7fae64.patch | patch -p1
