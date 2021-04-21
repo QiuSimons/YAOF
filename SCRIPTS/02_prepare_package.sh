@@ -188,9 +188,11 @@ git clone -b master --depth 1 https://github.com/NateLol/luci-app-oled.git packa
 # OpenClash
 git clone -b master --depth 1 https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 # 花生壳内网穿透
-svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-phtunnel package/new/luci-app-phtunnel
+#svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-phtunnel package/new/luci-app-phtunnel
+#svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/phtunnel package/new/phtunnel
+svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/luci-app-phtunnel package/new/luci-app-phtunnel
+svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/phtunnel package/new/phtunnel
 svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
-svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/phtunnel package/new/phtunnel
 # Pandownload
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/pandownload-fake-server package/lean/pandownload-fake-server
 # Passwall
