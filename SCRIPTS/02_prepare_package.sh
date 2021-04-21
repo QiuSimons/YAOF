@@ -167,6 +167,8 @@ svn co -r131 https://github.com/jerrykuku/luci-app-jd-dailybonus/trunk package/n
 pushd package/new/luci-app-jd-dailybonus
 sed -i 's/wget-ssl/wget/g' root/usr/share/jd-dailybonus/newapp.sh luasrc/controller/jd-dailybonus.lua
 popd
+rm -rf ./package/new/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/JD_DailyBonus.js
+wget -P package/new/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/ https://github.com/Nancyhnson478/Mirror/raw/main/data/NobyDa/JD_DailyBonus.js
 # 回滚通用即插即用
 #rm -rf ./feeds/packages/net/miniupnpd
 #svn co https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
