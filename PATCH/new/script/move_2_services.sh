@@ -1,6 +1,6 @@
 #!/bin/bash
 # From: QiuSimons
-
+:<<'
 lua_file="$({ find |grep "\.lua"; } 2>"/dev/null")"
 for a in ${lua_file}
 do
@@ -18,4 +18,4 @@ do
 	[ -n "$(grep '\[\[vpn\]\]' "$b")" ] && sed -i 's,\[\[vpn\]\],\[\[services\]\],g' "$b"
 	[ -n "$(grep 'admin/vpn' "$b")" ] && sed -i 's,admin/vpn,admin/services,g' "$b"
 done
-
+'
