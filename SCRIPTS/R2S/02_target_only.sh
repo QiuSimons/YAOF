@@ -86,5 +86,7 @@ CONFIG_CRYPTO_SM4_ARM64_CE=y
 cp -rf ../PATCH/R2S/files ./files
 
 chmod -R 755 ./
+find ./ -name *.orig | xargs rm -f
+find ./ -name *.rej | xargs rm -f
 
 exit 0
