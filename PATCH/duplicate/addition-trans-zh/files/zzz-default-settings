@@ -26,7 +26,7 @@ uci commit uhttpd
 
 #在防火墙默认开启全锥形 NAT 以及 Flow Offloading
 uci set firewall.@defaults[0].fullcone='1'
-uci set firewall.@defaults[0].flow_offloading='1'
+#uci set firewall.@defaults[0].flow_offloading='1'
 uci commit firewall
 
 #默认开启 Packet Steering
@@ -77,8 +77,8 @@ opkg flag hold dnsmasq-full
 #sync; echo 3 > /proc/sys/vm/drop_caches
 
 #默认关闭 Shortcut-FE
-service shortcut-fe stop
-rm -rf /etc/rc.d/S90shortcut-fe
+#service shortcut-fe stop
+#rm -rf /etc/rc.d/S90shortcut-fe
 
 #自用
 [ -f '/rom/etc/rpcd_10_system.js' ] && rm -f /etc/rpcd_10_system.js
