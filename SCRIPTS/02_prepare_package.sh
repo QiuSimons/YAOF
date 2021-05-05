@@ -236,10 +236,7 @@ svn co https://github.com/immortalwrt/luci/branches/openwrt-18.06/applications/l
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
 pushd package/lean
-#wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/b1a2d3c.patch | patch -p1
-#wget -qO - https://github.com/fw876/helloworld/pull/504.patch | patch -p1
-#wget -qO - https://github.com/fw876/helloworld/pull/505.patch | patch -p1
-#wget -qO - https://github.com/fw876/helloworld/pull/506.patch | patch -p1
+wget -qO - https://github.com/fw876/helloworld/pull/509.patch | patch -p1
 wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/c1674ad.patch | patch -p1
 popd
 pushd package/lean/luci-app-ssr-plus
