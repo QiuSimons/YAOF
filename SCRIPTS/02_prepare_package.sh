@@ -216,7 +216,6 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/bro
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-plus package/new/trojan-plus
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/ssocks package/new/ssocks
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray-core package/new/xray-core
-svn co https://github.com/immortalwrt/immortalwrt/trunk/package/lean/v2ray package/new/v2ray
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/v2ray-plugin package/new/v2ray-plugin
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray-plugin package/new/xray-plugin
 # qBittorrent 下载
@@ -232,23 +231,6 @@ rm -rf ./feeds/packages/net/smartdns
 svn co https://github.com/Lienol/openwrt-packages/trunk/net/smartdns feeds/packages/net/smartdns
 rm -rf ./feeds/luci/applications/luci-app-smartdns
 svn co https://github.com/immortalwrt/luci/branches/openwrt-18.06/applications/luci-app-smartdns feeds/luci/applications/luci-app-smartdns
-# ShadowsocksR Plus+
-svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
-rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
-pushd package/lean
-wget -qO - https://github.com/fw876/helloworld/pull/509.patch | patch -p1
-wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/c1674ad.patch | patch -p1
-popd
-pushd package/lean/luci-app-ssr-plus
-sed -i 's,default n,default y,g' Makefile
-sed -i 's,Xray:xray ,Xray:xray-core ,g' Makefile
-sed -i '/V2ray:v2ray/d' Makefile
-sed -i '/plugin:v2ray/d' Makefile
-#sed -i '/result.encrypt_method/a\result.fast_open = "1"' root/usr/share/shadowsocksr/subscribe.lua
-sed -i 's,ispip.clang.cn/all_cn,cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute,' root/etc/init.d/shadowsocksr
-sed -i 's,YW5vbnltb3Vz/domain-list-community/release/gfwlist.txt,Loyalsoldier/v2ray-rules-dat/release/gfw.txt,' root/etc/init.d/shadowsocksr luasrc/model/cbi/shadowsocksr/advanced.lua
-sed -i '/Clang.CN.CIDR/a\o:value("https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
-popd
 # ShadowsocksR Plus+ 依赖
 rm -rf ./feeds/packages/net/kcptun
 rm -rf ./feeds/packages/net/proxychains-ng
@@ -267,8 +249,26 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/simple-obfs packa
 svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev package/lean/shadowsocks-libev
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/lean/trojan
 svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
+svn co https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-core
 svn co https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust package/lean/shadowsocks-rust
 #svn co https://github.com/fw876/helloworld/trunk/shadowsocks-rust package/lean/shadowsocks-rust
+# ShadowsocksR Plus+
+svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
+rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
+pushd package/lean
+wget -qO - https://github.com/fw876/helloworld/pull/509.patch | patch -p1
+wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/c1674ad.patch | patch -p1
+popd
+pushd package/lean/luci-app-ssr-plus
+sed -i 's,default n,default y,g' Makefile
+sed -i 's,Xray:xray ,Xray:xray-core ,g' Makefile
+sed -i '/V2ray:v2ray/d' Makefile
+sed -i '/plugin:v2ray/d' Makefile
+#sed -i '/result.encrypt_method/a\result.fast_open = "1"' root/usr/share/shadowsocksr/subscribe.lua
+sed -i 's,ispip.clang.cn/all_cn,cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute,' root/etc/init.d/shadowsocksr
+sed -i 's,YW5vbnltb3Vz/domain-list-community/release/gfwlist.txt,Loyalsoldier/v2ray-rules-dat/release/gfw.txt,' root/etc/init.d/shadowsocksr luasrc/model/cbi/shadowsocksr/advanced.lua
+sed -i '/Clang.CN.CIDR/a\o:value("https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
+popd
 # 订阅转换
 svn co https://github.com/immortalwrt/packages/trunk/net/subconverter package/new/subconverter
 svn co https://github.com/immortalwrt/packages/trunk/libs/jpcre2 package/new/jpcre2
