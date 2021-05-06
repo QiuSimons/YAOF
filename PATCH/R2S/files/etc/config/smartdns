@@ -12,7 +12,7 @@ config smartdns
 	option serve_expired '1'
 	option tcp_server '1'
 	option seconddns_no_cache '1'
-	option cache_size '4194304'
+	option cache_size '102400'
 	option enabled '1'
 
 config server
