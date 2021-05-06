@@ -42,8 +42,6 @@ dns:
   - id.server
   - hostname.bind
   cache_size: 4194304
-  cache_ttl_min: 3600
-  cache_ttl_max: 36000
   bogus_nxdomain: []
   aaaa_disabled: false
   enable_dnssec: false
@@ -55,9 +53,6 @@ dns:
   parental_enabled: false
   safesearch_enabled: false
   safebrowsing_enabled: false
-  safebrowsing_cache_size: 1048576
-  safesearch_cache_size: 1048576
-  parental_cache_size: 1048576
   cache_time: 30
   rewrites:
   - domain: wifi.weixin.qq.com
