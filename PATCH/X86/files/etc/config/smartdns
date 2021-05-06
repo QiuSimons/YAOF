@@ -1,7 +1,7 @@
 
 config smartdns
 	option server_name 'smartdns'
-	option port '6051'
+	option port '6051 -force-aaaa-soa -group oversea'
 	option dualstack_ip_selection '0'
 	option server_group 'oversea'
 	option seconddns_port '6050'
