@@ -65,6 +65,11 @@ uci commit dhcp
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 
+#计划任务
+uci set system.@system[0].cronloglevel="9"
+uci commit system
+/etc/init.d/cron restart
+
 #软链接
 ln -sf /sbin/ip /usr/bin/ip
 ln -sf /usr/bin/wget /usr/bin/wget-ssl
