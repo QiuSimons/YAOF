@@ -291,6 +291,8 @@ git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git pac
 sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
 sed -i '/V2ray:v2ray/d' package/lean/luci-app-vssr/Makefile
 sed -i '/plugin:v2ray/d' package/lean/luci-app-vssr/Makefile
+sed -i 's,+shadowsocksr-libev-alt ,,g' package/lean/luci-app-vssr/Makefile
+sed -i '/Server:shadowsocksr-libev-server/d' package/lean/luci-app-vssr/Makefile
 sed -i '/result.encrypt_method/a\result.fast_open = "1"' package/lean/luci-app-vssr/root/usr/share/vssr/subscribe.lua
 sed -i 's,ispip.clang.cn/all_cn.txt,raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/luasrc/controller/vssr.lua
 sed -i 's,ispip.clang.cn/all_cn.txt,raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/root/usr/share/vssr/update.lua
