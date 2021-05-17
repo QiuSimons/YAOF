@@ -63,7 +63,6 @@ cp -f ../PATCH/duplicate/shortcut-fe ./package/base-files/files/etc/init.d
 ### 获取额外的基础软件包 ###
 # AutoCore
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/emortal/autocore package/lean/autocore
-#wget -qO - https://github.com/immortalwrt/immortalwrt/commit/13d6e338f1f7eba45e1aada749ac74fc391b9216.patch | patch -Rp1
 rm -rf ./feeds/packages/utils/coremark
 svn co https://github.com/immortalwrt/packages/trunk/utils/coremark feeds/packages/utils/coremark
 # 更换 Nodejs 版本
@@ -132,9 +131,11 @@ cp -rf ../NoTengoBattery/feeds/luci/applications/luci-app-compressed-memory ./pa
 sed -i 's,include ../..,include $(TOPDIR)/feeds/luci,g' ./package/new/luci-app-compressed-memory/Makefile
 cp -rf ../NoTengoBattery/package/system/compressed-memory ./package/system/compressed-memory
 # CPU 控制相关
-svn co https://github.com/immortalwrt/luci/trunk/applications/luci-app-cpufreq package/lean/luci-app-cpufreq
+svn co https://github.com/immortalwrt/luci/trunk/applications/luci-app-cpufreq feeds/luci/applications/luci-app-cpufreq
+ln -sf ../../../feeds/luci/applications/luci-app-cpufreq ./package/feeds/luci/luci-app-cpufreq
 cp -rf ../PATCH/duplicate/luci-app-cpulimit ./package/lean/luci-app-cpulimit
-svn co https://github.com/immortalwrt/packages/trunk/utils/cpulimit package/lean/cpulimit
+svn co https://github.com/immortalwrt/packages/trunk/utils/cpulimit feeds/packages/utils/cpulimit
+ln -sf ../../../feeds/packages/utils/cpulimit ./package/feeds/packages/cpulimit
 # 动态DNS
 #rm -rf ./feeds/packages/net/ddns-scripts
 #rm -rf ./feeds/luci/applications/luci-app-ddns
@@ -198,7 +199,7 @@ svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasi
 svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/phtunnel package/new/phtunnel
 svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
 # Pandownload
-svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/pandownload-fake-server package/lean/pandownload-fake-server
+#svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/pandownload-fake-server package/lean/pandownload-fake-server
 # Passwall
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
 sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
@@ -221,7 +222,8 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray-plugin package/n
 # qBittorrent 下载
 svn co https://github.com/garypang13/openwrt-static-qb/trunk/qBittorrent-Enhanced-Edition package/lean/qBittorrent-Enhanced-Edition
 sed -i 's/4.3.3.10/4.3.4.10/g' package/lean/qBittorrent-Enhanced-Edition/Makefile
-svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/lean/luci-app-qbittorrent package/lean/luci-app-qbittorrent
+svn co https://github.com/immortalwrt/luci/trunk/applications/luci-app-qbittorrent feeds/luci/applications/luci-app-qbittorrent
+ln -sf ../../../feeds/luci/applications/luci-app-qbittorrent ./package/feeds/luci/luci-app-qbittorrent
 # 清理内存
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-ramfree package/lean/luci-app-ramfree
 # ServerChan 微信推送
@@ -251,8 +253,8 @@ svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev pack
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan package/lean/trojan
 svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
 svn co https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-core
-svn co https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust package/lean/shadowsocks-rust
-#svn co https://github.com/fw876/helloworld/trunk/shadowsocks-rust package/lean/shadowsocks-rust
+svn co https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust feeds/packages/net/shadowsocks-rust
+ln -sf ../../../feeds/packages/net/shadowsocks-rust ./package/feeds/packages/shadowsocks-rust
 # ShadowsocksR Plus+
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
@@ -271,11 +273,16 @@ sed -i 's,YW5vbnltb3Vz/domain-list-community/release/gfwlist.txt,Loyalsoldier/v2
 sed -i '/Clang.CN.CIDR/a\o:value("https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
 popd
 # 订阅转换
-svn co https://github.com/immortalwrt/packages/trunk/net/subconverter package/new/subconverter
-svn co https://github.com/immortalwrt/packages/trunk/libs/jpcre2 package/new/jpcre2
-svn co https://github.com/immortalwrt/packages/trunk/libs/rapidjson package/new/rapidjson
-svn co https://github.com/immortalwrt/packages/trunk/libs/libcron package/new/libcron
-svn co https://github.com/immortalwrt/packages/trunk/libs/quickjspp package/new/quickjspp
+svn co https://github.com/immortalwrt/packages/trunk/net/subconverter feeds/packages/net/subconverter
+ln -sf ../../../feeds/packages/net/subconverter ./package/feeds/packages/subconverter
+svn co https://github.com/immortalwrt/packages/trunk/libs/jpcre2 feeds/packages/libs/jpcre2
+ln -sf ../../../feeds/packages/libs/jpcre2 ./package/feeds/packages/jpcre2
+svn co https://github.com/immortalwrt/packages/trunk/libs/rapidjson feeds/packages/libs/rapidjson
+ln -sf ../../../feeds/packages/libs/rapidjson ./package/feeds/packages/rapidjson
+svn co https://github.com/immortalwrt/packages/trunk/libs/libcron feeds/packages/libs/libcron
+ln -sf ../../../feeds/packages/libs/libcron ./package/feeds/packages/libcron
+svn co https://github.com/immortalwrt/packages/trunk/libs/quickjspp feeds/packages/libs/quickjspp
+ln -sf ../../../feeds/packages/libs/quickjspp ./package/feeds/packages/quickjspp
 # 网易云音乐解锁
 git clone --depth 1 https://github.com/immortalwrt/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
 # USB 打印机
@@ -306,11 +313,12 @@ git clone -b master --depth 1 https://github.com/brvphoenix/luci-app-wrtbwmon.gi
 # 迅雷快鸟宽带加速
 git clone --depth 1 https://github.com/garypang13/luci-app-xlnetacc.git package/lean/luci-app-xlnetacc
 # Zerotier
-svn co https://github.com/immortalwrt/luci/trunk/applications/luci-app-zerotier package/lean/luci-app-zerotier
-cp -f ../PATCH/new/script/move_2_services.sh ./package/lean/luci-app-zerotier/move_2_services.sh
-pushd package/lean/luci-app-zerotier
+svn co https://github.com/immortalwrt/luci/trunk/applications/luci-app-zerotier feeds/luci/applications/luci-app-zerotier
+cp -f ../PATCH/new/script/move_2_services.sh ./feeds/luci/applications/luci-app-zerotier/move_2_services.sh
+pushd feeds/luci/applications/luci-app-zerotier
 bash move_2_services.sh
 popd
+ln -sf ../../../feeds/luci/applications/luci-app-zerotier ./package/feeds/luci/luci-app-zerotier
 rm -rf ./feeds/packages/net/zerotier/files/etc/init.d/zerotier
 
 
