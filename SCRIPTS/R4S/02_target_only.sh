@@ -31,9 +31,6 @@ sed -i '/set_interface_core 20 "eth1"/a\ethtool -C eth0 rx-usecs 1000 rx-frames 
 
 # 翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
-sed -i "/commit luci/a\uci commit cpufreq" ./package/lean/lean-translate/files/zzz-default-settings
-sed -i "/commit luci/a\uci set cpufreq.cpufreq.maxfreq4='2208000'" ./package/lean/lean-translate/files/zzz-default-settings
-sed -i "/commit luci/a\uci set cpufreq.cpufreq.maxfreq0='1800000'" ./package/lean/lean-translate/files/zzz-default-settings
 
 # 添加 R4S GPU 驱动
 rm -rf ./package/kernel/linux/modules/video.mk
