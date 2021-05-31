@@ -44,8 +44,6 @@ COMMENT
 
 # 翻译及部分功能优化
 cp -rf ../PATCH/duplicate/addition-trans-zh ./package/lean/lean-translate
-sed -i "/commit luci/a\uci commit cpufreq" ./package/lean/lean-translate/files/zzz-default-settings
-sed -i "/commit luci/a\uci set cpufreq.cpufreq.maxfreq0='1608000'" ./package/lean/lean-translate/files/zzz-default-settings
 
 # 添加 R2S GPU 驱动
 rm -rf ./package/kernel/linux/modules/video.mk
