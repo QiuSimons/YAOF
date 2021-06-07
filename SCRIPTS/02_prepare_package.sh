@@ -111,7 +111,7 @@ wget -P ./package/new/luci-theme-argon/luasrc/view/themes/argon -N https://githu
 wget -P ./package/new/luci-theme-argon/luasrc/view/themes/argon -N https://github.com/jerrykuku/luci-theme-argon/raw/9fdcfc866ca80d8d094d554c6aedc18682661973/luasrc/view/themes/argon/header.htm
 git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git package/new/luci-app-argon-config
 # MAC 地址与 IP 绑定
-svn co https://github.com/QiuSimons/OpenWrt_luci-app/trunk/lean/luci-app-arpbind package/lean/luci-app-arpbind
+svn co https://github.com/QiuSimons/OpenWrt_luci-app/trunk/luci-app-arpbind package/lean/luci-app-arpbind
 # 定时重启
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-autoreboot package/lean/luci-app-autoreboot
 # Boost 通用即插即用
