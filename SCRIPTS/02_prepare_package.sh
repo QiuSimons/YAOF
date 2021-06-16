@@ -38,7 +38,7 @@ cp -f ../PATCH/new/package/900-add-filter-aaaa-option.patch ./package/network/se
 ### Fullcone-NAT 部分 ###
 # Patch Kernel 以解决 FullCone 冲突
 pushd target/linux/generic/hack-5.4
-wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
+wget https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
 popd
 # Patch FireWall 以增添 FullCone 功能 
 mkdir package/network/config/firewall/patches
@@ -51,7 +51,7 @@ cp -rf ../openwrt-lienol/package/network/fullconenat ./package/network/fullconen
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
 pushd target/linux/generic/hack-5.4
-wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
+wget https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 popd
 # Patch LuCI 以增添 Shortcut-FE 开关
 patch -p1 < ../PATCH/new/package/luci-app-firewall_add_sfe_switch.patch
@@ -245,7 +245,7 @@ rm -rf ./feeds/packages/net/xray-core
 #svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shadowsocksr-libev package/lean/shadowsocksr-libev
 svn co https://github.com/fw876/helloworld/trunk/shadowsocksr-libev package/lean/shadowsocksr-libev
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/pdnsd-alt package/lean/pdnsd
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/kcptun package/lean/kcptun
+#svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/kcptun package/lean/kcptun
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/srelay package/lean/srelay
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/microsocks package/lean/microsocks
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/dns2socks package/lean/dns2socks
@@ -259,6 +259,8 @@ svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naivepr
 svn co https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-core
 svn co https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust feeds/packages/net/shadowsocks-rust
 ln -sf ../../../feeds/packages/net/shadowsocks-rust ./package/feeds/packages/shadowsocks-rust
+svn co https://github.com/immortalwrt/packages/trunk/net/kcptun feeds/packages/net/kcptun
+ln -sf ../../../feeds/packages/net/kcptun ./package/feeds/packages/kcptun
 # ShadowsocksR Plus+
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
