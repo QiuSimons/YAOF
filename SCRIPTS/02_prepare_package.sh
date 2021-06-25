@@ -96,7 +96,7 @@ svn co https://github.com/immortalwrt/immortalwrt/branches/master/tools/ucl tool
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 访问控制
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-accesscontrol package/lean/luci-app-accesscontrol
-svn co https://github.com/QiuSimons/OpenWrt-Add/tree/master/luci-app-control-weburl package/new/luci-app-control-weburl
+svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/luci-app-control-weburl package/new/luci-app-control-weburl
 # 广告过滤 Adbyby
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-adbyby-plus package/lean/luci-app-adbyby-plus
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/adbyby package/lean/adbyby
@@ -138,7 +138,7 @@ ln -sf ../../../feeds/luci/applications/luci-app-cpufreq ./package/feeds/luci/lu
 sed -i 's,1608,1800,g' feeds/luci/applications/luci-app-cpufreq/root/etc/uci-defaults/cpufreq
 sed -i 's,2016,2208,g' feeds/luci/applications/luci-app-cpufreq/root/etc/uci-defaults/cpufreq
 sed -i 's,1512,1608,g' feeds/luci/applications/luci-app-cpufreq/root/etc/uci-defaults/cpufreq
-svn co https://github.com/QiuSimons/OpenWrt-Add/tree/master/luci-app-cpulimit package/lean/luci-app-cpulimit
+svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/luci-app-cpulimit package/lean/luci-app-cpulimit
 svn co https://github.com/immortalwrt/packages/trunk/utils/cpulimit feeds/packages/utils/cpulimit
 ln -sf ../../../feeds/packages/utils/cpulimit ./package/feeds/packages/cpulimit
 # 动态DNS
@@ -327,7 +327,7 @@ popd
 ln -sf ../../../feeds/luci/applications/luci-app-zerotier ./package/feeds/luci/luci-app-zerotier
 rm -rf ./feeds/packages/net/zerotier/files/etc/init.d/zerotier
 # 翻译及部分功能优化
-svn co https://github.com/QiuSimons/OpenWrt-Add/tree/master/addition-trans-zh package/lean/lean-translate
+svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/addition-trans-zh package/lean/lean-translate
 
 ### 最后的收尾工作 ###
 # Lets Fuck
