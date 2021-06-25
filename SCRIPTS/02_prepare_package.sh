@@ -339,4 +339,4 @@ sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 # 生成默认配置及缓存
 rm -rf .config
 
-exit 0
+#exit 0
