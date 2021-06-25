@@ -69,4 +69,4 @@ chmod -R 755 ./
 find ./ -name *.orig | xargs rm -f
 find ./ -name *.rej | xargs rm -f
 
-exit 0
+#exit 0
