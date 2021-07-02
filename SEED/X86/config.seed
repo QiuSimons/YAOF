@@ -126,7 +126,7 @@ CONFIG_PACKAGE_coremark=y
 CONFIG_PACKAGE_htop=y
 CONFIG_PACKAGE_subconverter=y
 CONFIG_PACKAGE_dnsproxy=y
-CONFIG_PACKAGE_luci-app-dnsfilter=y
+CONFIG_PACKAGE_luci-app-adblock-plus=y
 
 ### THEME ###
 CONFIG_PACKAGE_luci-theme-argon=y
