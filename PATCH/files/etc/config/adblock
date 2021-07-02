@@ -3,10 +3,6 @@ config adblock
 	option cron_mode '1'
 	option time_update '6'
 	option flash '0'
-	option block_cnshort '0'
-	option block_ios '0'
 	option enable '1'
-	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/FiltersRegistry@master/filters/filter_2_English/filter.txt'
-	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/FiltersRegistry@master/filters/filter_224_Chinese/filter.txt'
-	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/FiltersRegistry@master/filters/filter_14_Annoyances/filter.txt'
+	list url 'https://cdn.jsdelivr.net/gh/small-5/ad-rules/adguard'
 
