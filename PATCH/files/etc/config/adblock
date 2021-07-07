@@ -1,0 +1,8 @@
+
+config adblock
+	option cron_mode '1'
+	option time_update '6'
+	option flash '0'
+	option enable '1'
+	list url 'https://cdn.jsdelivr.net/gh/small-5/ad-rules/adguard'
+
