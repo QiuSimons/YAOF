@@ -32,7 +32,7 @@
 - ss协议在armv8上实现了aes硬件加速（请<b>仅使用aead加密</b>的连接方式）
 - 如有任何问题，请先尝试ssh进入后台，输入fuck后回车，等待机器重启后确认问题是否已经解决
 
-###R2S新特性
+### R2S新特性
 - 取消 OLED，FrpC/S，PassWall
 - 增加 Docker，TTYD终端，AdGuardHome，应用过滤支持
 
