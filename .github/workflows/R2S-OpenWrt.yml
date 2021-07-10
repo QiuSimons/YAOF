@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
     inputs:
       device:
-        description: 'select device to build'
-        default: 'r2s'
+        # description: 'select device to build'
+        # default: 'r2s'
         required: false
 
 jobs:
