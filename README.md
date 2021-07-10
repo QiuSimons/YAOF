@@ -44,7 +44,7 @@
 
 |                      组件                       |                      流量分载                       |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| ![主页.png](https://raw.githubusercontent.com/sdmkjz/R4S-OpenWrt/master/PIC/app.png) | ![offload.png](https://raw.githubusercontent.com/sdmkjz/R4S-OpenWrt/master/PIC/offload.png) |
+| ![主页.png](https://raw.githubusercontent.com/QiuSimons/R4S-OpenWrt/master/PIC/app.png) | ![offload.png](https://raw.githubusercontent.com/QiuSimons/R4S-OpenWrt/master/PIC/offload.png) |
 
 ### 鸣谢
 
