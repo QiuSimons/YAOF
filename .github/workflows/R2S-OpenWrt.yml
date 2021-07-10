@@ -3,8 +3,15 @@ name: R2S-OpenWrt
 on:
 #  schedule:
 #    - cron: 5 6 * * 0
-  watch:
-    types: started
+#  watch:
+#    types: started
+repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: 'select device to build'
+        default: 'R2S'
+        required: false
 
 jobs:
   build:
