@@ -1,17 +1,17 @@
 <p align="center">
-<img width="768" src="https://raw.githubusercontent.com/QiuSimons/Others/master/YAOF.png" >
+<img width="768" src="https://raw.githubusercontent.com/sdmkjz/Others/master/YAOF.png" >
 </p>
 <p align="center">
 <img src="https://forthebadge.com/images/badges/built-with-love.svg">
 <p>
 <p align="center">
-<img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/QiuSimons/R2S-R4S-X86-OpenWrt/total?style=for-the-badge">
-<img alt="GitHub" src="https://img.shields.io/github/license/QiuSimons/R2S-R4S-X86-OpenWrt?style=for-the-badge">
+<img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/sdmkjz/R2S-R4S-X86-OpenWrt/total?style=for-the-badge">
+<img alt="GitHub" src="https://img.shields.io/github/license/sdmkjz/R2S-R4S-X86-OpenWrt?style=for-the-badge">
 <p>
 <p align="center">
-<img src="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/R2S-OpenWrt/badge.svg">
-<img src="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/R4S-OpenWrt/badge.svg">
-<img src="https://github.com/QiuSimons/R2S-R4S-X86-OpenWrt/workflows/X86-OpenWrt/badge.svg">
+<img src="https://github.com/sdmkjz/R2S-R4S-X86-OpenWrt/workflows/R2S-OpenWrt/badge.svg">
+<img src="https://github.com/sdmkjz/R2S-R4S-X86-OpenWrt/workflows/R4S-OpenWrt/badge.svg">
+<img src="https://github.com/sdmkjz/R2S-R4S-X86-OpenWrt/workflows/X86-OpenWrt/badge.svg">
 <p>
 
 
@@ -19,7 +19,7 @@
 
 
 
-### 特性
+### 原特性
 
 - 基于原生 OpenWrt 21.02 编译，默认管理地址192.168.1.1
 - 同时支持 SFE/Software Offload （选则其一开启，<b>默认开启SFE</b>）
@@ -32,15 +32,19 @@
 - ss协议在armv8上实现了aes硬件加速（请<b>仅使用aead加密</b>的连接方式）
 - 如有任何问题，请先尝试ssh进入后台，输入fuck后回车，等待机器重启后确认问题是否已经解决
 
+###R2S新特性
+- 取消 OLED，FrpC/S，PassWall
+- 增加 Docker，TTYD终端，AdGuardHome，应用过滤支持
+
 ### 下载
 
-- 选择自己<b>设备对应的固件</b>，并[下载](https://github.com/QiuSimons/R2S-R4S-OpenWrt/releases)
+- 选择自己<b>设备对应的固件</b>，并[下载](https://github.com/sdmkjz/R2S-R4S-OpenWrt/releases)
 
 ### 截图
 
 |                      组件                       |                      流量分载                       |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| ![主页.png](https://raw.githubusercontent.com/QiuSimons/R4S-OpenWrt/master/PIC/app.png) | ![offload.png](https://raw.githubusercontent.com/QiuSimons/R4S-OpenWrt/master/PIC/offload.png) |
+| ![主页.png](https://raw.githubusercontent.com/sdmkjz/R4S-OpenWrt/master/PIC/app.png) | ![offload.png](https://raw.githubusercontent.com/sdmkjz/R4S-OpenWrt/master/PIC/offload.png) |
 
 ### 鸣谢
 
