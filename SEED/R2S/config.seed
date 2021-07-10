@@ -87,6 +87,7 @@ CONFIG_PACKAGE_luci-app-adguardhome=y
 CONFIG_PACKAGE_adguardhome=y
 CONFIG_PACKAGE_luci-app-appfilter=y # 应用过滤
 CONFIG_PACKAGE_luci-app-ttyd=y # ttyd终端
+CONFIG_PACKAGE_luci-app-netdata=y # netdata支持
 CONFIG_PACKAGE_luci-app-argon-config=y
 CONFIG_PACKAGE_luci-app-arpbind=y
 CONFIG_PACKAGE_luci-app-autoreboot=y
