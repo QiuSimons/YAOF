@@ -37,13 +37,6 @@ sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic
 
 # 内核加解密组件
 echo '
-CONFIG_CRYPTO_HW=y
-CONFIG_ARM64_CRYPTO=y
-CONFIG_CRYPTO_SHA1_ARM_CE=y
-CONFIG_CRYPTO_SHA2_ARM_CE=y
-CONFIG_CRYPTO_GHASH_ARM_CE=y
-CONFIG_CRYPTO_AES_ARM=y
-CONFIG_CRYPTO_AES_ARM_CE=y
 ' >> ./target/linux/rockchip/armv8/config-5.4
 
 # MPTCP
