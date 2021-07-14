@@ -22,12 +22,16 @@ sed -i '/unshift/d' scripts/download.pl
 sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >> ./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
-#临时补丁
+# 临时补丁
 #wget -qO - https://github.com/openwrt/openwrt/commit/7fae64.patch | patch -p1
+
+# MPTCP
+wget -P target/linux/generic/hack-5.4/ https://github.com/Ysurac/openmptcprouter/raw/develop/root/target/linux/generic/hack-5.4/690-mptcp_trunk.patch
+wget -P target/linux/generic/hack-5.4/ https://github.com/Ysurac/openmptcprouter/raw/develop/root/target/linux/generic/hack-5.4/998-ndpi-netfilter.patch
 
 ### 必要的 Patches ###
 # Patch arm64 型号名称
-wget -P target/linux/generic/pending-5.4/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
+wget -P target/linux/generic/hack-5.4/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
 # Patch jsonc
 patch -p1 < ../PATCH/jsonc/use_json_object_new_int64.patch
 # Patch dnsmasq
@@ -344,6 +348,11 @@ ln -sf ../../../feeds/luci/applications/luci-app-zerotier ./package/feeds/luci/l
 rm -rf ./feeds/packages/net/zerotier/files/etc/init.d/zerotier
 # 翻译及部分功能优化
 svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/addition-trans-zh package/lean/lean-translate
+
+# MPTCP
+echo '
+CONFIG_CRYPTO_SHA256=y
+' >> ./target/linux/generic/config-5.4
 
 ### 最后的收尾工作 ###
 # Lets Fuck
