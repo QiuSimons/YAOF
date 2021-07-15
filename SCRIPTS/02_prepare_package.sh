@@ -22,12 +22,22 @@ sed -i '/unshift/d' scripts/download.pl
 sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >> ./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
-# 临时补丁
-#wget -qO - https://github.com/openwrt/openwrt/commit/7fae64.patch | patch -p1
+# GCC11
+rm -rf ./toolchain/gcc
+svn co https://github.com/openwrt/openwrt/trunk/toolchain/gcc toolchain/gcc
+rm -rf ./package/network/utils/bpftools
+svn co https://github.com/openwrt/openwrt/trunk/package/network/utils/bpftools package/network/utils/bpftools
+rm -rf ./package/libs/elfutils
+svn co https://github.com/neheb/openwrt/branches/elf/package/libs/elfutils package/libs/elfutils
+rm -rf ./feeds/packages/libs/dtc
+svn co https://github.com/openwrt/packages/trunk/libs/dtc feeds/packages/libs/dtc
 
 # MPTCP
 wget -P target/linux/generic/hack-5.4/ https://github.com/Ysurac/openmptcprouter/raw/develop/root/target/linux/generic/hack-5.4/690-mptcp_trunk.patch
 wget -P target/linux/generic/hack-5.4/ https://github.com/Ysurac/openmptcprouter/raw/develop/root/target/linux/generic/hack-5.4/998-ndpi-netfilter.patch
+echo '
+CONFIG_CRYPTO_SHA256=y
+' >> ./target/linux/generic/config-5.4
 
 # BBRv2
 wget -P target/linux/generic/hack-5.4/ https://github.com/Ysurac/openmptcprouter/raw/develop/root/target/linux/generic/hack-5.4/692-tcp_nanqinlang.patch
@@ -35,6 +45,9 @@ wget -P target/linux/generic/hack-5.4/ https://github.com/Ysurac/openmptcprouter
 wget https://github.com/google/bbr/commit/3d76056.patch -O target/linux/generic/hack-5.4/694-tcp_bbr2.patch
 wget -qO - https://github.com/Ysurac/openmptcprouter/raw/develop/patches/nanqinlang.patch | patch -p1
 wget -qO - https://github.com/Ysurac/openmptcprouter/raw/develop/patches/bbr2.patch | patch -p1
+
+# OPENSSL
+wget -qO - https://github.com/mj22226/openwrt/commit/5e1063.patch | patch -p1
 
 ### 必要的 Patches ###
 # Patch arm64 型号名称
@@ -229,7 +242,7 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall pac
 sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
 sed -i '/V2ray:v2ray/d' package/new/luci-app-passwall/Makefile
 sed -i '/plugin:v2ray/d' package/new/luci-app-passwall/Makefile
-sed -i '/Proxy:naive/d' package/new/luci-app-passwall/Makefile
+#sed -i '/Proxy:naive/d' package/new/luci-app-passwall/Makefile
 wget -P package/new/luci-app-passwall/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
 chmod -R 755 ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
@@ -297,14 +310,11 @@ sed -i 's,default n,default y,g' Makefile
 sed -i 's,Xray:xray ,Xray:xray-core ,g' Makefile
 sed -i '/V2ray:v2ray/d' Makefile
 sed -i '/plugin:v2ray/d' Makefile
-sed -i '/Proxy:naive/d' Makefile
+#sed -i '/Proxy:naive/d' Makefile
 sed -i '/result.encrypt_method/a\result.fast_open = "1"' root/usr/share/shadowsocksr/subscribe.lua
 sed -i 's,ispip.clang.cn/all_cn,cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute,' root/etc/init.d/shadowsocksr
 sed -i 's,YW5vbnltb3Vz/domain-list-community/release/gfwlist.txt,Loyalsoldier/v2ray-rules-dat/release/gfw.txt,' root/etc/init.d/shadowsocksr
 sed -i '/Clang.CN.CIDR/a\o:value("https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
-
-sed -i 's/443 -j RETURN/443 -j DROP/' root/usr/bin/ssr-rules
-sed -i 's/80 -j RETURN/80 -j DROP/' root/usr/bin/ssr-rules
 
 popd
 # 订阅转换
@@ -355,11 +365,6 @@ ln -sf ../../../feeds/luci/applications/luci-app-zerotier ./package/feeds/luci/l
 rm -rf ./feeds/packages/net/zerotier/files/etc/init.d/zerotier
 # 翻译及部分功能优化
 svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/addition-trans-zh package/lean/lean-translate
-
-# MPTCP
-echo '
-CONFIG_CRYPTO_SHA256=y
-' >> ./target/linux/generic/config-5.4
 
 ### 最后的收尾工作 ###
 # Lets Fuck
