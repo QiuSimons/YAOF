@@ -185,6 +185,8 @@ git clone --depth 1 https://github.com/garypang13/luci-app-dnsfilter.git package
 # Dnsproxy
 svn co https://github.com/immortalwrt/packages/trunk/net/dnsproxy feeds/packages/net/dnsproxy
 ln -sf ../../../feeds/packages/net/dnsproxy ./package/feeds/packages/dnsproxy
+sed -i '/dnsproxy.config/d' feeds/packages/net/dnsproxy/Makefile
+sed -i '/dnsproxy.init/d' feeds/packages/net/dnsproxy/Makefile
 svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/luci-app-dnsproxy package/new/luci-app-dnsproxy
 # Edge 主题
 git clone -b master --depth 1 https://github.com/garypang13/luci-theme-edge.git package/new/luci-theme-edge
