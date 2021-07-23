@@ -1,0 +1,37 @@
+From 85a75a212cece40387394cd49bc0d203222e8a69 Mon Sep 17 00:00:00 2001
+From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
+Date: Fri, 23 Jul 2021 16:59:43 +0800
+Subject: [PATCH] Update netsupport.mk
+
+---
+ package/kernel/linux/modules/netsupport.mk | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/package/kernel/linux/modules/netsupport.mk b/package/kernel/linux/modules/netsupport.mk
+index 0c68b394d1e2..164322838008 100644
+--- a/package/kernel/linux/modules/netsupport.mk
++++ b/package/kernel/linux/modules/netsupport.mk
+@@ -948,6 +948,23 @@ endef
+ 
+ $(eval $(call KernelPackage,tcp-bbr))
+ 
++define KernelPackage/tcp-bbr2
++  SUBMENU:=$(NETWORK_SUPPORT_MENU)
++  TITLE:=BBRv2 TCP congestion control
++  KCONFIG:= \
++	CONFIG_TCP_CONG_ADVANCED=y \
++	CONFIG_TCP_CONG_BBR2
++  FILES:=$(LINUX_DIR)/net/ipv4/tcp_bbr2.ko
++  AUTOLOAD:=$(call AutoLoad,74,tcp_bbr2)
++endef
++
++define KernelPackage/tcp-bbr2/description
++ Kernel module for BBRv2 (Bottleneck Bandwidth and RTT) TCP congestion
++ control. It requires the fq ("Fair Queue") pacing packet scheduler.
++ For kernel 4.13+, TCP internal pacing is implemented as fallback.
++endef
++
++$(eval $(call KernelPackage,tcp-bbr2))
+ 
+ define KernelPackage/ax25
+   SUBMENU:=$(NETWORK_SUPPORT_MENU)
