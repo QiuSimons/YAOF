@@ -1,18 +1,44 @@
-From 3d76056b85feab3aade8007eb560c3451e7d3433 Mon Sep 17 00:00:00 2001
-From: Adithya Abraham Philip <abrahamphilip@google.com>
-Date: Fri, 11 Jun 2021 21:56:10 +0000
-Subject: [PATCH] net-tcp_bbr: v2: Fix missing ECT markings on retransmits for BBRv2
+From a18c15e88577391df9dc2d9dcf15d39e459daa17 Mon Sep 17 00:00:00 2001
+From: Neal Cardwell <ncardwell@google.com>
+Date: Tue, 11 Jun 2019 12:54:22 -0400
+Subject: [PATCH] net-tcp_bbr: v2: BBRv2 ("bbr2") congestion control for Linux TCP
 
-Adds a new flag TCP_ECN_ECT_PERMANENT that is used by CCAs to
-indicate that retransmitted packets and pure ACKs must have the
-ECT bit set. This is a necessary fix for BBRv2, which when using
-ECN expects ECT to be set even on retransmitted packets and ACKs.
-Currently CCAs like BBRv2 which can use ECN but don't "need" it
-do not have a way to indicate that ECT should be set on
-retransmissions/ACKs.
+BBR v2 is an enhacement to the BBR v1 algorithm. It's designed to aim for lower
+queues, lower loss, and better Reno/CUBIC coexistence than BBR v1.
 
-Signed-off-by: Adithya Abraham Philip <abrahamphilip@google.com>
-Signed-off-by: Neal Cardwell <ncardwell@google.com>
+BBR v2 maintains the core of BBR v1: an explicit model of the network
+path that is two-dimensional, adapting to estimate the (a) maximum
+available bandwidth and (b) maximum safe volume of data a flow can
+keep in-flight in the network. It maintains the estimated BDP as a
+core guide for estimating an appropriate level of in-flight data.
+
+o Include:
+https://github.com/google/bbr/commit/e5fe52d14
+https://github.com/google/bbr/commit/9ec103688
+https://github.com/google/bbr/commit/824a49a77
+https://github.com/google/bbr/commit/1f1c88e4a
+https://github.com/google/bbr/commit/535abb7af
+https://github.com/google/bbr/commit/831329194
+https://github.com/google/bbr/commit/115c522f1
+https://github.com/google/bbr/commit/1d807593c
+https://github.com/google/bbr/commit/bedc8f36a
+https://github.com/google/bbr/commit/7feb2a444
+https://github.com/google/bbr/commit/419a582ff
+https://github.com/google/bbr/commit/8a68f6366
+https://github.com/google/bbr/commit/948c31273
+https://github.com/google/bbr/commit/1cd7f04b1
+https://github.com/google/bbr/commit/d19d4d25d
+https://github.com/google/bbr/commit/a18c15e88
+https://github.com/google/bbr/commit/4caa947cf
+https://github.com/google/bbr/commit/55105fea3
+https://github.com/google/bbr/commit/8d11b540f
+https://github.com/google/bbr/commit/ab41f1902
+https://github.com/google/bbr/commit/74f603c70
+https://github.com/google/bbr/commit/3d76056b8
+
+Effort: net-tcp_bbr
+Origin-9xx-SHA1: 2c84098e60bed6d67dde23cd7538c51dee273102
+Change-Id: I125cf26ba2a7a686f2fa5e87f4c2afceb65f7a05
 ---
 diff --git a/include/linux/tcp.h b/include/linux/tcp.h
 index ca6f01531e64..145b15f5d07e 100644
@@ -2963,34 +2989,17 @@ index 32772d6ded4e..2d6677521575 100644
  	return sk->sk_pacing_rate < (bbr_min_tso_rate >> 3) ? 1 : 2;
  }
  
+-static u32 bbr_tso_segs_goal(struct sock *sk)
 +/* Return the number of segments BBR would like in a TSO/GSO skb, given
 + * a particular max gso size as a constraint.
 + */
 +static u32 bbr_tso_segs_generic(struct sock *sk, unsigned int mss_now,
 +				u32 gso_max_size)
-+{
-+	u32 segs;
-+	u32 bytes;
-+
-+	/* Budget a TSO/GSO burst size allowance based on bw (pacing_rate). */
-+	bytes = sk->sk_pacing_rate >> sk->sk_pacing_shift;
-+
-+	bytes = min_t(u32, bytes, gso_max_size - 1 - MAX_TCP_HEADER);
-+	segs = max_t(u32, bytes / mss_now, bbr_min_tso_segs(sk));
-+	return segs;
-+}
-+
-+/* Custom tcp_tso_autosize() for BBR, used at transmit time to cap skb size. */
-+static u32  bbr_tso_segs(struct sock *sk, unsigned int mss_now)
-+{
-+	return bbr_tso_segs_generic(sk, mss_now, sk->sk_gso_max_size);
-+}
-+
-+/* Like bbr_tso_segs(), using mss_cache, ignoring driver's sk_gso_max_size. */
- static u32 bbr_tso_segs_goal(struct sock *sk)
  {
- 	struct tcp_sock *tp = tcp_sk(sk);
+-	struct tcp_sock *tp = tcp_sk(sk);
 -	u32 segs, bytes;
++	u32 segs;
++	u64 bytes;
  
 -	/* Sort of tcp_tso_autosize() but ignoring
 -	 * driver provided sk_gso_max_size.
@@ -2999,8 +3008,26 @@ index 32772d6ded4e..2d6677521575 100644
 -		      sk->sk_pacing_rate >> READ_ONCE(sk->sk_pacing_shift),
 -		      GSO_MAX_SIZE - 1 - MAX_TCP_HEADER);
 -	segs = max_t(u32, bytes / tp->mss_cache, bbr_min_tso_segs(sk));
--
++	/* Budget a TSO/GSO burst size allowance based on bw (pacing_rate). */
++	bytes = sk->sk_pacing_rate >> sk->sk_pacing_shift;
+ 
 -	return min(segs, 0x7FU);
++	bytes = min_t(u32, bytes, gso_max_size - 1 - MAX_TCP_HEADER);
++	segs = max_t(u32, bytes / mss_now, bbr_min_tso_segs(sk));
++	return segs;
++}
++
++/* Custom tcp_tso_autosize() for BBR, used at transmit time to cap skb size. */
+++static u32  bbr_tso_segs(struct sock *sk, unsigned int mss_now)
++{
++	return bbr_tso_segs_generic(sk, mss_now, sk->sk_gso_max_size);
++}
++
++/* Like bbr_tso_segs(), using mss_cache, ignoring driver's sk_gso_max_size. */
++
++static u32 bbr_tso_segs_goal(struct sock *sk)
++{
++	struct tcp_sock *tp = tcp_sk(sk);
 +	return  bbr_tso_segs_generic(sk, tp->mss_cache, GSO_MAX_SIZE);
  }
  
@@ -3149,6 +3176,22 @@ index 88b987ca9ebb..c3538bd0d008 100644
  	tcp_rate_gen(sk, delivered, lost, is_sack_reneg, sack_state.rate);
  	tcp_cong_control(sk, ack, delivered, flag, sack_state.rate);
  	tcp_xmit_recovery(sk, rexmit);
+@@ -5261,13 +5279,14 @@
+ 
+ 	    /* More than one full frame received... */
+ 	if (((tp->rcv_nxt - tp->rcv_wup) > inet_csk(sk)->icsk_ack.rcv_mss &&
++	     (tp->fast_ack_mode == 1 ||
+ 	     /* ... and right edge of window advances far enough.
+ 	      * (tcp_recvmsg() will send ACK otherwise).
+ 	      * If application uses SO_RCVLOWAT, we want send ack now if
+ 	      * we have not received enough bytes to satisfy the condition.
+ 	      */
+ 	    (tp->rcv_nxt - tp->copied_seq < sk->sk_rcvlowat ||
+-	     __tcp_select_window(sk) >= tp->rcv_wnd)) ||
++	       __tcp_select_window(sk) >= tp->rcv_wnd))) ||
+ 	    /* We ACK each frame or... */
+ 	    tcp_in_quickack_mode(sk) ||
+ 	    /* Protocol state mandates a one-time immediate ACK */
 diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
 index be6d22b8190f..4943f96aade8 100644
 --- a/net/ipv4/tcp_output.c
@@ -3188,10 +3231,10 @@ index be6d22b8190f..4943f96aade8 100644
 +
 +		/* Set buff tx.in_flight as if buff were sent by itself. */
 +		inflight_prev = TCP_SKB_CB(skb)->tx.in_flight - old_factor;
-+		/* if (WARN_ONCE(inflight_prev < 0,
++		if (WARN_ONCE(inflight_prev < 0,
 +			      "inconsistent: tx.in_flight: %u old_factor: %d",
-+			      TCP_SKB_CB(skb)->tx.in_flight, old_factor)) */
-+		if (inflight_prev < 0) inflight_prev = 0;
++			      TCP_SKB_CB(skb)->tx.in_flight, old_factor))
++			inflight_prev = 0;
 +		TCP_SKB_CB(buff)->tx.in_flight = inflight_prev +
 +						 tcp_skb_pcount(buff);
  	}
@@ -3306,9 +3349,10 @@ index 0de693565963..796fa6e5310c 100644
  				    rs->prior_mstamp); /* ack phase */
  	rs->interval_us = max(snd_us, ack_us);
  
-diff -rNEZbwBdu3 a/net/ipv4/tcp_timer.c b/net/ipv4/tcp_timer.c
---- a/net/ipv4/tcp_timer.c	2021-06-03 14:59:17.000000000 +0800
-+++ b/net/ipv4/tcp_timer.c	2021-07-23 16:23:30.821912330 +0800
+diff --git a/net/ipv4/tcp_timer.c b/net/ipv4/tcp_timer.c
+index dd5a6317a801..1da66d4bbb08 100644
+--- a/net/ipv4/tcp_timer.c
++++ b/net/ipv4/tcp_timer.c
 @@ -602,6 +602,7 @@
  		goto out;
  	}
