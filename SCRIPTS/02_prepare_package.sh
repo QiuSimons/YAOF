@@ -56,15 +56,15 @@ cp -rf ../openwrt-lienol/package/network/fullconenat ./package/network/fullconen
 
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
-pushd target/linux/generic/hack-5.4
-wget https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
-popd
+#pushd target/linux/generic/hack-5.4
+#wget https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
+#popd
 # Patch LuCI 以增添 Shortcut-FE 开关
-patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
+#patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
 # Shortcut-FE 相关组件
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/lean/shortcut-fe
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/lean/fast-classifier
-wget -P package/base-files/files/etc/init.d/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/shortcut-fe
+#svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/lean/shortcut-fe
+#svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/lean/fast-classifier
+#wget -P package/base-files/files/etc/init.d/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/shortcut-fe
 
 ### 获取额外的基础软件包 ###
 # AutoCore
