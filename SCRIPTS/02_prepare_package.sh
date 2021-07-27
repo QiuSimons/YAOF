@@ -3,7 +3,7 @@ clear
 
 ### 基础部分 ###
 # 使用 O3 级别的优化
-sed -i 's/Os/O3/g' include/target.mk
+sed -i 's/Os/O3 -funsafe-math-optimizations -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections/g' include/target.mk
 # 更新 Feeds
 ./scripts/feeds update -a
 ./scripts/feeds install -a
@@ -26,6 +26,16 @@ echo "net.netfilter.nf_conntrack_helper = 1" >> ./package/kernel/linux/files/sys
 patch -p1 < ../PATCH/BBRv2/openwrt-kmod-bbr2.patch
 cp -f ../PATCH/BBRv2/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch ./target/linux/generic/hack-5.4/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch
 wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
+
+# Grub 2
+wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/afed16a.patch | patch -p1
+
+# Haproxy
+rm -rf ./feeds/packages/net/haproxy
+svn co https://github.com/openwrt/packages/trunk/net/haproxy feeds/packages/net/haproxy
+pushd feeds/packages
+wget -qO - https://github.com/QiuSimons/packages/commit/e365bd2.patch | patch -p1
+popd
 
 # OPENSSL
 wget -qO - https://github.com/mj22226/openwrt/commit/5e10633.patch | patch -p1

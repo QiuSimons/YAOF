@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# 使用 O2 级别的优化
-sed -i 's/O3/O2/g' include/target.mk
 
 # 在 X86 架构下移除 Shadowsocks-rust
 sed -i '/Rust:/d' package/lean/luci-app-ssr-plus/Makefile
