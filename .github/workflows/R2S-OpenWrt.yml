@@ -136,9 +136,9 @@ jobs:
       id: create_release
       uses: ncipollo/release-action@v1.8.0
       with:
-        name: OpenWRT-R2S-R4S-X86-21.02.0-RC3
+        name: OpenWRT-R2S-R4S-X86-21.02.0-RC4
         allowUpdates: true
-        tag: 21.02.0-rc3
+        tag: 21.02.0-rc4
         commit: master
         replacesArtifacts: true
         token: ${{ secrets.workflow_token }}
