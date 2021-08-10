@@ -22,24 +22,6 @@ sed -i '/unshift/d' scripts/download.pl
 sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >> ./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
-# BBRv2
-patch -p1 < ../PATCH/BBRv2/openwrt-kmod-bbr2.patch
-cp -f ../PATCH/BBRv2/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch ./target/linux/generic/hack-5.4/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch
-wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
-
-# Grub 2
-wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/afed16a.patch | patch -p1
-
-# Haproxy
-rm -rf ./feeds/packages/net/haproxy
-svn co https://github.com/openwrt/packages/trunk/net/haproxy feeds/packages/net/haproxy
-pushd feeds/packages
-wget -qO - https://github.com/QiuSimons/packages/commit/e365bd2.patch | patch -p1
-popd
-
-# OPENSSL
-wget -qO - https://github.com/mj22226/openwrt/commit/5e10633.patch | patch -p1
-
 ### 必要的 Patches ###
 # Patch arm64 型号名称
 wget -P target/linux/generic/hack-5.4/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
@@ -49,6 +31,20 @@ patch -p1 < ../PATCH/jsonc/use_json_object_new_int64.patch
 patch -p1 < ../PATCH/dnsmasq/dnsmasq-add-filter-aaaa-option.patch
 patch -p1 < ../PATCH/dnsmasq/luci-add-filter-aaaa-option.patch
 cp -f ../PATCH/dnsmasq/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
+# BBRv2
+patch -p1 < ../PATCH/BBRv2/openwrt-kmod-bbr2.patch
+cp -f ../PATCH/BBRv2/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch ./target/linux/generic/hack-5.4/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch
+wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
+# Grub 2
+wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/afed16a.patch | patch -p1
+# Haproxy
+rm -rf ./feeds/packages/net/haproxy
+svn co https://github.com/openwrt/packages/trunk/net/haproxy feeds/packages/net/haproxy
+pushd feeds/packages
+wget -qO - https://github.com/QiuSimons/packages/commit/e365bd2.patch | patch -p1
+popd
+# OPENSSL
+wget -qO - https://github.com/mj22226/openwrt/commit/5e10633.patch | patch -p1
 
 ### Fullcone-NAT 部分 ###
 # Patch Kernel 以解决 FullCone 冲突
@@ -83,6 +79,10 @@ svn co https://github.com/immortalwrt/immortalwrt/branches/master/target/linux/r
 rm -rf ./package/boot/uboot-rockchip
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/uboot-rockchip package/boot/uboot-rockchip
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
+# R4S超频到 2.2/1.8 GHz
+rm -rf ./target/linux/rockchip/patches-5.4/992-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch
+cp -f ../PATCH/target_r4s/991-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch ./target/linux/rockchip/patches-5.4/991-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch
+cp -f ../PATCH/target_r4s/213-RK3399-set-critical-CPU-temperature-for-thermal-throttling.patch ./target/linux/rockchip/patches-5.4/213-RK3399-set-critical-CPU-temperature-for-thermal-throttling.patch
 # AutoCore
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/emortal/autocore package/lean/autocore
 rm -rf ./feeds/packages/utils/coremark

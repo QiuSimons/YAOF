@@ -101,7 +101,7 @@ jobs:
         df -h
         cd openwrt
         let Make_Process=$(nproc)+2
-        make -j${Make_Process} V=w
+        make -j${Make_Process} || make -j${Make_Process} V=s
         echo $?
     - name: If Error
       if: steps.compileopenwrt.outcome == 'failure'
