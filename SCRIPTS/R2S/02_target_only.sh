@@ -28,19 +28,6 @@ wget https://downloads.openwrt.org/releases/${latest_version}/targets/rockchip/a
 zgrep -m 1 "Depends: kernel (=.*)$" Packages.gz | sed -e 's/.*-\(.*\))/\1/' > .vermagic
 sed -i -e 's/^\(.\).*vermagic$/\1cp $(TOPDIR)\/.vermagic $(LINUX_DIR)\/.vermagic/' include/kernel-defaults.mk
 
-# 内核加解密组件
-echo '
-' >> ./target/linux/rockchip/armv8/config-5.4
-
-# MPTCP
-#echo '
-#CONFIG_MPTCP=y
-#CONFIG_MPTCP_PM_ADVANCED=y
-#CONFIG_MPTCP_FULLMESH=y
-#CONFIG_DEFAULT_FULLMESH=y
-#CONFIG_DEFAULT_MPTCP_PM="fullmesh"
-#' >> ./target/linux/rockchip/armv8/config-5.4
-
 # 预配置一些插件
 cp -rf ../PATCH/files ./files
 
