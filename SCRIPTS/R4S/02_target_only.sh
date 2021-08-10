@@ -18,6 +18,12 @@ CONFIG_CRYPTO_DEV_ROCKCHIP=y
 CONFIG_HW_RANDOM_ROCKCHIP=y
 ' >> ./target/linux/rockchip/armv8/config-5.4
 
+# CacULE
+sed -i '/CONFIG_NR_CPUS/d' ./target/linux/rockchip/armv8/config-5.4
+echo '
+CONFIG_NR_CPUS=6
+' >> ./target/linux/rockchip/armv8/config-5.4
+
 # IRQ 调优
 sed -i '/set_interface_core 20 "eth1"/a\set_interface_core 8 "ff3c0000" "ff3c0000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 sed -i '/set_interface_core 20 "eth1"/a\ethtool -C eth0 rx-usecs 1000 rx-frames 25 tx-usecs 100 tx-frames 25' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
