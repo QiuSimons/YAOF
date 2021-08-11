@@ -10,6 +10,12 @@ echo '
 CONFIG_CRYPTO_AES_NI_INTEL=y
 ' >> ./target/linux/x86/64/config-5.4
 
+# UKSM
+echo '
+CONFIG_KSM=y
+CONFIG_UKSM=y
+' >> ./target/linux/x86/64/config-5.4
+
 #Vermagic
 latest_version="$(curl -s https://github.com/openwrt/openwrt/releases |grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" |sed -n '/21/p' |sed -n 1p |sed 's/v//g' |sed 's/.tar.gz//g')"
 wget https://downloads.openwrt.org/releases/${latest_version}/targets/x86/64/packages/Packages.gz
