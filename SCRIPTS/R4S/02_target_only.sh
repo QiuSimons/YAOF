@@ -10,18 +10,16 @@ sed -i 's,kmod-r8169,kmod-r8168,g' target/linux/rockchip/image/armv8.mk
 wget -P target/linux/rockchip/armv8/base-files/etc/init.d/ https://github.com/friendlyarm/friendlywrt/raw/master-v19.07.1/target/linux/rockchip-rk3399/base-files/etc/init.d/fa-rk3399-pwmfan
 wget -P target/linux/rockchip/armv8/base-files/usr/bin/ https://github.com/friendlyarm/friendlywrt/raw/master-v19.07.1/target/linux/rockchip-rk3399/base-files/usr/bin/start-rk3399-pwm-fan.sh
 
-# 测试性功能
-sed -i '/CRYPTO_DEV_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
-sed -i '/HW_RANDOM_ROCKCHIP/d' ./target/linux/rockchip/armv8/config-5.4
-echo '
-CONFIG_CRYPTO_DEV_ROCKCHIP=y
-CONFIG_HW_RANDOM_ROCKCHIP=y
-' >> ./target/linux/rockchip/armv8/config-5.4
-
 # CacULE
 sed -i '/CONFIG_NR_CPUS/d' ./target/linux/rockchip/armv8/config-5.4
 echo '
 CONFIG_NR_CPUS=6
+' >> ./target/linux/rockchip/armv8/config-5.4
+
+# UKSM
+echo '
+CONFIG_KSM=y
+CONFIG_UKSM=y
 ' >> ./target/linux/rockchip/armv8/config-5.4
 
 # IRQ 调优
