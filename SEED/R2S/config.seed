@@ -19,6 +19,7 @@ CONFIG_PACKAGE_r8169-firmware=y
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
 CONFIG_PACKAGE_autocore-arm=y
+CONFIG_PACKAGE_block-mount=y
 CONFIG_PACKAGE_ipv6helper=y
 CONFIG_PACKAGE_cgi-io=y
 CONFIG_PACKAGE_ethtool=y
