@@ -1,4 +1,4 @@
-name: R4S-OpenWrt
+name: R2C-OpenWrt
 
 on:
 #  schedule:
@@ -50,12 +50,16 @@ jobs:
     - name: Prepare Mixedwrt
       run: |
         sudo chown -R runner:runner /home/runner/work/YAOF
-        cp -r ./SCRIPTS/R4S/. ./SCRIPTS/
+        cp -r ./SCRIPTS/R2C/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
     - name: Prepare Package
       run: |
         cd openwrt
+        rm -rf target/linux/rockchip
+        svn co https://github.com/immortalwrt/immortalwrt/branches/master/target/linux/rockchip target/linux/rockchip
+        rm -rf package/boot
+        svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/boot package/boot
         cp -r ../SCRIPTS/. ./
         /bin/bash 02_prepare_package.sh
         /bin/bash 02_target_only.sh
@@ -70,9 +74,8 @@ jobs:
     - name: Make Config
       run: |
         cd openwrt
-        mv ../SEED/R4S/config.seed .config
+        mv ../SEED/R2C/config.seed .config
         make defconfig
-
     - name: Smart chmod
       run: |
         MY_Filter=$(mktemp)
@@ -82,7 +85,6 @@ jobs:
         find ./ -type f | grep -v -f ${MY_Filter} | xargs -s1024 file | grep 'executable\|ELF' | cut -d ':' -f1 | xargs -s1024 chmod 755
         rm -f ${MY_Filter}
         unset MY_Filter
-
     - name: Make Download
       run: |
         df -h
@@ -122,9 +124,9 @@ jobs:
         gzip -d *.gz && exit 0
         gzip --best *.img
         ls -Ahl
-        sha256sum openwrt*r4s* | tee R4S-GC404-$(date +%Y-%m-%d)-21.02.sha256sum
-        zip R4S-GC404-$(date +%Y-%m-%d)-21.02-ext4.zip *r4s*ext4*
-        zip R4S-GC404-$(date +%Y-%m-%d)-21.02-sfs.zip *r4s*squashfs*
+        sha256sum openwrt*r2s* | tee R2C-GC404-$(date +%Y-%m-%d)-21.02.sha256sum
+        zip R2C-GC404-$(date +%Y-%m-%d)-21.02-ext4.zip *r2s*ext4*
+        zip R2C-GC404-$(date +%Y-%m-%d)-21.02-sfs.zip *r2s*squashfs*
         ls -Ahl
     - name: Upload artifact
       uses: actions/upload-artifact@main

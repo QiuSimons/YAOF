@@ -49,7 +49,7 @@ jobs:
         df -h
     - name: Prepare Mixedwrt
       run: |
-        sudo chown -R runner:runner /home/runner/work/R2S-R4S-X86-OpenWrt
+        sudo chown -R runner:runner /home/runner/work/YAOF
         cp -r ./SCRIPTS/R2S/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
@@ -136,7 +136,7 @@ jobs:
       id: create_release
       uses: ncipollo/release-action@v1.8.0
       with:
-        name: OpenWRT-R2S-R4S-X86-21.02.0-RC4
+        name: OpenWRT-21.02.0-RC4
         allowUpdates: true
         tag: 21.02.0-rc4
         commit: master
