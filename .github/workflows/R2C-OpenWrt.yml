@@ -50,7 +50,7 @@ jobs:
     - name: Prepare Mixedwrt
       run: |
         sudo chown -R runner:runner /home/runner/work/YAOF
-        cp -r ./SCRIPTS/R2C/. ./SCRIPTS/
+        cp -r ./SCRIPTS/R2S/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
     - name: Prepare Package
@@ -124,9 +124,9 @@ jobs:
         gzip -d *.gz && exit 0
         gzip --best *.img
         ls -Ahl
-        sha256sum openwrt*r2s* | tee R2C-GC404-$(date +%Y-%m-%d)-21.02.sha256sum
-        zip R2C-GC404-$(date +%Y-%m-%d)-21.02-ext4.zip *r2s*ext4*
-        zip R2C-GC404-$(date +%Y-%m-%d)-21.02-sfs.zip *r2s*squashfs*
+        sha256sum openwrt*r2c* | tee R2C-GC404-$(date +%Y-%m-%d)-21.02.sha256sum
+        zip R2C-GC404-$(date +%Y-%m-%d)-21.02-ext4.zip *r2c*ext4*
+        zip R2C-GC404-$(date +%Y-%m-%d)-21.02-sfs.zip *r2c*squashfs*
         ls -Ahl
     - name: Upload artifact
       uses: actions/upload-artifact@main
