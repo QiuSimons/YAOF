@@ -340,6 +340,9 @@ svn co https://github.com/immortalwrt/packages/trunk/libs/quickjspp feeds/packag
 ln -sf ../../../feeds/packages/libs/quickjspp ./package/feeds/packages/quickjspp
 # 网易云音乐解锁
 git clone --depth 1 https://github.com/immortalwrt/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
+#pushd package/new/UnblockNeteaseMusic
+#wget -qO - https://github.com/immortalwrt/luci-app-unblockneteasemusic/pull/78.patch | patch -p1
+#popd
 # USB 打印机
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-usb-printer package/lean/luci-app-usb-printer
 # UU加速器

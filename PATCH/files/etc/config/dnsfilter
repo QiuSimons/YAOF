@@ -4,7 +4,6 @@ config dnsfilter
 	option time_update '6'
 	option flash '0'
 	option enable '1'
-	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/FiltersRegistry@master/filters/filter_2_English/filter.txt'
-	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/FiltersRegistry@master/filters/filter_224_Chinese/filter.txt'
-	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/FiltersRegistry@master/filters/filter_14_Annoyances/filter.txt'
+	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/AdGuardSDNSFilter@gh-pages/Filters/filter.txt'
+	list url 'https://cdn.jsdelivr.net/gh/easylist/easylistchina@master/easylistchina.txt'
 
