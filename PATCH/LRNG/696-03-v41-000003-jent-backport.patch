@@ -1,0 +1,80 @@
+commit 965d7286d871b622dcaaafd2e2346b11631584ff
+Author: Ben Dooks <ben.dooks@codethink.co.uk>
+Date:   Wed Oct 9 10:12:56 2019 +0100
+
+    crypto: jitter - add header to fix buildwarnings
+    
+    Fix the following build warnings by adding a header for
+    the definitions shared between jitterentropy.c and
+    jitterentropy-kcapi.c. Fixes the following:
+    
+    crypto/jitterentropy.c:445:5: warning: symbol 'jent_read_entropy' was not declared. Should it be static?
+    crypto/jitterentropy.c:475:18: warning: symbol 'jent_entropy_collector_alloc' was not declared. Should it be static?
+    crypto/jitterentropy.c:509:6: warning: symbol 'jent_entropy_collector_free' was not declared. Should it be static?
+    crypto/jitterentropy.c:516:5: warning: symbol 'jent_entropy_init' was not declared. Should it be static?
+    crypto/jitterentropy-kcapi.c:59:6: warning: symbol 'jent_zalloc' was not declared. Should it be static?
+    crypto/jitterentropy-kcapi.c:64:6: warning: symbol 'jent_zfree' was not declared. Should it be static?
+    crypto/jitterentropy-kcapi.c:69:5: warning: symbol 'jent_fips_enabled' was not declared. Should it be static?
+    crypto/jitterentropy-kcapi.c:74:6: warning: symbol 'jent_panic' was not declared. Should it be static?
+    crypto/jitterentropy-kcapi.c:79:6: warning: symbol 'jent_memcpy' was not declared. Should it be static?
+    crypto/jitterentropy-kcapi.c:93:6: warning: symbol 'jent_get_nstime' was not declared. Should it be static?
+    
+    Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+    Reviewed-by: Stephan Mueller <smueller@chronox.de
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+
+--- a/crypto/jitterentropy-kcapi.c
++++ b/crypto/jitterentropy-kcapi.c
+@@ -44,13 +44,7 @@
+ #include <linux/crypto.h>
+ #include <crypto/internal/rng.h>
+ 
+-struct rand_data;
+-int jent_read_entropy(struct rand_data *ec, unsigned char *data,
+-		      unsigned int len);
+-int jent_entropy_init(void);
+-struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
+-					       unsigned int flags);
+-void jent_entropy_collector_free(struct rand_data *entropy_collector);
++#include "jitterentropy.h"
+ 
+ /***************************************************************************
+  * Helper function
+--- a/crypto/jitterentropy.c
++++ b/crypto/jitterentropy.c
+@@ -103,12 +103,7 @@ struct rand_data {
+  * Helper functions
+  ***************************************************************************/
+ 
+-void jent_get_nstime(__u64 *out);
+-void *jent_zalloc(unsigned int len);
+-void jent_zfree(void *ptr);
+-int jent_fips_enabled(void);
+-void jent_panic(char *s);
+-void jent_memcpy(void *dest, const void *src, unsigned int n);
++#include "jitterentropy.h"
+ 
+ /**
+  * Update of the loop count used for the next round of
+--- /dev/null
++++ b/crypto/jitterentropy.h
+@@ -0,0 +1,19 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++typedef unsigned long long      __u64;
++
++extern void *jent_zalloc(unsigned int len);
++extern void jent_zfree(void *ptr);
++extern int jent_fips_enabled(void);
++extern void jent_panic(char *s);
++extern void jent_memcpy(void *dest, const void *src, unsigned int n);
++extern void jent_get_nstime(__u64 *out);
++
++struct rand_data;
++extern int jent_entropy_init(void);
++extern int jent_read_entropy(struct rand_data *ec, unsigned char *data,
++			     unsigned int len);
++
++extern struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
++						      unsigned int flags);
++extern void jent_entropy_collector_free(struct rand_data *entropy_collector);

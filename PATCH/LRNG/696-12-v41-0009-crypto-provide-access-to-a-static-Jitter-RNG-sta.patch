@@ -1,0 +1,148 @@
+From 927d21648cb471466dc4ee32e1de9964b74d8b95 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Wed, 16 Sep 2020 09:50:27 +0200
+Subject: [PATCH v41 09/13] crypto: provide access to a static Jitter RNG state
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+To support the LRNG operation which uses the Jitter RNG separately
+from the kernel crypto API, at a time where potentially the regular
+memory management is not yet initialized, the Jitter RNG needs to
+provide a state whose memory is defined at compile time. As only once
+instance will ever be needed by the LRNG, define once static memory
+block which is solely to be used by the LRNG.
+
+CC: Torsten Duwe <duwe@lst.de>
+CC: "Eric W. Biederman" <ebiederm@xmission.com>
+CC: "Alexander E. Patrakov" <patrakov@gmail.com>
+CC: "Ahmed S. Darwish" <darwish.07@gmail.com>
+CC: "Theodore Y. Ts'o" <tytso@mit.edu>
+CC: Willy Tarreau <w@1wt.eu>
+CC: Matthew Garrett <mjg59@srcf.ucam.org>
+CC: Vito Caputo <vcaputo@pengaru.com>
+CC: Andreas Dilger <adilger.kernel@dilger.ca>
+CC: Jan Kara <jack@suse.cz>
+CC: Ray Strode <rstrode@redhat.com>
+CC: William Jon McCann <mccann@jhu.edu>
+CC: zhangjs <zachary@baishancloud.com>
+CC: Andy Lutomirski <luto@kernel.org>
+CC: Florian Weimer <fweimer@redhat.com>
+CC: Lennart Poettering <mzxreary@0pointer.de>
+CC: Nicolai Stange <nstange@suse.de>
+CC: Alexander Lobakin <alobakin@mailbox.org>
+Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
+Tested-by: Roman Drahtmüller <draht@schaltsekun.de>
+Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
+Tested-by: Neil Horman <nhorman@redhat.com>
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ crypto/jitterentropy-kcapi.c                  |  3 +-
+ crypto/jitterentropy.c                        | 31 ++++++++++++++++++-
+ .../crypto/internal}/jitterentropy.h          |  3 ++
+ 3 files changed, 34 insertions(+), 3 deletions(-)
+ rename {crypto => include/crypto/internal}/jitterentropy.h (84%)
+
+--- a/crypto/jitterentropy-kcapi.c
++++ b/crypto/jitterentropy-kcapi.c
+@@ -43,8 +43,7 @@
+ #include <linux/time.h>
+ #include <linux/crypto.h>
+ #include <crypto/internal/rng.h>
+-
+-#include "jitterentropy.h"
++#include <crypto/internal/jitterentropy.h>
+ 
+ /***************************************************************************
+  * Helper function
+--- a/crypto/jitterentropy.c
++++ b/crypto/jitterentropy.c
+@@ -103,7 +103,7 @@ struct rand_data {
+  * Helper functions
+  ***************************************************************************/
+ 
+-#include "jitterentropy.h"
++#include <crypto/internal/jitterentropy.h>
+ 
+ /**
+  * Update of the loop count used for the next round of
+@@ -639,3 +639,32 @@ int jent_entropy_init(void)
+ 
+ 	return 0;
+ }
++
++struct rand_data *jent_lrng_entropy_collector(void)
++{
++	static unsigned char lrng_jent_mem[JENT_MEMORY_SIZE];
++	static struct rand_data lrng_jent_state = {
++		.data		= 0,
++		.old_data	= 0,
++		.prev_time	= 0,
++		.last_delta	= 0,
++		.last_delta2	= 0,
++		.osr		= 1,
++		.mem		= lrng_jent_mem,
++		.memlocation	= 0,
++		.memblocks	= JENT_MEMORY_BLOCKSIZE,
++		.memblocksize	= JENT_MEMORY_BLOCKS,
++		.memaccessloops	= JENT_MEMORY_ACCESSLOOPS,
++		.rct_count	= 0,
++		.apt_observations = 0,
++		.apt_count	= 0,
++		.apt_base	= 0,
++		.apt_base_set	= 0,
++		.health_failure = 0
++	};
++
++	if (jent_entropy_init())
++		return NULL;
++
++	return &lrng_jent_state;
++}
+--- a/crypto/jitterentropy.h
++++ /dev/null
+@@ -1,19 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
+-
+-typedef unsigned long long      __u64;
+-
+-extern void *jent_zalloc(unsigned int len);
+-extern void jent_zfree(void *ptr);
+-extern int jent_fips_enabled(void);
+-extern void jent_panic(char *s);
+-extern void jent_memcpy(void *dest, const void *src, unsigned int n);
+-extern void jent_get_nstime(__u64 *out);
+-
+-struct rand_data;
+-extern int jent_entropy_init(void);
+-extern int jent_read_entropy(struct rand_data *ec, unsigned char *data,
+-			     unsigned int len);
+-
+-extern struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
+-						      unsigned int flags);
+-extern void jent_entropy_collector_free(struct rand_data *entropy_collector);
+--- /dev/null
++++ b/include/crypto/internal/jitterentropy.h
+@@ -0,0 +1,22 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++typedef unsigned long long      __u64;
++
++extern void *jent_zalloc(unsigned int len);
++extern void jent_zfree(void *ptr);
++extern int jent_fips_enabled(void);
++extern void jent_panic(char *s);
++extern void jent_memcpy(void *dest, const void *src, unsigned int n);
++extern void jent_get_nstime(__u64 *out);
++
++struct rand_data;
++extern int jent_entropy_init(void);
++extern int jent_read_entropy(struct rand_data *ec, unsigned char *data,
++			     unsigned int len);
++
++extern struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
++						      unsigned int flags);
++extern void jent_entropy_collector_free(struct rand_data *entropy_collector);
++
++/* Access to statically allocated Jitter RNG instance */
++extern struct rand_data *jent_lrng_entropy_collector(void);

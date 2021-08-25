@@ -1,0 +1,32 @@
+--- a/drivers/char/lrng/lrng_internal.h
++++ b/drivers/char/lrng/lrng_internal.h
+@@ -6,8 +6,7 @@
+ #ifndef _LRNG_INTERNAL_H
+ #define _LRNG_INTERNAL_H
+ 
+-#include <crypto/sha1.h>
+-#include <crypto/sha2.h>
++#include <crypto/sha.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+--- a/drivers/char/lrng/lrng_chacha20.c
++++ b/drivers/char/lrng/lrng_chacha20.c
+@@ -189,7 +189,7 @@ static void lrng_cc20_drng_dealloc(void
+ 
+ #ifdef CONFIG_CRYPTO_LIB_SHA256
+ 
+-#include <crypto/sha2.h>
++#include <crypto/sha.h>
+ 
+ static u32 lrng_cc20_hash_digestsize(void *hash)
+ {
+@@ -231,7 +231,7 @@ static void lrng_cc20_hash_desc_zero(str
+ 
+ #else /* CONFIG_CRYPTO_LIB_SHA256 */
+ 
+-#include <crypto/sha1.h>
++#include <crypto/sha.h>
+ #include <crypto/sha1_base.h>
+ 
+ /*

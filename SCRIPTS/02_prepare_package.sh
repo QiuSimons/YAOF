@@ -41,6 +41,12 @@ wget https://github.com/hamadmarri/cacule-cpu-scheduler/raw/master/patches/CacUL
 #wget https://github.com/hamadmarri/cacule-cpu-scheduler/raw/vR2.1/patches/CacULE/v5.4/cacule-5.4.patch -O ./target/linux/generic/hack-5.4/694-cacule-5.4.patch
 # UKSM
 cp -f ../PATCH/UKSM/695-uksm-5.4.patch ./target/linux/generic/hack-5.4/695-uksm-5.4.patch
+# LRNG
+cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.4/
+echo '
+CONFIG_LRNG=y
+CONFIG_LRNG_JENT=y
+' >> ./target/linux/generic/config-5.4
 # Grub 2
 wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/afed16a.patch | patch -p1
 # Haproxy

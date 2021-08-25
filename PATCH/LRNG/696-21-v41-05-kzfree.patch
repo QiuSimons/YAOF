@@ -1,0 +1,44 @@
+--- a/drivers/char/lrng/lrng_chacha20.c
++++ b/drivers/char/lrng/lrng_chacha20.c
+@@ -182,7 +182,7 @@ static void lrng_cc20_drng_dealloc(void
+ 	}
+ 
+ 	pr_debug("ChaCha20 core zeroized and freed\n");
+-	kfree_sensitive(chacha20_state);
++	kzfree(chacha20_state);
+ }
+ 
+ /******************************* Hash Operation *******************************/
+--- a/drivers/char/lrng/lrng_drbg.c
++++ b/drivers/char/lrng/lrng_drbg.c
+@@ -140,7 +140,7 @@ static void lrng_drbg_drng_dealloc(void
+ 	if (drbg && drbg->d_ops)
+ 		drbg->d_ops->crypto_fini(drbg);
+ 	drbg_dealloc_state(drbg);
+-	kfree_sensitive(drbg);
++	kzfree(drbg);
+ 	pr_info("DRBG deallocated\n");
+ }
+ 
+--- a/drivers/char/lrng/lrng_interfaces.c
++++ b/drivers/char/lrng/lrng_interfaces.c
+@@ -431,7 +431,7 @@ static ssize_t lrng_read_common(char __u
+ 
+ 	/* Wipe data just returned from memory */
+ 	if (tmp_large)
+-		kfree_sensitive(tmp_large);
++		kzfree(tmp_large);
+ 	else
+ 		memzero_explicit(tmpbuf, sizeof(tmpbuf));
+ 
+--- a/drivers/char/lrng/lrng_testing.c
++++ b/drivers/char/lrng/lrng_testing.c
+@@ -236,7 +236,7 @@ static int lrng_testing_extract_user(str
+ 		ret += i;
+ 	}
+ 
+-	kfree_sensitive(tmp);
++	kzfree(tmp);
+ 
+ 	if (ret > 0)
+ 		*ppos += ret;
