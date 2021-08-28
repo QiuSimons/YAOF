@@ -6,4 +6,4 @@ config dnsfilter
 	option enable '1'
 	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/AdGuardSDNSFilter@gh-pages/Filters/filter.txt'
 	list url 'https://cdn.jsdelivr.net/gh/easylist/easylistchina@master/easylistchina.txt'
-
+	list url 'https://ewpratten.retrylife.ca/youtube_ad_blocklist/dnsmasq.txt'
