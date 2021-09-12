@@ -71,8 +71,8 @@ jobs:
       run: |
         cd openwrt
         mv ../SEED/X86/config.seed .config
+        #echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config
         make defconfig
-
     - name: Smart chmod
       run: |
         MY_Filter=$(mktemp)
@@ -82,26 +82,23 @@ jobs:
         find ./ -type f | grep -v -f ${MY_Filter} | xargs -s1024 file | grep 'executable\|ELF' | cut -d ':' -f1 | xargs -s1024 chmod 755
         rm -f ${MY_Filter}
         unset MY_Filter
-
+    - name: Cache
+      uses: klever1988/cachewrtbuild@main
+      with:
+        ccache: 'true'
+        prefix: ${{ github.workspace }}/openwrt
     - name: Make Download
       run: |
         df -h
         cd openwrt
         make download -j50
-    - name: Make Toolchain
-      run: |
-        df -h
-        cd openwrt
-        let make_process=$(nproc)+2
-        make toolchain/install -j${make_process} || make toolchain/install -j${make_process} V=s
     - name: Compile Openwrt
       id: compileopenwrt
       continue-on-error: true
       run: |
         df -h
         cd openwrt
-        let Make_Process=$(nproc)+2
-        make -j${Make_Process} || make -j${Make_Process} V=s
+        make -j$(($(nproc) + 1)) || make -j$(($(nproc) + 1)) V=s
         echo $?
     - name: If Error
       if: steps.compileopenwrt.outcome == 'failure'
