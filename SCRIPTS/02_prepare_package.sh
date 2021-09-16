@@ -206,6 +206,8 @@ svn co https://github.com/QiuSimons/openwrt-mos/trunk/luci-app-mosdns package/ne
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-netdata package/lean/luci-app-netdata
 # 上网 APP 过滤
 git clone -b master --depth 1 https://github.com/destan19/OpenAppFilter.git package/new/OpenAppFilter
+sed -i 's,先关闭ACC加速,在防火墙中关闭 FullCone 及 流量分载 ,g' package/new/OpenAppFilter/luci-app-oaf/luasrc/model/cbi/appfilter/appfilter.lua
+sed -i 's,flowoffload.@flow[0],firewall.@defaults[0],g' package/new/OpenAppFilter/luci-app-oaf/luasrc/model/cbi/appfilter/appfilter.lua
 # OLED 驱动程序
 git clone -b master --depth 1 https://github.com/NateLol/luci-app-oled.git package/new/luci-app-oled
 # OpenClash
