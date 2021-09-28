@@ -70,8 +70,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 234 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_switch.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 1cb2f55666ac..c10a0c3f2015 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -202,4 +202,11 @@ config LRNG_CPU_ENTROPY_RATE
@@ -86,8 +84,6 @@ index 1cb2f55666ac..c10a0c3f2015 100644
 +	  option other DRNGs can be selected and loaded at runtime.
 +
  endif # LRNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 3144e87c2166..dc3ef329b2c4 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -10,3 +10,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
@@ -95,9 +91,6 @@ index 3144e87c2166..dc3ef329b2c4 100644
  obj-$(CONFIG_NUMA)		+= lrng_numa.o
  obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
 +obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
-diff --git a/drivers/char/lrng/lrng_switch.c b/drivers/char/lrng/lrng_switch.c
-new file mode 100644
-index 000000000000..f3b2f30d1c21
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_switch.c
 @@ -0,0 +1,226 @@
@@ -327,6 +320,3 @@ index 000000000000..f3b2f30d1c21
 +	return ret;
 +}
 +EXPORT_SYMBOL(lrng_set_drng_cb);
--- 
-2.31.1
-

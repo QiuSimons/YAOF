@@ -51,7 +51,7 @@ wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/afed16a.pa
 rm -rf ./feeds/packages/net/haproxy
 svn co https://github.com/openwrt/packages/trunk/net/haproxy feeds/packages/net/haproxy
 pushd feeds/packages
-wget -qO - https://github.com/QiuSimons/packages/commit/e365bd2.patch | patch -p1
+wget -qO - https://github.com/QiuSimons/packages/commit/7ffbfbe.patch | patch -p1
 popd
 # OPENSSL
 wget -qO - https://github.com/mj22226/openwrt/commit/5e10633.patch | patch -p1
@@ -198,14 +198,12 @@ git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git pack
 # MentoHUST
 git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
 git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
-# Moschinadns
-svn co https://github.com/QiuSimons/openwrt-packages/branches/main/mos-chinadns package/new/mos-chinadns
-svn co https://github.com/QiuSimons/openwrt-packages/branches/main/luci-app-moschinadns package/new/luci-app-moschinadns
 # Mosdns
-svn co https://github.com/immortalwrt/packages/trunk/net/mosdns feeds/packages/net/mosdns
-ln -sf ../../../feeds/packages/net/mosdns ./package/feeds/packages/mosdns
-sed -i '/config.yaml/d' feeds/packages/net/mosdns/Makefile
-sed -i '/mosdns-init-openwrt/d' feeds/packages/net/mosdns/Makefile
+#svn co https://github.com/immortalwrt/packages/trunk/net/mosdns feeds/packages/net/mosdns
+#ln -sf ../../../feeds/packages/net/mosdns ./package/feeds/packages/mosdns
+#sed -i '/config.yaml/d' feeds/packages/net/mosdns/Makefile
+#sed -i '/mosdns-init-openwrt/d' feeds/packages/net/mosdns/Makefile
+svn co https://github.com/QiuSimons/openwrt-mos/trunk/mosdns package/new/mosdns
 svn co https://github.com/QiuSimons/openwrt-mos/trunk/luci-app-mosdns package/new/luci-app-mosdns
 # 流量监管
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-netdata package/lean/luci-app-netdata
@@ -283,7 +281,7 @@ ln -sf ../../../feeds/packages/net/kcptun ./package/feeds/packages/kcptun
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
 pushd package/lean
-wget -qO - https://github.com/fw876/helloworld/pull/656.patch | patch -p1
+#wget -qO - https://github.com/fw876/helloworld/pull/656.patch | patch -p1
 wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/5bbf6e7.patch | patch -p1
 wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/323fbf0.patch | patch -p1
 popd

@@ -50,8 +50,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  2 files changed, 124 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_numa.c
 
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index c26f932628d7..80b152059598 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -7,3 +7,5 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
@@ -60,9 +58,6 @@ index c26f932628d7..80b152059598 100644
  				   lrng_interfaces.o lrng_es_aux.o
 +
 +obj-$(CONFIG_NUMA)		+= lrng_numa.o
-diff --git a/drivers/char/lrng/lrng_numa.c b/drivers/char/lrng/lrng_numa.c
-new file mode 100644
-index 000000000000..fbfb40a5fb8d
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_numa.c
 @@ -0,0 +1,122 @@
@@ -188,6 +183,3 @@ index 000000000000..fbfb40a5fb8d
 +{
 +	schedule_work(&lrng_drngs_numa_alloc_work);
 +}
--- 
-2.31.1
-

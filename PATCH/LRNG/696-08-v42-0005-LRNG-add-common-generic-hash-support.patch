@@ -46,8 +46,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_kcapi_hash.c
  create mode 100644 drivers/char/lrng/lrng_kcapi_hash.h
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index c10a0c3f2015..ab17c45a356b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -209,4 +209,12 @@ menuconfig LRNG_DRNG_SWITCH
@@ -63,8 +61,6 @@ index c10a0c3f2015..ab17c45a356b 100644
 +endif # LRNG_DRNG_SWITCH
 +
  endif # LRNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index dc3ef329b2c4..299715bb0ec2 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -11,3 +11,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
@@ -72,9 +68,6 @@ index dc3ef329b2c4..299715bb0ec2 100644
  obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
  obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
 +obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
-diff --git a/drivers/char/lrng/lrng_kcapi_hash.c b/drivers/char/lrng/lrng_kcapi_hash.c
-new file mode 100644
-index 000000000000..9647d980e468
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_kcapi_hash.c
 @@ -0,0 +1,103 @@
@@ -181,9 +174,6 @@ index 000000000000..9647d980e468
 +	shash_desc_zero(shash);
 +}
 +EXPORT_SYMBOL(lrng_kcapi_hash_zero);
-diff --git a/drivers/char/lrng/lrng_kcapi_hash.h b/drivers/char/lrng/lrng_kcapi_hash.h
-new file mode 100644
-index 000000000000..2f94558d2dd6
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_kcapi_hash.h
 @@ -0,0 +1,20 @@
@@ -207,6 +197,3 @@ index 000000000000..2f94558d2dd6
 +void lrng_kcapi_hash_zero(struct shash_desc *shash);
 +
 +#endif /* _LRNG_KCAPI_HASH_H */
--- 
-2.31.1
-

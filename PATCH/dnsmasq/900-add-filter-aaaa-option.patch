@@ -1,7 +1,6 @@
-diff -rNEZbwBdu3 a/src/dnsmasq.h b/src/dnsmasq.h
---- a/src/dnsmasq.h	2020-04-09 00:32:53.000000000 +0800
-+++ b/src/dnsmasq.h	2020-06-05 23:03:45.941176855 +0800
-@@ -269,7 +269,8 @@
+--- a/src/dnsmasq.h
++++ b/src/dnsmasq.h
+@@ -270,7 +270,8 @@ struct event_desc {
  #define OPT_SINGLE_PORT    60
  #define OPT_LEASE_RENEW    61
  #define OPT_LOG_DEBUG      62
@@ -11,10 +10,9 @@ diff -rNEZbwBdu3 a/src/dnsmasq.h b/src/dnsmasq.h
  
  #define OPTION_BITS (sizeof(unsigned int)*8)
  #define OPTION_SIZE ( (OPT_LAST/OPTION_BITS)+((OPT_LAST%OPTION_BITS)!=0) )
-diff -rNEZbwBdu3 a/src/option.c b/src/option.c
---- a/src/option.c	2020-04-09 00:32:53.000000000 +0800
-+++ b/src/option.c	2020-06-05 23:06:29.880350271 +0800
-@@ -167,6 +167,7 @@
+--- a/src/option.c
++++ b/src/option.c
+@@ -170,6 +170,7 @@ struct myoption {
  #define LOPT_PXE_VENDOR    361
  #define LOPT_DYNHOST       362
  #define LOPT_LOG_DEBUG     363
@@ -22,7 +20,7 @@ diff -rNEZbwBdu3 a/src/option.c b/src/option.c
   
  #ifdef HAVE_GETOPT_LONG
  static const struct option opts[] =  
-@@ -339,6 +340,7 @@
+@@ -345,6 +346,7 @@ static const struct myoption opts[] =
      { "dhcp-ignore-clid", 0, 0,  LOPT_IGNORE_CLID },
      { "dynamic-host", 1, 0, LOPT_DYNHOST },
      { "log-debug", 0, 0, LOPT_LOG_DEBUG },
@@ -30,7 +28,7 @@ diff -rNEZbwBdu3 a/src/option.c b/src/option.c
      { NULL, 0, 0, 0 }
    };
  
-@@ -518,6 +520,7 @@
+@@ -527,6 +529,7 @@ static struct {
    { LOPT_DUMPFILE, ARG_ONE, "<path>", gettext_noop("Path to debug packet dump file"), NULL },
    { LOPT_DUMPMASK, ARG_ONE, "<hex>", gettext_noop("Mask which packets to dump"), NULL },
    { LOPT_SCRIPT_TIME, OPT_LEASE_RENEW, NULL, gettext_noop("Call dhcp-script when lease expiry changes."), NULL },
@@ -38,10 +36,9 @@ diff -rNEZbwBdu3 a/src/option.c b/src/option.c
    { 0, 0, NULL, NULL, NULL }
  }; 
  
-diff -rNEZbwBdu3 a/src/rfc1035.c b/src/rfc1035.c
---- a/src/rfc1035.c	2020-04-09 00:32:53.000000000 +0800
-+++ b/src/rfc1035.c	2020-06-05 23:08:46.476106541 +0800
-@@ -1955,6 +1955,15 @@
+--- a/src/rfc1035.c
++++ b/src/rfc1035.c
+@@ -1895,6 +1895,15 @@ size_t answer_request(struct dns_header
  	    }
  	}
  
