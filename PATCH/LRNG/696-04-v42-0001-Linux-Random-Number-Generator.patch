@@ -324,13 +324,11 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_internal.h
  create mode 100644 include/linux/lrng.h
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d7b4f32875a9..f609786d1d1d 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -10737,6 +10737,13 @@ F:	Documentation/litmus-tests/
+@@ -9494,6 +9494,13 @@ F:	Documentation/core-api/atomic_ops.rst
+ F:	Documentation/core-api/refcount-vs-atomic.rst
  F:	Documentation/memory-barriers.txt
- F:	tools/memory-model/
  
 +LINUX RANDOM NUMBER GENERATOR (LRNG) DRIVER
 +M:	Stephan Mueller <smueller@chronox.de>
@@ -342,11 +340,9 @@ index d7b4f32875a9..f609786d1d1d 100644
  LIS3LV02D ACCELEROMETER DRIVER
  M:	Eric Piel <eric.piel@tremplin-utc.net>
  S:	Maintained
-diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
-index ea3ead00f30f..10d1a41a01d2 100644
 --- a/drivers/char/Kconfig
 +++ b/drivers/char/Kconfig
-@@ -427,6 +427,8 @@ config ADI
+@@ -535,6 +535,8 @@ config ADI
  	  and SSM (Silicon Secured Memory).  Intended consumers of this
  	  driver include crash and makedumpfile.
  
@@ -355,8 +351,6 @@ index ea3ead00f30f..10d1a41a01d2 100644
  endmenu
  
  config RANDOM_TRUST_CPU
-diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index 264eb398fdd4..7371f7464a49 100644
 --- a/drivers/char/Makefile
 +++ b/drivers/char/Makefile
 @@ -3,7 +3,14 @@
@@ -375,9 +369,6 @@ index 264eb398fdd4..7371f7464a49 100644
  obj-$(CONFIG_TTY_PRINTK)	+= ttyprintk.o
  obj-y				+= misc.o
  obj-$(CONFIG_ATARI_DSP56K)	+= dsp56k.o
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-new file mode 100644
-index 000000000000..1cb2f55666ac
 --- /dev/null
 +++ b/drivers/char/lrng/Kconfig
 @@ -0,0 +1,205 @@
@@ -586,9 +577,6 @@ index 000000000000..1cb2f55666ac
 +endmenu # "Entropy Source Configuration"
 +
 +endif # LRNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-new file mode 100644
-index 000000000000..c26f932628d7
 --- /dev/null
 +++ b/drivers/char/lrng/Makefile
 @@ -0,0 +1,9 @@
@@ -601,9 +589,6 @@ index 000000000000..c26f932628d7
 +				   lrng_es_irq.o lrng_es_archrandom.o \
 +				   lrng_drng.o lrng_chacha20.o \
 +				   lrng_interfaces.o lrng_es_aux.o
-diff --git a/drivers/char/lrng/lrng_aux.c b/drivers/char/lrng/lrng_aux.c
-new file mode 100644
-index 000000000000..a970bbc879ed
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_aux.c
 @@ -0,0 +1,136 @@
@@ -743,9 +728,6 @@ index 000000000000..a970bbc879ed
 +
 +	return start + (get_random_long() % range << PAGE_SHIFT);
 +}
-diff --git a/drivers/char/lrng/lrng_chacha20.c b/drivers/char/lrng/lrng_chacha20.c
-new file mode 100644
-index 000000000000..ebbd67b600e0
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_chacha20.c
 @@ -0,0 +1,321 @@
@@ -1070,9 +1052,6 @@ index 000000000000..ebbd67b600e0
 +	.lrng_hash_final		= lrng_cc20_hash_final,
 +	.lrng_hash_desc_zero		= lrng_cc20_hash_desc_zero,
 +};
-diff --git a/drivers/char/lrng/lrng_chacha20.h b/drivers/char/lrng/lrng_chacha20.h
-new file mode 100644
-index 000000000000..bd0c0bee38f3
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_chacha20.h
 @@ -0,0 +1,25 @@
@@ -1101,9 +1080,6 @@ index 000000000000..bd0c0bee38f3
 +{
 +	chacha_init_consts(chacha20->constants);
 +}
-diff --git a/drivers/char/lrng/lrng_drng.c b/drivers/char/lrng/lrng_drng.c
-new file mode 100644
-index 000000000000..701fb26c699a
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng.c
 @@ -0,0 +1,444 @@
@@ -1551,9 +1527,6 @@ index 000000000000..701fb26c699a
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Linux Random Number Generator");
-diff --git a/drivers/char/lrng/lrng_es_archrandom.c b/drivers/char/lrng/lrng_es_archrandom.c
-new file mode 100644
-index 000000000000..ae87fa9bae58
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_archrandom.c
 @@ -0,0 +1,91 @@
@@ -1648,9 +1621,6 @@ index 000000000000..ae87fa9bae58
 +		 ent_bits);
 +	return ent_bits;
 +}
-diff --git a/drivers/char/lrng/lrng_es_aux.c b/drivers/char/lrng/lrng_es_aux.c
-new file mode 100644
-index 000000000000..9a12f7f79866
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_aux.c
 @@ -0,0 +1,274 @@
@@ -1928,9 +1898,6 @@ index 000000000000..9a12f7f79866
 +
 +	spin_unlock_irqrestore(&pool->lock, flags);
 +}
-diff --git a/drivers/char/lrng/lrng_es_irq.c b/drivers/char/lrng/lrng_es_irq.c
-new file mode 100644
-index 000000000000..675425d87481
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.c
 @@ -0,0 +1,796 @@
@@ -2730,9 +2697,6 @@ index 000000000000..675425d87481
 +	}
 +}
 +EXPORT_SYMBOL(add_interrupt_randomness);
-diff --git a/drivers/char/lrng/lrng_es_irq.h b/drivers/char/lrng/lrng_es_irq.h
-new file mode 100644
-index 000000000000..00b16b1aa45f
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.h
 @@ -0,0 +1,71 @@
@@ -2807,9 +2771,6 @@ index 000000000000..00b16b1aa45f
 +	*mask = ((1 << (*pre_ptr & (LRNG_DATA_SLOTS_PER_UINT - 1)) *
 +			LRNG_DATA_SLOTSIZE_BITS)) - 1;
 +}
-diff --git a/drivers/char/lrng/lrng_es_mgr.c b/drivers/char/lrng/lrng_es_mgr.c
-new file mode 100644
-index 000000000000..d0d66ff36de2
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_mgr.c
 @@ -0,0 +1,375 @@
@@ -3188,9 +3149,6 @@ index 000000000000..d0d66ff36de2
 +	 */
 +	lrng_writer_wakeup();
 +}
-diff --git a/drivers/char/lrng/lrng_interfaces.c b/drivers/char/lrng/lrng_interfaces.c
-new file mode 100644
-index 000000000000..3a56bfdca01e
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interfaces.c
 @@ -0,0 +1,650 @@
@@ -3844,9 +3802,6 @@ index 000000000000..3a56bfdca01e
 +
 +	return lrng_read_common_block(flags & GRND_NONBLOCK, buf, count);
 +}
-diff --git a/drivers/char/lrng/lrng_internal.h b/drivers/char/lrng/lrng_internal.h
-new file mode 100644
-index 000000000000..a21e5be716b0
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_internal.h
 @@ -0,0 +1,446 @@
@@ -4296,9 +4251,6 @@ index 000000000000..a21e5be716b0
 +#endif /*CONFIG_LRNG_IRQ_PERF */
 +
 +#endif /* _LRNG_INTERNAL_H */
-diff --git a/include/linux/lrng.h b/include/linux/lrng.h
-new file mode 100644
-index 000000000000..e9dc860a1ebb
 --- /dev/null
 +++ b/include/linux/lrng.h
 @@ -0,0 +1,81 @@
@@ -4383,6 +4335,3 @@ index 000000000000..e9dc860a1ebb
 +#endif	/* CONFIG_LRNG_DRNG_SWITCH */
 +
 +#endif /* _LRNG_H */
--- 
-2.31.1
-

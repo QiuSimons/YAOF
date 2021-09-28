@@ -137,8 +137,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 467 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_health.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index e622b8532e2b..931959f75a83 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -164,6 +164,62 @@ config LRNG_COLLECTION_SIZE
@@ -204,18 +202,13 @@ index e622b8532e2b..931959f75a83 100644
  config LRNG_IRQ_ENTROPY_RATE
  	int "Interrupt Entropy Source Entropy Rate"
  	range 256 4294967295
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 01a69172c464..02513621411b 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
+@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kc
  obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
  obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
  obj-$(CONFIG_LRNG_JENT)		+= lrng_es_jent.o
 +obj-$(CONFIG_LRNG_HEALTH_TESTS)	+= lrng_health.o
-diff --git a/drivers/char/lrng/lrng_health.c b/drivers/char/lrng/lrng_health.c
-new file mode 100644
-index 000000000000..a56a0c4261ab
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_health.c
 @@ -0,0 +1,410 @@
@@ -629,6 +622,3 @@ index 000000000000..a56a0c4261ab
 +
 +	return lrng_health_pass;
 +}
--- 
-2.31.1
-

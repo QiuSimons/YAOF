@@ -1,6 +1,6 @@
 --- a/drivers/char/lrng/lrng_es_mgr.c
 +++ b/drivers/char/lrng/lrng_es_mgr.c
-@@ -324,8 +324,8 @@ int __init rand_initialize(void)
+@@ -276,8 +276,8 @@ int __init rand_initialize(void)
  	seed.time = ktime_get_real();
  
  	for (i = 0; i < ARRAY_SIZE(seed.data); i++) {

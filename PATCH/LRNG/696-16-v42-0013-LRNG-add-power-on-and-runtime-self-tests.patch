@@ -74,8 +74,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 405 insertions(+), 8 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_selftest.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 32692aff9774..de50abaf53cb 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -165,15 +165,16 @@ config LRNG_COLLECTION_SIZE
@@ -134,8 +132,6 @@ index 32692aff9774..de50abaf53cb 100644
 +endif # LRNG_SELFTEST
 +
  endif # LRNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 919c85cd103a..623813764aca 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -17,3 +17,4 @@ obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
@@ -143,9 +139,6 @@ index 919c85cd103a..623813764aca 100644
  obj-$(CONFIG_LRNG_HEALTH_TESTS)	+= lrng_health.o
  obj-$(CONFIG_LRNG_TESTING)	+= lrng_testing.o
 +obj-$(CONFIG_LRNG_SELFTEST)	+= lrng_selftest.o
-diff --git a/drivers/char/lrng/lrng_selftest.c b/drivers/char/lrng/lrng_selftest.c
-new file mode 100644
-index 000000000000..e219f7ea832b
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_selftest.c
 @@ -0,0 +1,369 @@
@@ -518,6 +511,3 @@ index 000000000000..e219f7ea832b
 +}
 +
 +module_init(lrng_selftest_init);
--- 
-2.31.1
-

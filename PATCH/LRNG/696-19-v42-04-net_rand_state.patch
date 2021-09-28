@@ -1,7 +1,7 @@
 --- a/drivers/char/lrng/lrng_es_irq.c
 +++ b/drivers/char/lrng/lrng_es_irq.c
-@@ -12,6 +12,7 @@
- #include <crypto/hash.h>
+@@ -13,6 +13,7 @@
+ #include <linux/gcd.h>
  #include <linux/lrng.h>
  #include <linux/random.h>
 +#include <linux/ratelimit.h>
