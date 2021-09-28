@@ -1,5 +1,5 @@
---- a/drivers/char/lrng/lrng_sw_noise.c
-+++ b/drivers/char/lrng/lrng_sw_noise.c
+--- a/drivers/char/lrng/lrng_es_irq.c
++++ b/drivers/char/lrng/lrng_es_irq.c
 @@ -12,6 +12,7 @@
  #include <crypto/hash.h>
  #include <linux/lrng.h>
@@ -7,4 +7,4 @@
 +#include <linux/ratelimit.h>
  
  #include "lrng_internal.h"
- #include "lrng_sw_noise.h"
+ #include "lrng_es_irq.h"

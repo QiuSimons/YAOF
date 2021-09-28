@@ -1,0 +1,13 @@
+--- linux-5.10/drivers/char/lrng/lrng_chacha20.h.orig	2021-08-20 21:16:45.569017375 +0200
++++ linux-5.10/drivers/char/lrng/lrng_chacha20.h	2021-08-20 21:18:21.255462479 +0200
+@@ -21,5 +21,9 @@ struct chacha20_block {
+ 
+ static inline void lrng_cc20_init_rfc7539(struct chacha20_block *chacha20)
+ {
+-	chacha_init_consts(chacha20->constants);
++	/* String "expand 32-byte k" */
++	chacha20->constants[0] = 0x61707865;
++	chacha20->constants[1] = 0x3320646e;
++	chacha20->constants[2] = 0x79622d32;
++	chacha20->constants[3] = 0x6b206574;
+ }

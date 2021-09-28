@@ -1,7 +1,7 @@
-From 288d9cf9f2e949fb6c7dc3cf623186d07d4173fd Mon Sep 17 00:00:00 2001
+From 553e810748bf00be31f1dc6232290cdd70d00e26 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Fri, 18 Jun 2021 08:09:59 +0200
-Subject: [PATCH v41 07/13] LRNG - add SP800-90A DRBG extension
+Subject: [PATCH v42 07/13] LRNG - add SP800-90A DRBG extension
 
 Using the LRNG switchable DRNG support, the SP800-90A DRBG extension is
 implemented.
@@ -37,7 +37,8 @@ CC: Andy Lutomirski <luto@kernel.org>
 CC: Florian Weimer <fweimer@redhat.com>
 CC: Lennart Poettering <mzxreary@0pointer.de>
 CC: Nicolai Stange <nstange@suse.de>
-CC: Alexander Lobakin <alobakin@mailbox.org>
+Reviewed-by: Alexander Lobakin <alobakin@pm.me>
+Tested-by: Alexander Lobakin <alobakin@pm.me>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Tested-by: Neil Horman <nhorman@redhat.com>
@@ -49,6 +50,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 209 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_drbg.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index ab17c45a356b..aa611363b97e 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -215,6 +215,16 @@ config LRNG_KCAPI_HASH
@@ -68,6 +71,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  endif # LRNG_DRNG_SWITCH
  
  endif # LRNG
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 299715bb0ec2..7e5acb8cac3d 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -12,3 +12,4 @@ obj-$(CONFIG_NUMA)		+= lrng_numa.o
@@ -75,6 +80,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
  obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
 +obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
+diff --git a/drivers/char/lrng/lrng_drbg.c b/drivers/char/lrng/lrng_drbg.c
+new file mode 100644
+index 000000000000..6ca6b05eccf4
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drbg.c
 @@ -0,0 +1,198 @@
@@ -276,3 +284,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Linux Random Number Generator - SP800-90A DRBG backend");
+-- 
+2.31.1
+

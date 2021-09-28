@@ -1,7 +1,7 @@
-From 2ca28b8684c0673b2e0363cc109479ecf1cae641 Mon Sep 17 00:00:00 2001
+From 844dc223fc4da1867daf13d7c8ae432fdc6de890 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Fri, 18 Jun 2021 08:08:20 +0200
-Subject: [PATCH v41 05/13] LRNG - add common generic hash support
+Subject: [PATCH v42 05/13] LRNG - add common generic hash support
 
 The LRNG switchable DRNG support also allows the replacement of the hash
 implementation used as conditioning component. The common generic hash
@@ -31,10 +31,11 @@ CC: Andy Lutomirski <luto@kernel.org>
 CC: Florian Weimer <fweimer@redhat.com>
 CC: Lennart Poettering <mzxreary@0pointer.de>
 CC: Nicolai Stange <nstange@suse.de>
-CC: Alexander Lobakin <alobakin@mailbox.org>
 CC: "Peter, Matthias" <matthias.peter@bsi.bund.de>
 CC: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 CC: Neil Horman <nhorman@redhat.com>
+Reviewed-by: Alexander Lobakin <alobakin@pm.me>
+Tested-by: Alexander Lobakin <alobakin@pm.me>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Kconfig           |   8 +++
@@ -45,6 +46,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_kcapi_hash.c
  create mode 100644 drivers/char/lrng/lrng_kcapi_hash.h
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index c10a0c3f2015..ab17c45a356b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -209,4 +209,12 @@ menuconfig LRNG_DRNG_SWITCH
@@ -60,13 +63,18 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +endif # LRNG_DRNG_SWITCH
 +
  endif # LRNG
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index dc3ef329b2c4..299715bb0ec2 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -11,3 +11,4 @@ obj-y				+= lrng_pool.o lrng_aux.o \
+@@ -11,3 +11,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
  obj-$(CONFIG_NUMA)		+= lrng_numa.o
  obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
  obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
 +obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
+diff --git a/drivers/char/lrng/lrng_kcapi_hash.c b/drivers/char/lrng/lrng_kcapi_hash.c
+new file mode 100644
+index 000000000000..9647d980e468
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_kcapi_hash.c
 @@ -0,0 +1,103 @@
@@ -173,6 +181,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	shash_desc_zero(shash);
 +}
 +EXPORT_SYMBOL(lrng_kcapi_hash_zero);
+diff --git a/drivers/char/lrng/lrng_kcapi_hash.h b/drivers/char/lrng/lrng_kcapi_hash.h
+new file mode 100644
+index 000000000000..2f94558d2dd6
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_kcapi_hash.h
 @@ -0,0 +1,20 @@
@@ -196,3 +207,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +void lrng_kcapi_hash_zero(struct shash_desc *shash);
 +
 +#endif /* _LRNG_KCAPI_HASH_H */
+-- 
+2.31.1
+

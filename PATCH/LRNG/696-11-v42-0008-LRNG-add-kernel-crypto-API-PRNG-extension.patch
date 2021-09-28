@@ -1,7 +1,7 @@
-From 570409d073bb1d6645214532a431d5bc45454c0f Mon Sep 17 00:00:00 2001
+From cfc5387cf2f3226f4543318ec09957571d8ec63e Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Fri, 18 Jun 2021 08:10:53 +0200
-Subject: [PATCH v41 08/13] LRNG - add kernel crypto API PRNG extension
+Subject: [PATCH v42 08/13] LRNG - add kernel crypto API PRNG extension
 
 Add runtime-pluggable support for all PRNGs that are accessible via
 the kernel crypto API, including hardware PRNGs. The PRNG is selected
@@ -33,7 +33,8 @@ CC: Andy Lutomirski <luto@kernel.org>
 CC: Florian Weimer <fweimer@redhat.com>
 CC: Lennart Poettering <mzxreary@0pointer.de>
 CC: Nicolai Stange <nstange@suse.de>
-CC: Alexander Lobakin <alobakin@mailbox.org>
+Reviewed-by: Alexander Lobakin <alobakin@pm.me>
+Tested-by: Alexander Lobakin <alobakin@pm.me>
 Reviewed-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
@@ -46,6 +47,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 241 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_kcapi.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index aa611363b97e..ffd2df43f2d4 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -225,6 +225,19 @@ config LRNG_DRBG
@@ -68,6 +71,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  endif # LRNG_DRNG_SWITCH
  
  endif # LRNG
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 7e5acb8cac3d..ad7c413cc0d9 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -13,3 +13,4 @@ obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
@@ -75,6 +80,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
  obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
 +obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
+diff --git a/drivers/char/lrng/lrng_kcapi.c b/drivers/char/lrng/lrng_kcapi.c
+new file mode 100644
+index 000000000000..b06449cb2365
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_kcapi.c
 @@ -0,0 +1,227 @@
@@ -305,3 +313,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Linux Random Number Generator - kernel crypto API DRNG backend");
+-- 
+2.31.1
+

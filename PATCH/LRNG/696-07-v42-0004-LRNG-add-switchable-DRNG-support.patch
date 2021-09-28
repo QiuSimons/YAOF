@@ -1,7 +1,7 @@
-From 2ea9e51004f8a85964977ec7cd26f9f5a294295a Mon Sep 17 00:00:00 2001
+From e26ee3e543f80be93cca6155ea9f861603652f59 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Fri, 18 Jun 2021 08:06:39 +0200
-Subject: [PATCH v41 04/13] LRNG - add switchable DRNG support
+Date: Mon, 2 Aug 2021 21:54:12 +0200
+Subject: [PATCH v42 04/13] LRNG - add switchable DRNG support
 
 The DRNG switch support allows replacing the DRNG mechanism of the
 LRNG. The switching support rests on the interface definition of
@@ -56,7 +56,8 @@ CC: Andy Lutomirski <luto@kernel.org>
 CC: Florian Weimer <fweimer@redhat.com>
 CC: Lennart Poettering <mzxreary@0pointer.de>
 CC: Nicolai Stange <nstange@suse.de>
-CC: Alexander Lobakin <alobakin@mailbox.org>
+Reviewed-by: Alexander Lobakin <alobakin@pm.me>
+Tested-by: Alexander Lobakin <alobakin@pm.me>
 Reviewed-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
@@ -65,10 +66,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Kconfig       |   7 +
  drivers/char/lrng/Makefile      |   1 +
- drivers/char/lrng/lrng_switch.c | 231 ++++++++++++++++++++++++++++++++
- 3 files changed, 239 insertions(+)
+ drivers/char/lrng/lrng_switch.c | 226 ++++++++++++++++++++++++++++++++
+ 3 files changed, 234 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_switch.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index 1cb2f55666ac..c10a0c3f2015 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -202,4 +202,11 @@ config LRNG_CPU_ENTROPY_RATE
@@ -83,16 +86,21 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	  option other DRNGs can be selected and loaded at runtime.
 +
  endif # LRNG
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 3144e87c2166..dc3ef329b2c4 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -10,3 +10,4 @@ obj-y				+= lrng_pool.o lrng_aux.o \
+@@ -10,3 +10,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
  
  obj-$(CONFIG_NUMA)		+= lrng_numa.o
  obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
 +obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
+diff --git a/drivers/char/lrng/lrng_switch.c b/drivers/char/lrng/lrng_switch.c
+new file mode 100644
+index 000000000000..f3b2f30d1c21
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_switch.c
-@@ -0,0 +1,231 @@
+@@ -0,0 +1,226 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG DRNG switching support
@@ -213,22 +221,17 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +		pr_info("Entropy pool read-hash allocated for DRNG for NUMA node %d\n",
 +			node);
 +
-+		if (lrng_state_min_seeded())
-+			lrng_set_entropy_thresh(lrng_get_seed_entropy_osr());
-+
 +		/* Reseed if previous LRNG security strength was insufficient */
 +		if (current_security_strength < lrng_security_strength())
 +			drng_store->force_reseed = true;
 +
 +		/* Force oversampling seeding as we initialize DRNG */
-+		if (IS_ENABLED(CONFIG_LRNG_OVERSAMPLE_ENTROPY_SOURCES)) {
-+			drng_store->force_reseed = true;
-+			drng_store->fully_seeded = false;
++		if (IS_ENABLED(CONFIG_LRNG_OVERSAMPLE_ENTROPY_SOURCES))
++			lrng_unset_fully_seeded(drng_store);
 +
-+			/* Block output interfaces until again fully seeded */
-+			if (drng_store == lrng_drng_init_instance())
-+				lrng_unset_operational();
-+		}
++		if (lrng_state_min_seeded())
++			lrng_set_entropy_thresh(lrng_get_seed_entropy_osr(
++						drng_store->fully_seeded));
 +
 +		/* ChaCha20 serves as atomic instance left untouched. */
 +		if (old_drng != &chacha20) {
@@ -324,3 +327,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	return ret;
 +}
 +EXPORT_SYMBOL(lrng_set_drng_cb);
+-- 
+2.31.1
+

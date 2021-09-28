@@ -1,7 +1,7 @@
-From 928e83bd2eb312c68d2e1bbaadd96a5e841eadff Mon Sep 17 00:00:00 2001
+From 0dc6dec5b9ab060d66af8e4abfe09099251b9fdf Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Fri, 18 Jun 2021 08:17:40 +0200
-Subject: [PATCH v41 11/13] LRNG - add SP800-90B compliant health tests
+Date: Mon, 2 Aug 2021 21:59:23 +0200
+Subject: [PATCH v42 11/13] LRNG - add SP800-90B compliant health tests
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -124,7 +124,8 @@ CC: Andy Lutomirski <luto@kernel.org>
 CC: Florian Weimer <fweimer@redhat.com>
 CC: Lennart Poettering <mzxreary@0pointer.de>
 CC: Nicolai Stange <nstange@suse.de>
-CC: Alexander Lobakin <alobakin@mailbox.org>
+Reviewed-by: Alexander Lobakin <alobakin@pm.me>
+Tested-by: Alexander Lobakin <alobakin@pm.me>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Tested-by: Neil Horman <nhorman@redhat.com>
@@ -136,6 +137,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 467 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_health.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index e622b8532e2b..931959f75a83 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -164,6 +164,62 @@ config LRNG_COLLECTION_SIZE
@@ -201,13 +204,18 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  config LRNG_IRQ_ENTROPY_RATE
  	int "Interrupt Entropy Source Entropy Rate"
  	range 256 4294967295
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 01a69172c464..02513621411b 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kc
+@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
  obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
  obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
- obj-$(CONFIG_LRNG_JENT)		+= lrng_jent.o
+ obj-$(CONFIG_LRNG_JENT)		+= lrng_es_jent.o
 +obj-$(CONFIG_LRNG_HEALTH_TESTS)	+= lrng_health.o
+diff --git a/drivers/char/lrng/lrng_health.c b/drivers/char/lrng/lrng_health.c
+new file mode 100644
+index 000000000000..a56a0c4261ab
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_health.c
 @@ -0,0 +1,410 @@
@@ -621,3 +629,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +
 +	return lrng_health_pass;
 +}
+-- 
+2.31.1
+

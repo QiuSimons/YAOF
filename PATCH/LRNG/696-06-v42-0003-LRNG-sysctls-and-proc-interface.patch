@@ -1,7 +1,7 @@
-From 28ba413daaf3dc24f8efb15335a8da82201e42d7 Mon Sep 17 00:00:00 2001
+From 4e3f238b369d19b1b3e9be3b43765ce563626347 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Wed, 23 Jun 2021 18:44:26 +0200
-Subject: [PATCH v41 03/13] LRNG - sysctls and /proc interface
+Date: Mon, 2 Aug 2021 21:52:37 +0200
+Subject: [PATCH v42 03/13] LRNG - sysctls and /proc interface
 
 The LRNG sysctl interface provides the same controls as the existing
 /dev/random implementation. These sysctls behave identically and are
@@ -51,7 +51,8 @@ CC: Andy Lutomirski <luto@kernel.org>
 CC: Florian Weimer <fweimer@redhat.com>
 CC: Lennart Poettering <mzxreary@0pointer.de>
 CC: Nicolai Stange <nstange@suse.de>
-CC: Alexander Lobakin <alobakin@mailbox.org>
+Reviewed-by: Alexander Lobakin <alobakin@pm.me>
+Tested-by: Alexander Lobakin <alobakin@pm.me>
 Reviewed-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
@@ -60,21 +61,24 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Makefile          |   1 +
  drivers/char/lrng/lrng_interfaces.c |   2 -
- drivers/char/lrng/lrng_internal.h   |   4 +
  drivers/char/lrng/lrng_proc.c       | 185 ++++++++++++++++++++++++++++
- 4 files changed, 190 insertions(+), 2 deletions(-)
+ 3 files changed, 186 insertions(+), 2 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_proc.c
 
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 80b152059598..3144e87c2166 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -9,3 +9,4 @@ obj-y				+= lrng_pool.o lrng_aux.o \
- 				   lrng_interfaces.o
+@@ -9,3 +9,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
+ 				   lrng_interfaces.o lrng_es_aux.o
  
  obj-$(CONFIG_NUMA)		+= lrng_numa.o
 +obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
+diff --git a/drivers/char/lrng/lrng_interfaces.c b/drivers/char/lrng/lrng_interfaces.c
+index 3a56bfdca01e..4b8c56849112 100644
 --- a/drivers/char/lrng/lrng_interfaces.c
 +++ b/drivers/char/lrng/lrng_interfaces.c
-@@ -38,8 +38,6 @@ static DECLARE_WAIT_QUEUE_HEAD(lrng_writ
+@@ -38,8 +38,6 @@ static DECLARE_WAIT_QUEUE_HEAD(lrng_write_wait);
  static DECLARE_WAIT_QUEUE_HEAD(lrng_init_wait);
  static struct fasync_struct *fasync;
  
@@ -83,20 +87,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  /********************************** Helper ***********************************/
  
  /* Is the DRNG seed level too low? */
---- a/drivers/char/lrng/lrng_internal.h
-+++ b/drivers/char/lrng/lrng_internal.h
-@@ -114,7 +114,11 @@ void lrng_cc20_init_state(struct chacha2
- 
- /********************************** /proc *************************************/
- 
-+#ifdef CONFIG_SYSCTL
-+void lrng_pool_inc_numa_node(void);
-+#else
- static inline void lrng_pool_inc_numa_node(void) { }
-+#endif
- 
- /****************************** LRNG interfaces *******************************/
- 
+diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
+new file mode 100644
+index 000000000000..a842c6c897f2
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
 @@ -0,0 +1,185 @@
@@ -114,7 +107,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +#include <linux/uuid.h>
 +
 +#include "lrng_internal.h"
-+#include "lrng_sw_noise.h"
++#include "lrng_es_irq.h"
 +
 +/*
 + * This function is used to return both the bootid UUID, and random
@@ -285,3 +278,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +}
 +
 +module_init(lrng_proc_type_init);
+-- 
+2.31.1
+
