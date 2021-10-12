@@ -73,19 +73,16 @@ jobs:
         mv ../SEED/R2S/config.seed .config
         #echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config
         make defconfig
-    - name: Smart chmod
+    - name: Get Architecture
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        MY_Filter=$(mktemp)
-        echo '/\.git' >  ${MY_Filter}
-        echo '/\.svn' >> ${MY_Filter}
-        find ./ -maxdepth 1 | grep -v '\./$' | grep -v '/\.git' | xargs -s1024 chmod -R u=rwX,og=rX
-        find ./ -type f | grep -v -f ${MY_Filter} | xargs -s1024 file | grep 'executable\|ELF' | cut -d ':' -f1 | xargs -s1024 chmod 755
-        rm -f ${MY_Filter}
-        unset MY_Filter
+        TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*_.*=y$" ".config" | head -n 1 | sed 's/^CONFIG_TARGET_//g' | awk -F '_' '{print $1}')"
+        echo "TARGET_DEVICE_ARCH=${TARGET_DEVICE_ARCH}-" >>$GITHUB_ENV
     - name: Cache
-      uses: klever1988/cachewrtbuild@main
+      uses: klever1988/cachewrtbuild@test
       with:
         ccache: 'true'
+        mixkey: ${{ env.TARGET_DEVICE_ARCH }}
         prefix: ${{ github.workspace }}/openwrt
     - name: Make Download
       run: |
