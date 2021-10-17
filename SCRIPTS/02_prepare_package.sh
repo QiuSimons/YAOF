@@ -148,7 +148,8 @@ ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/lu
 # 定时重启
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-autoreboot package/lean/luci-app-autoreboot
 # Boost 通用即插即用
-svn co https://github.com/QiuSimons/slim-wrt/branches/main/slimapps/application/luci-app-boostupnp package/new/luci-app-boostupnp
+svn co https://github.com/QiuSimons/slim-wrt/branches/dev-21.02/slimapps/application/luci-app-boostupnp package/new/luci-app-boostupnp
+sed -i 's,curl -s https://api.ipify.org,curl -k -s -4 www.pubyun.com/dyndns/getip,g' package/new/luci-app-boostupnp/root/usr/sbin/boostupnp.sh
 rm -rf ./feeds/packages/net/miniupnpd
 svn co https://github.com/openwrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
 # ChinaDNS
