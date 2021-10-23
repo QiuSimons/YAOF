@@ -17,7 +17,7 @@ index 360c7d79eee..c9407f5e649 100644
  	#list notinterface	lo
  	#list bogusnxdomain     '64.94.110.11'
  	option localservice	1  # disable to allow DNS requests from non-local subnets
-+	option filteraaaa	1
++	option filter_aaaa	1
  	option ednspacket_max	1232
 
  config dhcp lan
@@ -30,7 +30,7 @@ index 06d83b06deb..08ff64d659f 100644
  	append_bool "$cfg" sequential_ip "--dhcp-sequential-ip"
  	append_bool "$cfg" allservers "--all-servers"
  	append_bool "$cfg" noping "--no-ping"
-+	append_bool "$cfg" filteraaaa "--filter-aaaa"
++	append_bool "$cfg" filter_aaaa "--filter-aaaa"
  	append_bool "$cfg" rapidcommit "--dhcp-rapid-commit"
  	append_bool "$cfg" scriptarp "--script-arp"
  
