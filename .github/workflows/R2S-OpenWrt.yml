@@ -79,6 +79,8 @@ jobs:
       run: |
         TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*_.*=y$" ".config" | head -n 1 | sed 's/^CONFIG_TARGET_//g' | awk -F '_' '{print $1}')"
         echo "TARGET_DEVICE_ARCH=${TARGET_DEVICE_ARCH}-" >>$GITHUB_ENV
+        latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][0-9]/p' | sed -n 1p | sed 's/.tar.gz//g' | sed 's/v//g')"
+        echo "latest_release=${latest_release}" >>$GITHUB_ENV
     - name: Cache
       uses: klever1988/cachewrtbuild@test
       with:
@@ -117,23 +119,23 @@ jobs:
         gzip -d *.gz && exit 0
         gzip --best *.img
         ls -Ahl
-        sha256sum openwrt*r2s* | tee R2S-GC404-$(date +%Y-%m-%d)-21.02.sha256sum
-        zip R2S-GC404-$(date +%Y-%m-%d)-21.02-ext4.zip *r2s*ext4*
-        zip R2S-GC404-$(date +%Y-%m-%d)-21.02-sfs.zip *r2s*squashfs*
+        sha256sum openwrt*r2s* | tee R2S-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}.sha256sum
+        zip R2S-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}-ext4.zip *r2s*ext4*
+        zip R2S-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}-sfs.zip *r2s*squashfs*
         ls -Ahl
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
-        name: OpenWRT_21.02
+        name: OpenWRT_${{ env.latest_release }}
         path: ./artifact/
 
     - name: Create release
       id: create_release
       uses: ncipollo/release-action@v1.8.0
       with:
-        name: OpenWRT-21.02.0
+        name: OpenWRT-${{ env.latest_release }}
         allowUpdates: true
-        tag: 21.02.0
+        tag: ${{ env.latest_release }}
         commit: master
         replacesArtifacts: true
         token: ${{ secrets.workflow_token }}
