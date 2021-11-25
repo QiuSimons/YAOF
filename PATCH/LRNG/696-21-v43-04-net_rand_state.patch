@@ -1,0 +1,10 @@
+--- linux-5.4/drivers/char/lrng/lrng_es_irq.c.orig	2020-10-10 21:00:01.282688553 +0200
++++ linux-5.4/drivers/char/lrng/lrng_es_irq.c	2020-10-10 21:12:07.975025774 +0200
+@@ -12,6 +12,7 @@
+ #include <crypto/hash.h>
+ #include <linux/lrng.h>
+ #include <linux/random.h>
++#include <linux/ratelimit.h>
+ 
+ #include "lrng_internal.h"
+ #include "lrng_es_irq.h"

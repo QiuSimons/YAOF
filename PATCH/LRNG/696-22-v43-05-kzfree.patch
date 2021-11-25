@@ -1,0 +1,44 @@
+--- linux-5.4/drivers/char/lrng/lrng_chacha20.c.orig	2020-10-10 21:02:49.755374050 +0200
++++ linux-5.4/drivers/char/lrng/lrng_chacha20.c	2020-10-10 21:03:21.878506872 +0200
+@@ -224,7 +224,7 @@ static void lrng_cc20_drng_dealloc(void
+ 	}
+ 
+ 	pr_debug("ChaCha20 core zeroized and freed\n");
+-	kfree_sensitive(chacha20_state);
++	kzfree(chacha20_state);
+ }
+ 
+ /******************************* Hash Operation *******************************/
+--- linux-5.4/drivers/char/lrng/lrng_drbg.c.orig	2020-10-10 21:02:57.136404546 +0200
++++ linux-5.4/drivers/char/lrng/lrng_drbg.c	2020-10-10 21:03:37.311570965 +0200
+@@ -140,7 +140,7 @@ static void lrng_drbg_drng_dealloc(void
+ 	if (drbg && drbg->d_ops)
+ 		drbg->d_ops->crypto_fini(drbg);
+ 	drbg_dealloc_state(drbg);
+-	kfree_sensitive(drbg);
++	kzfree(drbg);
+ 	pr_info("DRBG deallocated\n");
+ }
+ 
+--- linux-5.4/drivers/char/lrng/lrng_interfaces.c.orig	2020-10-10 21:03:03.855432312 +0200
++++ linux-5.4/drivers/char/lrng/lrng_interfaces.c	2020-10-10 21:03:53.879639777 +0200
+@@ -432,7 +432,7 @@ static ssize_t lrng_read_common(char __u
+ 
+ 	/* Wipe data just returned from memory */
+ 	if (tmp_large)
+-		kfree_sensitive(tmp_large);
++		kzfree(tmp_large);
+ 	else
+ 		memzero_explicit(tmpbuf, sizeof(tmpbuf));
+ 
+--- linux-5.4/drivers/char/lrng/lrng_testing.c.orig	2020-10-10 21:03:08.427451210 +0200
++++ linux-5.4/drivers/char/lrng/lrng_testing.c	2020-10-10 21:04:08.620700995 +0200
+@@ -234,7 +234,7 @@ static int lrng_testing_extract_user(str
+ 		ret += i;
+ 	}
+ 
+-	kfree_sensitive(tmp);
++	kzfree(tmp);
+ 
+ 	if (ret > 0)
+ 		*ppos += ret;

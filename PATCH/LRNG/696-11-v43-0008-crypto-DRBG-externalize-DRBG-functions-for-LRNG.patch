@@ -1,7 +1,7 @@
-From 3b4bc70c349cde883e2b2545d65dc37a3ef89050 Mon Sep 17 00:00:00 2001
+From 4448478c27a6586561d93c62c81caebfba54f509 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Tue, 15 Sep 2020 22:17:43 +0200
-Subject: [PATCH v42 06/13] crypto: DRBG - externalize DRBG functions for LRNG
+Subject: [PATCH v43 08/15] crypto: DRBG - externalize DRBG functions for LRNG
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -32,15 +32,19 @@ Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Roman Drahtmüller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Tested-by: Neil Horman <nhorman@redhat.com>
+Tested-by: Jirka Hladky <jhladky@redhat.com>
+Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  crypto/drbg.c         | 16 ++++++++++------
  include/crypto/drbg.h |  7 +++++++
  2 files changed, 17 insertions(+), 6 deletions(-)
 
+diff --git a/crypto/drbg.c b/crypto/drbg.c
+index ea85d4a0fe9e..74a9dca67698 100644
 --- a/crypto/drbg.c
 +++ b/crypto/drbg.c
-@@ -113,7 +113,7 @@
+@@ -114,7 +114,7 @@
   * the SHA256 / AES 256 over other ciphers. Thus, the favored
   * DRBGs are the latest entries in this array.
   */
@@ -49,7 +53,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  #ifdef CONFIG_CRYPTO_DRBG_CTR
  	{
  		.flags = DRBG_CTR | DRBG_STRENGTH128,
-@@ -190,6 +190,7 @@ static const struct drbg_core drbg_cores
+@@ -191,6 +191,7 @@ static const struct drbg_core drbg_cores[] = {
  	},
  #endif /* CONFIG_CRYPTO_DRBG_HMAC */
  };
@@ -57,7 +61,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  
  static int drbg_uninstantiate(struct drbg_state *drbg);
  
-@@ -205,7 +206,7 @@ static int drbg_uninstantiate(struct drb
+@@ -206,7 +207,7 @@ static int drbg_uninstantiate(struct drbg_state *drbg);
   * Return: normalized strength in *bytes* value or 32 as default
   *	   to counter programming errors
   */
@@ -66,7 +70,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  {
  	switch (flags & DRBG_STRENGTH_MASK) {
  	case DRBG_STRENGTH128:
-@@ -218,6 +219,7 @@ static inline unsigned short drbg_sec_st
+@@ -219,6 +220,7 @@ static inline unsigned short drbg_sec_strength(drbg_flag_t flags)
  		return 32;
  	}
  }
@@ -74,7 +78,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  
  /*
   * FIPS 140-2 continuous self test for the noise source
-@@ -1202,7 +1204,7 @@ out:
+@@ -1215,7 +1217,7 @@ static int drbg_seed(struct drbg_state *drbg, struct drbg_string *pers,
  }
  
  /* Free all substructures in a DRBG state without the DRBG state structure */
@@ -83,7 +87,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  {
  	if (!drbg)
  		return;
-@@ -1223,12 +1225,13 @@ static inline void drbg_dealloc_state(st
+@@ -1236,12 +1238,13 @@ static inline void drbg_dealloc_state(struct drbg_state *drbg)
  		drbg->fips_primed = false;
  	}
  }
@@ -98,7 +102,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  {
  	int ret = -ENOMEM;
  	unsigned int sb_size = 0;
-@@ -1309,6 +1312,7 @@ err:
+@@ -1322,6 +1325,7 @@ static inline int drbg_alloc_state(struct drbg_state *drbg)
  	drbg_dealloc_state(drbg);
  	return ret;
  }
@@ -106,7 +110,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  
  /*************************************************************************
   * DRBG interface functions
-@@ -1876,8 +1880,7 @@ out:
+@@ -1891,8 +1895,7 @@ static int drbg_kcapi_sym_ctr(struct drbg_state *drbg,
   *
   * return: flags
   */
@@ -116,7 +120,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  {
  	int i = 0;
  	size_t start = 0;
-@@ -1904,6 +1907,7 @@ static inline void drbg_convert_tfm_core
+@@ -1919,6 +1922,7 @@ static inline void drbg_convert_tfm_core(const char *cra_driver_name,
  		}
  	}
  }
@@ -124,9 +128,11 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  
  static int drbg_kcapi_init(struct crypto_tfm *tfm)
  {
+diff --git a/include/crypto/drbg.h b/include/crypto/drbg.h
+index c4165126937e..71d53e028e6d 100644
 --- a/include/crypto/drbg.h
 +++ b/include/crypto/drbg.h
-@@ -282,4 +282,11 @@ enum drbg_prefixes {
+@@ -278,4 +278,11 @@ enum drbg_prefixes {
  	DRBG_PREFIX3
  };
  
@@ -138,3 +144,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +extern unsigned short drbg_sec_strength(drbg_flag_t flags);
 +
  #endif /* _DRBG_H */
+-- 
+2.31.1
+

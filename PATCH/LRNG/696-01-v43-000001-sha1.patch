@@ -1,5 +1,5 @@
---- a/include/crypto/sha.h
-+++ b/include/crypto/sha.h
+--- linux-5.4/include/crypto/sha.h.orig	2020-12-05 15:55:05.834664069 +0100
++++ linux-5.4/include/crypto/sha.h	2020-12-05 15:57:51.631948082 +0100
 @@ -159,4 +159,14 @@ extern int sha224_update(struct sha256_s
  			 unsigned int length);
  extern int sha224_final(struct sha256_state *sctx, u8 *hash);

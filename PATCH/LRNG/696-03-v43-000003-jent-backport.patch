@@ -23,6 +23,8 @@ Date:   Wed Oct 9 10:12:56 2019 +0100
     Reviewed-by: Stephan Mueller <smueller@chronox.de
     Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 
+diff --git a/crypto/jitterentropy-kcapi.c b/crypto/jitterentropy-kcapi.c
+index 701b8d86ab49..a5ce8f96790f 100644
 --- a/crypto/jitterentropy-kcapi.c
 +++ b/crypto/jitterentropy-kcapi.c
 @@ -44,13 +44,7 @@
@@ -40,6 +42,8 @@ Date:   Wed Oct 9 10:12:56 2019 +0100
  
  /***************************************************************************
   * Helper function
+diff --git a/crypto/jitterentropy.c b/crypto/jitterentropy.c
+index 9597f9f5723d..042157f0d28b 100644
 --- a/crypto/jitterentropy.c
 +++ b/crypto/jitterentropy.c
 @@ -103,12 +103,7 @@ struct rand_data {
@@ -56,6 +60,9 @@ Date:   Wed Oct 9 10:12:56 2019 +0100
  
  /**
   * Update of the loop count used for the next round of
+diff --git a/crypto/jitterentropy.h b/crypto/jitterentropy.h
+new file mode 100644
+index 000000000000..c83fff32d130
 --- /dev/null
 +++ b/crypto/jitterentropy.h
 @@ -0,0 +1,19 @@

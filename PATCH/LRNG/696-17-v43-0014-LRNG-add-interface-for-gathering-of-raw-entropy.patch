@@ -1,7 +1,7 @@
-From 4e03f13da1abe7b547fcc31e0d7bf1888663fb7d Mon Sep 17 00:00:00 2001
+From f8e35e321e7dcc52af7eac19b33c31e35c8b1f39 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 2 Aug 2021 22:08:30 +0200
-Subject: [PATCH v42 12/13] LRNG - add interface for gathering of raw entropy
+Date: Mon, 18 Oct 2021 20:55:51 +0200
+Subject: [PATCH v43 14/15] LRNG - add interface for gathering of raw entropy
 
 The test interface allows a privileged process to capture the raw
 unconditioned noise that is collected by the LRNG for statistical
@@ -79,17 +79,21 @@ Tested-by: Alexander Lobakin <alobakin@pm.me>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Tested-by: Neil Horman <nhorman@redhat.com>
+Tested-by: Jirka Hladky <jhladky@redhat.com>
+Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig        | 170 ++++++++
+ drivers/char/lrng/Kconfig        | 180 ++++++++
  drivers/char/lrng/Makefile       |   1 +
  drivers/char/lrng/lrng_testing.c | 689 +++++++++++++++++++++++++++++++
- 3 files changed, 860 insertions(+)
+ 3 files changed, 870 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_testing.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index bc1b85929b94..72b572cb7df5 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -323,4 +323,174 @@ config LRNG_KCAPI
+@@ -380,4 +380,184 @@ config LRNG_KCAPI
  	  provided by the selected kernel crypto API RNG.
  endif # LRNG_DRNG_SWITCH
  
@@ -257,6 +261,16 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	  operations without a reseed that has full entropy. The
 +	  interface is lrng_drng.max_wo_reseed.
 +
++config LRNG_TEST_CPU_ES_COMPRESSION
++	bool "Force CPU ES compression operation"
++	help
++	  When enabling this option, the CPU ES compression operation
++	  is forced by setting an arbitrary value > 1 for the data
++	  multiplier even when the CPU ES would deliver full entropy.
++	  This allows testing of the compression operation. It
++	  therefore forces to pull more data from the CPU ES
++	  than what may be required.
++
 +config LRNG_TESTING
 +	bool
 +	default y if (LRNG_RAW_HIRES_ENTROPY || LRNG_RAW_JIFFIES_ENTROPY ||LRNG_RAW_IRQ_ENTROPY || LRNG_RAW_IRQFLAGS_ENTROPY || LRNG_RAW_RETIP_ENTROPY || LRNG_RAW_REGS_ENTROPY || LRNG_RAW_ARRAY || LRNG_IRQ_PERF || LRNG_ACVT_HASH)
@@ -264,13 +278,18 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +endif #LRNG_TESTING_MENU
 +
  endif # LRNG
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index f868f9fe53a6..6d5035aa611e 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -16,3 +16,4 @@ obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
+@@ -17,3 +17,4 @@ obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
  obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
  obj-$(CONFIG_LRNG_JENT)		+= lrng_es_jent.o
  obj-$(CONFIG_LRNG_HEALTH_TESTS)	+= lrng_health.o
 +obj-$(CONFIG_LRNG_TESTING)	+= lrng_testing.o
+diff --git a/drivers/char/lrng/lrng_testing.c b/drivers/char/lrng/lrng_testing.c
+new file mode 100644
+index 000000000000..99cc35abf45c
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_testing.c
 @@ -0,0 +1,689 @@
@@ -963,3 +982,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +}
 +
 +module_init(lrng_raw_init);
+-- 
+2.31.1
+

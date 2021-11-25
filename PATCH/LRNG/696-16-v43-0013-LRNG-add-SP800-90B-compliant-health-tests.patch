@@ -1,7 +1,7 @@
-From 0dc6dec5b9ab060d66af8e4abfe09099251b9fdf Mon Sep 17 00:00:00 2001
+From 4c05e0bf597db2ec72ab6df0d870cbee7061bb36 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 2 Aug 2021 21:59:23 +0200
-Subject: [PATCH v42 11/13] LRNG - add SP800-90B compliant health tests
+Date: Tue, 28 Sep 2021 18:10:36 +0200
+Subject: [PATCH v43 13/15] LRNG - add SP800-90B compliant health tests
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -129,30 +129,36 @@ Tested-by: Alexander Lobakin <alobakin@pm.me>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Tested-by: Neil Horman <nhorman@redhat.com>
+Tested-by: Jirka Hladky <jhladky@redhat.com>
+Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig       |  56 +++++
+ drivers/char/lrng/Kconfig       |  58 +++++
  drivers/char/lrng/Makefile      |   1 +
  drivers/char/lrng/lrng_health.c | 410 ++++++++++++++++++++++++++++++++
- 3 files changed, 467 insertions(+)
+ 3 files changed, 469 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_health.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index 478b12839907..bc1b85929b94 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -164,6 +164,62 @@ config LRNG_COLLECTION_SIZE
+@@ -196,6 +196,64 @@ config LRNG_COLLECTION_SIZE
  	default 4096 if LRNG_COLLECTION_SIZE_4096
  	default 8192 if LRNG_COLLECTION_SIZE_8192
  
 +config LRNG_HEALTH_TESTS
-+	bool "Enable noise source online health tests"
++	bool "Enable interrupt entropy source online health tests"
++	depends on LRNG_IRQ
 +	help
-+	  The online health tests validate the noise source at
-+	  runtime for fatal errors. These tests include SP800-90B
-+	  compliant tests which are invoked if the system is booted
-+	  with fips=1. In case of fatal errors during active
-+	  SP800-90B tests, the issue is logged and the noise
-+	  data is discarded. These tests are required for full
-+	  compliance with SP800-90B.
++	  The online health tests applied to the interrupt entropy
++	  source validate the noise source at runtime for fatal
++	  errors. These tests include SP800-90B compliant tests
++	  which are invoked if the system is booted with fips=1.
++	  In case of fatal errors during active SP800-90B tests,
++	  the issue is logged and the noise data is discarded.
++	  These tests are required for full compliance of the
++	  interrupt entropy source with SP800-90B.
 +
 +	  If unsure, say Y.
 +
@@ -201,14 +207,19 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +
  config LRNG_IRQ_ENTROPY_RATE
  	int "Interrupt Entropy Source Entropy Rate"
- 	range 256 4294967295
+ 	depends on LRNG_IRQ
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index c797fbd10a98..f868f9fe53a6 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kc
+@@ -16,3 +16,4 @@ obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
  obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
  obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
  obj-$(CONFIG_LRNG_JENT)		+= lrng_es_jent.o
 +obj-$(CONFIG_LRNG_HEALTH_TESTS)	+= lrng_health.o
+diff --git a/drivers/char/lrng/lrng_health.c b/drivers/char/lrng/lrng_health.c
+new file mode 100644
+index 000000000000..a56a0c4261ab
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_health.c
 @@ -0,0 +1,410 @@
@@ -622,3 +633,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +
 +	return lrng_health_pass;
 +}
+-- 
+2.31.1
+

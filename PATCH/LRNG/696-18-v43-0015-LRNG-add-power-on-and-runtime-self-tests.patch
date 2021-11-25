@@ -1,7 +1,7 @@
-From 23983cc15570a566e4f095dadcbc9353f7d892eb Mon Sep 17 00:00:00 2001
+From 37fb62ae49cad72d2914336e7ed0e68372ffcf42 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 2 Aug 2021 22:01:09 +0200
-Subject: [PATCH v42 13/13] LRNG - add power-on and runtime self-tests
+Date: Tue, 28 Sep 2021 17:41:57 +0200
+Subject: [PATCH v43 15/15] LRNG - add power-on and runtime self-tests
 
 Parts of the LRNG are already covered by self-tests, including:
 
@@ -66,42 +66,21 @@ CC: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 CC: Neil Horman <nhorman@redhat.com>
 Reviewed-by: Alexander Lobakin <alobakin@pm.me>
 Tested-by: Alexander Lobakin <alobakin@pm.me>
+Tested-by: Jirka Hladky <jhladky@redhat.com>
+Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig         |  43 +++-
+ drivers/char/lrng/Kconfig         |  26 ++
  drivers/char/lrng/Makefile        |   1 +
- drivers/char/lrng/lrng_selftest.c | 369 ++++++++++++++++++++++++++++++
- 3 files changed, 405 insertions(+), 8 deletions(-)
+ drivers/char/lrng/lrng_selftest.c | 386 ++++++++++++++++++++++++++++++
+ 3 files changed, 413 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_selftest.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index 72b572cb7df5..6f969ac6e2fa 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -165,15 +165,16 @@ config LRNG_COLLECTION_SIZE
- 	default 8192 if LRNG_COLLECTION_SIZE_8192
- 
- config LRNG_HEALTH_TESTS
--	bool "Enable noise source online health tests"
-+	bool "Enable interrupt entropy source online health tests"
- 	help
--	  The online health tests validate the noise source at
--	  runtime for fatal errors. These tests include SP800-90B
--	  compliant tests which are invoked if the system is booted
--	  with fips=1. In case of fatal errors during active
--	  SP800-90B tests, the issue is logged and the noise
--	  data is discarded. These tests are required for full
--	  compliance with SP800-90B.
-+	  The online health tests applied to the interrupt entropy
-+	  source validate the noise source at runtime for fatal
-+	  errors. These tests include SP800-90B compliant tests
-+	  which are invoked if the system is booted with fips=1.
-+	  In case of fatal errors during active SP800-90B tests,
-+	  the issue is logged and the noise data is discarded.
-+	  These tests are required for full compliance of the
-+	  interrupt entropy source with SP800-90B.
- 
- 	  If unsure, say Y.
- 
-@@ -493,4 +494,30 @@ config LRNG_TESTING
+@@ -560,4 +560,30 @@ config LRNG_TESTING
  
  endif #LRNG_TESTING_MENU
  
@@ -132,16 +111,21 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +endif # LRNG_SELFTEST
 +
  endif # LRNG
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 6d5035aa611e..e4f7f9702eb4 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -17,3 +17,4 @@ obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
+@@ -18,3 +18,4 @@ obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
  obj-$(CONFIG_LRNG_JENT)		+= lrng_es_jent.o
  obj-$(CONFIG_LRNG_HEALTH_TESTS)	+= lrng_health.o
  obj-$(CONFIG_LRNG_TESTING)	+= lrng_testing.o
 +obj-$(CONFIG_LRNG_SELFTEST)	+= lrng_selftest.o
+diff --git a/drivers/char/lrng/lrng_selftest.c b/drivers/char/lrng/lrng_selftest.c
+new file mode 100644
+index 000000000000..4412ebd2a5e6
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_selftest.c
-@@ -0,0 +1,369 @@
+@@ -0,0 +1,386 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG power-on and on-demand self-test
@@ -174,7 +158,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +
 +#include "lrng_chacha20.h"
 +#include "lrng_internal.h"
-+#include "lrng_es_irq.h"
 +
 +#define LRNG_SELFTEST_PASSED		0
 +#define LRNG_SEFLTEST_ERROR_TIME	(1 << 0)
@@ -183,23 +166,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +#define LRNG_SEFLTEST_ERROR_GCD		(1 << 3)
 +#define LRNG_SELFTEST_NOT_EXECUTED	0xffffffff
 +
++#ifdef CONFIG_LRNG_IRQ
++
++#include "lrng_es_irq.h"
++
 +static u32 lrng_data_selftest_ptr = 0;
 +static u32 lrng_data_selftest[LRNG_DATA_ARRAY_SIZE];
-+
-+static unsigned int lrng_selftest_status = LRNG_SELFTEST_NOT_EXECUTED;
-+
-+static inline void lrng_selftest_bswap32(u32 *ptr, u32 words)
-+{
-+	u32 i;
-+
-+	/* Byte-swap data which is an LE representation */
-+	for (i = 0; i < words; i++) {
-+		__le32 *p = (__le32 *)ptr;
-+
-+		*p = cpu_to_le32(*ptr);
-+		ptr++;
-+	}
-+}
 +
 +static inline void lrng_data_process_selftest_insert(u32 time)
 +{
@@ -231,7 +203,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	/* MSB of data go into previous unit */
 +	pre_array = lrng_data_idx2array(pre_ptr);
 +	/* zeroization of slot to ensure the following OR adds the data */
-+	lrng_data_selftest[pre_array] &= ~(0xffffffff &~ mask);
++	lrng_data_selftest[pre_array] &= ~(0xffffffff & ~mask);
 +	lrng_data_selftest[pre_array] |= data & ~mask;
 +
 +	/* LSB of data go into current unit */
@@ -289,6 +261,49 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +err:
 +	pr_err("LRNG data array self-test FAILED\n");
 +	return LRNG_SEFLTEST_ERROR_TIME;
++}
++
++static unsigned int lrng_gcd_selftest(void)
++{
++	u32 history[10];
++	unsigned int i;
++
++#define LRNG_GCD_SELFTEST 3
++	for (i = 0; i < ARRAY_SIZE(history); i++)
++		history[i] = i * LRNG_GCD_SELFTEST;
++
++	if (lrng_gcd_analyze(history, ARRAY_SIZE(history)) == LRNG_GCD_SELFTEST)
++		return LRNG_SELFTEST_PASSED;
++
++	pr_err("LRNG GCD self-test FAILED\n");
++	return LRNG_SEFLTEST_ERROR_GCD;
++}
++
++#else /* CONFIG_LRNG_IRQ */
++
++static unsigned int lrng_data_process_selftest(void)
++{
++	return LRNG_SELFTEST_PASSED;
++}
++
++static unsigned int lrng_gcd_selftest(void)
++{
++	return LRNG_SELFTEST_PASSED;
++}
++
++#endif /* CONFIG_LRNG_IRQ */
++
++static inline void lrng_selftest_bswap32(u32 *ptr, u32 words)
++{
++	u32 i;
++
++	/* Byte-swap data which is an LE representation */
++	for (i = 0; i < words; i++) {
++		__le32 *p = (__le32 *)ptr;
++
++		*p = cpu_to_le32(*ptr);
++		ptr++;
++	}
 +}
 +
 +/* The test vectors are taken from crypto/testmgr.h */
@@ -451,21 +466,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	return LRNG_SEFLTEST_ERROR_CHACHA20;
 +}
 +
-+static unsigned int lrng_gcd_selftest(void)
-+{
-+	u32 history[10];
-+	unsigned int i;
-+
-+#define LRNG_GCD_SELFTEST 3
-+	for (i = 0; i < ARRAY_SIZE(history); i++)
-+		history[i] = i * LRNG_GCD_SELFTEST;
-+
-+	if (lrng_gcd_analyze(history, ARRAY_SIZE(history)) == LRNG_GCD_SELFTEST)
-+		return LRNG_SELFTEST_PASSED;
-+
-+	pr_err("LRNG GCD self-test FAILED\n");
-+	return LRNG_SEFLTEST_ERROR_GCD;
-+}
++static unsigned int lrng_selftest_status = LRNG_SELFTEST_NOT_EXECUTED;
 +
 +static int lrng_selftest(void)
 +{
@@ -511,3 +512,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +}
 +
 +module_init(lrng_selftest_init);
+-- 
+2.31.1
+

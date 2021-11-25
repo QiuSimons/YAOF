@@ -1,5 +1,5 @@
---- a/drivers/char/lrng/lrng_chacha20.h
-+++ b/drivers/char/lrng/lrng_chacha20.h
+--- linux-5.10/drivers/char/lrng/lrng_chacha20.h.orig	2021-08-20 21:16:45.569017375 +0200
++++ linux-5.10/drivers/char/lrng/lrng_chacha20.h	2021-08-20 21:18:21.255462479 +0200
 @@ -21,5 +21,9 @@ struct chacha20_block {
  
  static inline void lrng_cc20_init_rfc7539(struct chacha20_block *chacha20)

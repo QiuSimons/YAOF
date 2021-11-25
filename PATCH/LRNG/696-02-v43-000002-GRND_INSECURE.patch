@@ -1,6 +1,6 @@
---- a/include/uapi/linux/random.h
-+++ b/include/uapi/linux/random.h
-@@ -49,8 +49,10 @@ struct rand_pool_info {
+--- linux-5.4/include/uapi/linux/random.h.lrng	2020-08-13 20:42:05.900054630 -0600
++++ linux-5.4/include/uapi/linux/random.h	2020-08-13 20:43:53.375216798 -0600
+@@ -49,8 +49,10 @@
   *
   * GRND_NONBLOCK	Don't block and return EAGAIN instead
   * GRND_RANDOM		Use the /dev/random pool instead of /dev/urandom

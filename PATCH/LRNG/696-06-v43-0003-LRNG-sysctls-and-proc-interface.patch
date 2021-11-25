@@ -1,7 +1,7 @@
-From 4e3f238b369d19b1b3e9be3b43765ce563626347 Mon Sep 17 00:00:00 2001
+From 4cedc0365b43b7b8ef4220b839f9fc94691a7280 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 2 Aug 2021 21:52:37 +0200
-Subject: [PATCH v42 03/13] LRNG - sysctls and /proc interface
+Date: Wed, 13 Oct 2021 22:50:53 +0200
+Subject: [PATCH v43 03/15] LRNG - sysctls and /proc interface
 
 The LRNG sysctl interface provides the same controls as the existing
 /dev/random implementation. These sysctls behave identically and are
@@ -57,24 +57,30 @@ Reviewed-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
 Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
 Tested-by: Neil Horman <nhorman@redhat.com>
+Tested-by: Jirka Hladky <jhladky@redhat.com>
+Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Makefile          |   1 +
  drivers/char/lrng/lrng_interfaces.c |   2 -
- drivers/char/lrng/lrng_proc.c       | 185 ++++++++++++++++++++++++++++
- 3 files changed, 186 insertions(+), 2 deletions(-)
+ drivers/char/lrng/lrng_proc.c       | 199 ++++++++++++++++++++++++++++
+ 3 files changed, 200 insertions(+), 2 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_proc.c
 
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index d321d6d21a44..d7df72a702e4 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -9,3 +9,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
+@@ -8,3 +8,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
  				   lrng_interfaces.o lrng_es_aux.o
  
- obj-$(CONFIG_NUMA)		+= lrng_numa.o
+ obj-$(CONFIG_LRNG_IRQ)		+= lrng_es_irq.o
 +obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
+diff --git a/drivers/char/lrng/lrng_interfaces.c b/drivers/char/lrng/lrng_interfaces.c
+index 6316a534bb54..b656aaf0c6cb 100644
 --- a/drivers/char/lrng/lrng_interfaces.c
 +++ b/drivers/char/lrng/lrng_interfaces.c
-@@ -38,8 +38,6 @@ static DECLARE_WAIT_QUEUE_HEAD(lrng_writ
+@@ -38,8 +38,6 @@ static DECLARE_WAIT_QUEUE_HEAD(lrng_write_wait);
  static DECLARE_WAIT_QUEUE_HEAD(lrng_init_wait);
  static struct fasync_struct *fasync;
  
@@ -83,9 +89,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  /********************************** Helper ***********************************/
  
  /* Is the DRNG seed level too low? */
+diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
+new file mode 100644
+index 000000000000..b48094c32b95
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
-@@ -0,0 +1,185 @@
+@@ -0,0 +1,199 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG proc and sysctl interfaces
@@ -100,7 +109,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +#include <linux/uuid.h>
 +
 +#include "lrng_internal.h"
-+#include "lrng_es_irq.h"
 +
 +/*
 + * This function is used to return both the bootid UUID, and random
@@ -168,9 +176,15 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +}
 +
 +static int lrng_min_write_thresh;
-+static int lrng_max_write_thresh = LRNG_MAX_DIGESTSIZE;
++static int lrng_max_write_thresh = (LRNG_WRITE_WAKEUP_ENTROPY << 3);
 +static char lrng_sysctl_bootid[16];
 +static int lrng_drng_reseed_max_min;
++
++void lrng_proc_update_max_write_thresh(u32 new_digestsize)
++{
++	lrng_max_write_thresh = (int)new_digestsize;
++	mb();
++}
 +
 +struct ctl_table random_table[] = {
 +	{
@@ -230,36 +244,45 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +{
 +	struct lrng_drng *lrng_drng_init = lrng_drng_init_instance();
 +	unsigned long flags = 0;
-+	unsigned char buf[390];
++	unsigned char buf[250], irq[200], aux[100], cpu[90], jent[45];
 +
 +	lrng_drng_lock(lrng_drng_init, &flags);
 +	snprintf(buf, sizeof(buf),
 +		 "DRNG name: %s\n"
-+		 "Hash for reading entropy pool: %s\n"
-+		 "Hash for operating aux entropy pool: %s\n"
 +		 "LRNG security strength in bits: %d\n"
-+		 "per-CPU interrupt collection size: %u\n"
 +		 "number of DRNG instances: %u\n"
-+		 "Standards compliance: %s%s\n"
-+		 "High-resolution timer: %s\n"
++		 "Standards compliance: %s\n"
++		 "Entropy Sources: %s%s%sAuxiliary\n"
 +		 "LRNG minimally seeded: %s\n"
-+		 "LRNG fully seeded: %s\n"
-+		 "Continuous compression: %s\n",
++		 "LRNG fully seeded: %s\n",
 +		 lrng_drng_init->crypto_cb->lrng_drng_name(),
-+		 lrng_drng_init->crypto_cb->lrng_hash_name(),
-+		 lrng_drng_init->crypto_cb->lrng_hash_name(),
 +		 lrng_security_strength(),
-+		 LRNG_DATA_NUM_VALUES,
 +		 numa_drngs,
-+		 lrng_sp80090b_compliant() ? "SP800-90B " : "",
 +		 lrng_sp80090c_compliant() ? "SP800-90C " : "",
-+		 lrng_pool_highres_timer() ? "true" : "false",
++		 IS_ENABLED(CONFIG_LRNG_IRQ) ? "IRQ " : "",
++		 IS_ENABLED(CONFIG_LRNG_JENT) ? "JitterRNG " : "",
++		 IS_ENABLED(CONFIG_LRNG_CPU) ? "CPU " : "",
 +		 lrng_state_min_seeded() ? "true" : "false",
-+		 lrng_state_fully_seeded() ? "true" : "false",
-+		 lrng_pcpu_continuous_compression_state() ? "true" : "false");
++		 lrng_state_fully_seeded() ? "true" : "false");
++
++	lrng_aux_es_state(aux, sizeof(aux));
++
++	irq[0] = '\0';
++	lrng_irq_es_state(irq, sizeof(irq));
++
++	jent[0] = '\0';
++	lrng_jent_es_state(jent, sizeof(jent));
++
++	cpu[0] = '\0';
++	lrng_arch_es_state(cpu, sizeof(cpu));
++
 +	lrng_drng_unlock(lrng_drng_init, &flags);
 +
 +	seq_write(m, buf, strlen(buf));
++	seq_write(m, aux, strlen(aux));
++	seq_write(m, irq, strlen(irq));
++	seq_write(m, jent, strlen(jent));
++	seq_write(m, cpu, strlen(cpu));
 +
 +	return 0;
 +}
@@ -271,3 +294,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +}
 +
 +module_init(lrng_proc_type_init);
+-- 
+2.31.1
+
