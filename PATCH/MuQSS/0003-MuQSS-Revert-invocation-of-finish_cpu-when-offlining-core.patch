@@ -1,0 +1,29 @@
+From fb7e2cfaf61cf5f9c2336331e73296f455bd2d51 Mon Sep 17 00:00:00 2001
+From: Steven Barrett <steven@liquorix.net>
+Date: Sat, 27 Jun 2020 17:32:41 -0500
+Subject: [PATCH] muqss: Revert invocation of "finish_cpu" when offlining core
+
+Backporting the equivalent change in sched/core.c to sched/MuQSS.c in
+function, idle_task_exit, causes an oops at boot with MuQSS.
+
+Instead, make an exception for MuQSS so "finish_cpu" is not executed
+while running MuQSS and retain the original "idle_task_exit"
+implementation.
+---
+ kernel/cpu.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/kernel/cpu.c
++++ b/kernel/cpu.c
+@@ -1503,7 +1503,11 @@ static struct cpuhp_step cpuhp_hp_states
+ 	[CPUHP_BRINGUP_CPU] = {
+ 		.name			= "cpu:bringup",
+ 		.startup.single		= bringup_cpu,
++#ifdef CONFIG_SCHED_MUQSS
++		.teardown.single	= NULL,
++#else
+ 		.teardown.single	= finish_cpu,
++#endif
+ 		.cant_stop		= true,
+ 	},
+ 	/* Final state before CPU kills itself */

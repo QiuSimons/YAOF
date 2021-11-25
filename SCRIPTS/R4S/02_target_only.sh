@@ -11,16 +11,16 @@ wget -P target/linux/rockchip/armv8/base-files/etc/init.d/ https://github.com/fr
 wget -P target/linux/rockchip/armv8/base-files/usr/bin/ https://github.com/friendlyarm/friendlywrt/raw/master-v19.07.1/target/linux/rockchip-rk3399/base-files/usr/bin/start-rk3399-pwm-fan.sh
 
 # CacULE
-sed -i '/CONFIG_NR_CPUS/d' ./target/linux/rockchip/armv8/config-5.4
-echo '
-CONFIG_NR_CPUS=6
-' >>./target/linux/rockchip/armv8/config-5.4
+#sed -i '/CONFIG_NR_CPUS/d' ./target/linux/rockchip/armv8/config-5.4
+#echo '
+#CONFIG_NR_CPUS=6
+#' >>./target/linux/rockchip/armv8/config-5.4
 
 # UKSM
-echo '
-CONFIG_KSM=y
-CONFIG_UKSM=y
-' >>./target/linux/rockchip/armv8/config-5.4
+#echo '
+#CONFIG_KSM=y
+#CONFIG_UKSM=y
+#' >>./target/linux/rockchip/armv8/config-5.4
 
 # IRQ 调优
 sed -i '/set_interface_core 20 "eth1"/a\set_interface_core 8 "ff3c0000" "ff3c0000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity

@@ -35,10 +35,19 @@ patch -p1 <../PATCH/BBRv2/openwrt-kmod-bbr2.patch
 cp -f ../PATCH/BBRv2/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch ./target/linux/generic/hack-5.4/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch
 wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
 # CacULE
-wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/7d44cab.patch | patch -p1
-wget https://github.com/hamadmarri/cacule-cpu-scheduler/raw/master/patches/CacULE/v5.4/cacule-5.4.patch -O ./target/linux/generic/hack-5.4/694-cacule-5.4.patch
+#wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/7d44cab.patch | patch -p1
+#wget https://github.com/hamadmarri/cacule-cpu-scheduler/raw/master/patches/CacULE/v5.4/cacule-5.4.patch -O ./target/linux/generic/hack-5.4/694-cacule-5.4.patch
+# MuQSS
+cp -f ../PATCH/MuQSS/0001-MultiQueue-Skiplist-Scheduler-v0.201.patch ./target/linux/generic/hack-5.4/694-0001-MultiQueue-Skiplist-Scheduler-v0.201.patch
+cp -f ../PATCH/MuQSS/0002-MuQSS-Fix-build-error-on-config-leak.patch ./target/linux/generic/hack-5.4/694-0002-MuQSS-Fix-build-error-on-config-leak.patch
+cp -f ../PATCH/MuQSS/0003-MuQSS-Revert-invocation-of-finish_cpu-when-offlining-core.patch ./target/linux/generic/hack-5.4/694-0003-MuQSS-Revert-invocation-of-finish_cpu-when-offlining-core.patch
+# BMQ
+#wget https://gitlab.com/alfredchen/projectc/-/raw/master/5.4/bmq_v5.4-r2.patch -O ./target/linux/generic/hack-5.4/694-bmq_v5.4-r2.patch
+# PDS
+#wget https://github.com/Frogging-Family/linux-tkg/raw/master/linux-tkg-patches/5.4/0005-v5.4_undead-pds099o.patch -O ./target/linux/generic/hack-5.4/694-0005-01-v5.4_undead-pds099o.patch
+#wget https://github.com/Frogging-Family/linux-tkg/raw/master/linux-tkg-patches/5.4/0005-glitched-pds.patch -O ./target/linux/generic/hack-5.4/694-0005-02-glitched-pds.patch
 # UKSM
-cp -f ../PATCH/UKSM/695-uksm-5.4.patch ./target/linux/generic/hack-5.4/695-uksm-5.4.patch
+#cp -f ../PATCH/UKSM/695-uksm-5.4.patch ./target/linux/generic/hack-5.4/695-uksm-5.4.patch
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.4/
 echo '
