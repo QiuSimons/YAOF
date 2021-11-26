@@ -1,7 +1,7 @@
-From 6e142c237f00ff6968410d85417d710a0ceb21dc Mon Sep 17 00:00:00 2001
+From 7acac2e4000e75f3349106a8847cf1021651446b Mon Sep 17 00:00:00 2001
 From: Con Kolivas <kernel@kolivas.org>
 Date: Fri, 25 Oct 2019 14:00:52 +1100
-Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
+Subject: [PATCH 01/16] MultiQueue Skiplist Scheduler v0.196.
 
 ---
  .../admin-guide/kernel-parameters.txt         |    8 +
@@ -36,7 +36,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  kernel/livepatch/transition.c                 |    6 +-
  kernel/sched/Makefile                         |   10 +-
  kernel/sched/MuQSS.c                          | 7606 +++++++++++++++++
- kernel/sched/MuQSS.h                          | 1022 +++
+ kernel/sched/MuQSS.h                          | 1005 +++
  kernel/sched/cpufreq_schedutil.c              |   12 +-
  kernel/sched/cpupri.h                         |    2 +
  kernel/sched/cputime.c                        |   22 +-
@@ -49,7 +49,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  kernel/time/posix-cpu-timers.c                |    4 +-
  kernel/time/timer.c                           |    7 +-
  kernel/trace/trace_selftest.c                 |    5 +
- 45 files changed, 10025 insertions(+), 52 deletions(-)
+ 45 files changed, 10010 insertions(+), 52 deletions(-)
  create mode 100644 Documentation/scheduler/sched-BFS.txt
  create mode 100644 Documentation/scheduler/sched-MuQSS.txt
  create mode 100644 include/linux/skip_list.h
@@ -1609,7 +1609,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  obj-$(CONFIG_MEMBARRIER) += membarrier.o
 --- /dev/null
 +++ b/kernel/sched/MuQSS.c
-@@ -0,0 +1,7594 @@
+@@ -0,0 +1,7606 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *  kernel/sched/MuQSS.c, was kernel/sched.c
@@ -1724,7 +1724,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +
 +void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "MuQSS CPU scheduler v0.200 by Con Kolivas.\n");
++	printk(KERN_INFO "MuQSS CPU scheduler v0.196 by Con Kolivas.\n");
 +}
 +
 +/* Define RQ share levels */
@@ -2286,6 +2286,13 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +static void enqueue_task(struct rq *rq, struct task_struct *p, int flags);
 +static inline void resched_if_idle(struct rq *rq);
 +
++/* Dodgy workaround till we figure out where the softirqs are going */
++static inline void do_pending_softirq(struct rq *rq, struct task_struct *next)
++{
++	if (unlikely(next == rq->idle && local_softirq_pending() && !in_interrupt()))
++		do_softirq_own_stack();
++}
++
 +static inline bool deadline_before(u64 deadline, u64 time)
 +{
 +	return (deadline < time);
@@ -2346,15 +2353,17 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +static void update_load_avg(struct rq *rq, unsigned int flags)
 +{
 +	long us_interval, load;
++	unsigned long curload;
 +
 +	us_interval = NS_TO_US(rq->niffies - rq->load_update);
 +	if (unlikely(us_interval <= 0))
 +		return;
 +
++	curload = rq_load(rq);
 +	load = rq->load_avg - (rq->load_avg * us_interval * 5 / 262144);
 +	if (unlikely(load < 0))
 +		load = 0;
-+	load += rq_load(rq) * SCHED_CAPACITY_SCALE * us_interval * 5 / 262144;
++	load += curload * curload * SCHED_CAPACITY_SCALE * us_interval * 5 / 262144;
 +	rq->load_avg = load;
 +
 +	rq->load_update = rq->niffies;
@@ -2371,15 +2380,17 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +static void update_irq_load_avg(struct rq *rq, long delta)
 +{
 +	long us_interval, load;
++	unsigned long curload;
 +
 +	us_interval = NS_TO_US(rq->niffies - rq->irq_load_update);
 +	if (unlikely(us_interval <= 0))
 +		return;
 +
++	curload = NS_TO_US(delta) / us_interval;
 +	load = rq->irq_load_avg - (rq->irq_load_avg * us_interval * 5 / 262144);
 +	if (unlikely(load < 0))
 +		load = 0;
-+	load += NS_TO_US(delta) * SCHED_CAPACITY_SCALE * 5 / 262144;
++	load += curload * curload * SCHED_CAPACITY_SCALE * us_interval * 5 / 262144;
 +	rq->irq_load_avg = load;
 +
 +	rq->irq_load_update = rq->niffies;
@@ -3179,6 +3190,17 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +
 +#ifdef CONFIG_SMP
 +
++static inline bool is_per_cpu_kthread(struct task_struct *p)
++{
++	if (!(p->flags & PF_KTHREAD))
++		return false;
++
++	if (p->nr_cpus_allowed != 1)
++		return false;
++
++	return true;
++}
++
 +/*
 + * Per-CPU kthreads are allowed to run on !active && online CPUs, see
 + * __set_cpus_allowed_ptr().
@@ -3275,6 +3297,13 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	return set_cpus_allowed_ptr(p, new_mask);
 +}
 +#endif /* CONFIG_SMP */
++
++/*
++ * wake flags
++ */
++#define WF_SYNC		0x01		/* waker goes to sleep after wakeup */
++#define WF_FORK		0x02		/* child wakeup after fork */
++#define WF_MIGRATED	0x04		/* internal use, task got migrated */
 +
 +static void
 +ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
@@ -3763,7 +3792,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	 * Revert to default priority/policy on fork if requested.
 +	 */
 +	if (unlikely(p->sched_reset_on_fork)) {
-+		if (p->policy == SCHED_FIFO || p->policy == SCHED_RR || p-> policy == SCHED_ISO) {
++		if (p->policy == SCHED_FIFO || p->policy == SCHED_RR) {
 +			p->policy = SCHED_NORMAL;
 +			p->normal_prio = normal_prio(p);
 +		}
@@ -4212,6 +4241,9 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	}
 +#endif
 +	rq_unlock(rq);
++
++	do_pending_softirq(rq, current);
++
 +	local_irq_enable();
 +}
 +
@@ -5059,32 +5091,28 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	 * statistics and checks timeslices in a time-independent way, regardless
 +	 * of when exactly it is running.
 +	 */
-+	if (!tick_nohz_tick_stopped_cpu(cpu))
++	if (idle_cpu(cpu) || !tick_nohz_tick_stopped_cpu(cpu))
 +		goto out_requeue;
 +
 +	rq_lock_irq(rq);
 +	curr = rq->curr;
-+	if (cpu_is_offline(cpu))
++	if (is_idle_task(curr) || cpu_is_offline(cpu))
 +		goto out_unlock;
 +
-+	curr = rq->curr;
 +	update_rq_clock(rq);
++	delta = rq_clock_task(rq) - curr->last_ran;
 +
-+	if (!is_idle_task(curr)) {
-+		/*
-+		 * Make sure the next tick runs within a reasonable
-+		 * amount of time.
-+		 */
-+		delta = rq_clock_task(rq) - curr->last_ran;
-+		WARN_ON_ONCE(delta > (u64)NSEC_PER_SEC * 3);
-+	}
++	/*
++	 * Make sure the next tick runs within a reasonable
++	 * amount of time.
++	 */
++	WARN_ON_ONCE(delta > (u64)NSEC_PER_SEC * 3);
 +	task_tick(rq);
 +
 +out_unlock:
 +	rq_unlock_irq(rq, NULL);
 +
 +out_requeue:
-+
 +	/*
 +	 * Run the remote tick once per second (1Hz). This arbitrary
 +	 * frequency is large enough to avoid overload but short enough
@@ -5727,6 +5755,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	} else {
 +		check_siblings(rq);
 +		rq_unlock(rq);
++		do_pending_softirq(rq, next);
 +		local_irq_enable();
 +	}
 +}
@@ -6466,12 +6495,10 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	}
 +
 +	/*
-+	 * If not changing anything there's no need to proceed further,
-+	 * but store a possible modification of reset_on_fork.
++	 * If not changing anything there's no need to proceed further:
 +	 */
 +	if (unlikely(policy == p->policy && (!is_rt_policy(policy) ||
 +	    priority == p->rt_priority))) {
-+		p->sched_reset_on_fork = reset_on_fork;
 +		retval = 0;
 +		goto unlock;
 +	}
@@ -7534,7 +7561,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	idle->state = TASK_RUNNING;
 +	/* Setting prio to illegal value shouldn't matter when never queued */
 +	idle->prio = PRIO_LIMIT;
-+	idle->flags |= PF_IDLE;
 +
 +	kasan_unpoison_task_stack(idle);
 +
@@ -7629,32 +7655,28 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 + */
 +int get_nohz_timer_target(void)
 +{
-+	int i, cpu = smp_processor_id(), default_cpu = -1;
++	int i, cpu = smp_processor_id();
 +	struct sched_domain *sd;
 +
-+	if (housekeeping_cpu(cpu, HK_FLAG_TIMER)) {
-+		if (!idle_cpu(cpu))
-+			return cpu;
-+		default_cpu = cpu;
-+	}
++	if (!idle_cpu(cpu) && housekeeping_cpu(cpu, HK_FLAG_TIMER))
++		return cpu;
 +
 +	rcu_read_lock();
 +	for_each_domain(cpu, sd) {
-+		for_each_cpu_and(i, sched_domain_span(sd),
-+			housekeeping_cpumask(HK_FLAG_TIMER)) {
++		for_each_cpu(i, sched_domain_span(sd)) {
 +			if (cpu == i)
 +				continue;
 +
-+			if (!idle_cpu(i)) {
++			if (!idle_cpu(i) && housekeeping_cpu(i, HK_FLAG_TIMER)) {
++ 				cpu = i;
 +				cpu = i;
 +				goto unlock;
 +			}
 +		}
 +	}
 +
-+	if (default_cpu == -1)
-+		default_cpu = housekeeping_any_cpu(HK_FLAG_TIMER);
-+	cpu = default_cpu;
++	if (!housekeeping_cpu(cpu, HK_FLAG_TIMER))
++		cpu = housekeeping_any_cpu(HK_FLAG_TIMER);
 +unlock:
 +	rcu_read_unlock();
 +	return cpu;
@@ -8345,11 +8367,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +/* MC siblings CPU mask which share the same LLC */
 +static const cpumask_t *llc_core_cpumask(int cpu)
 +{
-+#ifdef CONFIG_X86
 +	return per_cpu(cpu_llc_shared_map, cpu);
-+#else
-+	return topology_core_cpumask(cpu);
-+#endif
 +}
 +#endif
 +
@@ -8364,25 +8382,46 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	SD_LV_MAX
 +};
 +
-+/*
-+ * Set up the relative cache distance of each online cpu from each
-+ * other in a simple array for quick lookup. Locality is determined
-+ * by the closest sched_domain that CPUs are separated by. CPUs with
-+ * shared cache in SMT and MC are treated as local. Separate CPUs
-+ * (within the same package or physically) within the same node are
-+ * treated as not local. CPUs not even in the same domain (different
-+ * nodes) are treated as very distant.
-+ */
-+static void __init select_leaders(void)
++void __init sched_init_smp(void)
 +{
-+	struct rq *rq, *other_rq, *leader;
++	struct rq *rq, *other_rq, *leader = cpu_rq(0);
 +	struct sched_domain *sd;
-+	int cpu, other_cpu;
++	int cpu, other_cpu, i;
 +#ifdef CONFIG_SCHED_SMT
 +	bool smt_threads = false;
 +#endif
++	sched_init_numa();
 +
-+	for (cpu = 0; cpu < num_online_cpus(); cpu++) {
++	/*
++	 * There's no userspace yet to cause hotplug operations; hence all the
++	 * cpu masks are stable and all blatant races in the below code cannot
++	 * happen.
++	 */
++	mutex_lock(&sched_domains_mutex);
++	sched_init_domains(cpu_active_mask);
++	mutex_unlock(&sched_domains_mutex);
++
++	/* Move init over to a non-isolated CPU */
++	if (set_cpus_allowed_ptr(current, housekeeping_cpumask(HK_FLAG_DOMAIN)) < 0)
++		BUG();
++
++	local_irq_disable();
++	mutex_lock(&sched_domains_mutex);
++	lock_all_rqs();
++
++	printk(KERN_INFO "MuQSS possible/present/online CPUs: %d/%d/%d\n",
++		num_possible_cpus(), num_present_cpus(), num_online_cpus());
++
++	/*
++	 * Set up the relative cache distance of each online cpu from each
++	 * other in a simple array for quick lookup. Locality is determined
++	 * by the closest sched_domain that CPUs are separated by. CPUs with
++	 * shared cache in SMT and MC are treated as local. Separate CPUs
++	 * (within the same package or physically) within the same node are
++	 * treated as not local. CPUs not even in the same domain (different
++	 * nodes) are treated as very distant.
++	 */
++	for (cpu = num_online_cpus() - 1; cpu >= 0; cpu--) {
 +		rq = cpu_rq(cpu);
 +		leader = NULL;
 +		/* First check if this cpu is in the same node */
@@ -8399,8 +8438,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +					/* Set the smp_leader to the first CPU */
 +					if (!leader)
 +						leader = rq;
-+					if (!other_rq->smp_leader)
-+						other_rq->smp_leader = leader;
++					other_rq->smp_leader = leader;
 +				}
 +				if (rq->cpu_locality[other_cpu] > LOCALITY_SMP)
 +					rq->cpu_locality[other_cpu] = LOCALITY_SMP;
@@ -8424,8 +8462,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +					/* Set the mc_leader to the first CPU */
 +					if (!leader)
 +						leader = rq;
-+					if (!other_rq->mc_leader)
-+						other_rq->mc_leader = leader;
++					other_rq->mc_leader = leader;
 +				}
 +				if (rq->cpu_locality[other_cpu] > LOCALITY_MC) {
 +					/* this is to get LLC into play even in case LLC sharing is not used */
@@ -8450,8 +8487,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +					/* Set the smt_leader to the first CPU */
 +					if (!leader)
 +						leader = rq;
-+					if (!other_rq->smt_leader)
-+						other_rq->smt_leader = leader;
++					other_rq->smt_leader = leader;
 +				}
 +				if (rq->cpu_locality[other_cpu] > LOCALITY_SMT)
 +					rq->cpu_locality[other_cpu] = LOCALITY_SMT;
@@ -8469,6 +8505,8 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +		smt_schedule = &smt_should_schedule;
 +	}
 +#endif
++	unlock_all_rqs();
++	mutex_unlock(&sched_domains_mutex);
 +
 +	for_each_online_cpu(cpu) {
 +		rq = cpu_rq(cpu);
@@ -8476,29 +8514,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +			printk(KERN_DEBUG "MuQSS locality CPU %d to %d: %d\n", cpu, other_cpu, rq->cpu_locality[other_cpu]);
 +		}
 +	}
-+}
-+
-+/* FIXME freeing locked spinlock */
-+static void __init share_and_free_rq(struct rq *leader, struct rq *rq)
-+{
-+	WARN_ON(rq->nr_running > 0);
-+
-+	kfree(rq->node);
-+	kfree(rq->sl);
-+	kfree(rq->lock);
-+	rq->node = leader->node;
-+	rq->sl = leader->sl;
-+	rq->lock = leader->lock;
-+	rq->is_leader = false;
-+	barrier();
-+	/* To make up for not unlocking the freed runlock */
-+	preempt_enable();
-+}
-+
-+static void __init share_rqs(void)
-+{
-+	struct rq *rq, *leader;
-+	int cpu;
 +
 +	for_each_online_cpu(cpu) {
 +		rq = cpu_rq(cpu);
@@ -8508,7 +8523,15 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +		if (leader && rq != leader) {
 +			printk(KERN_INFO "MuQSS sharing SMP runqueue from CPU %d to CPU %d\n",
 +			       leader->cpu, rq->cpu);
-+			share_and_free_rq(leader, rq);
++			kfree(rq->node);
++			kfree(rq->sl);
++			kfree(rq->lock);
++			rq->node = leader->node;
++			rq->sl = leader->sl;
++			rq->lock = leader->lock;
++			barrier();
++			/* To make up for not unlocking the freed runlock */
++			preempt_enable();
 +		} else
 +			rq_unlock(rq);
 +	}
@@ -8522,7 +8545,15 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +		if (leader && rq != leader) {
 +			printk(KERN_INFO "MuQSS sharing MC runqueue from CPU %d to CPU %d\n",
 +			       leader->cpu, rq->cpu);
-+			share_and_free_rq(leader, rq);
++			kfree(rq->node);
++			kfree(rq->sl);
++			kfree(rq->lock);
++			rq->node = leader->node;
++			rq->sl = leader->sl;
++			rq->lock = leader->lock;
++			barrier();
++			/* To make up for not unlocking the freed runlock */
++			preempt_enable();
 +		} else
 +			rq_unlock(rq);
 +	}
@@ -8531,31 +8562,44 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +#ifdef CONFIG_SCHED_SMT
 +	for_each_online_cpu(cpu) {
 +		rq = cpu_rq(cpu);
++
 +		leader = rq->smt_leader;
 +
 +		rq_lock(rq);
 +		if (leader && rq != leader) {
 +			printk(KERN_INFO "MuQSS sharing SMT runqueue from CPU %d to CPU %d\n",
 +			       leader->cpu, rq->cpu);
-+			share_and_free_rq(leader, rq);
++			kfree(rq->node);
++			kfree(rq->sl);
++			kfree(rq->lock);
++			rq->node = leader->node;
++			rq->sl = leader->sl;
++			rq->lock = leader->lock;
++			barrier();
++			/* To make up for not unlocking the freed runlock */
++			preempt_enable();
 +		} else
 +			rq_unlock(rq);
 +	}
 +#endif /* CONFIG_SCHED_SMT */
-+}
 +
-+static void __init setup_rq_orders(void)
-+{
-+	struct rq *rq, *other_rq;
-+	int cpu, other_cpu, i;
++	local_irq_enable();
 +
 +	total_runqueues = 0;
 +	for_each_online_cpu(cpu) {
 +		int locality, total_rqs = 0, total_cpus = 0;
 +
 +		rq = cpu_rq(cpu);
-+		if (rq->is_leader)
++		if (
++#ifdef CONFIG_SCHED_MC
++		    (rq->mc_leader == rq) &&
++#endif
++#ifdef CONFIG_SCHED_SMT
++		    (rq->smt_leader == rq) &&
++#endif
++		    (rq->smp_leader == rq)) {
 +			total_runqueues++;
++		}
 +
 +		for (locality = LOCALITY_SAME; locality <= LOCALITY_DISTANT; locality++) {
 +			int selected_cpus[NR_CPUS], selected_cpu_cnt, selected_cpu_idx, test_cpu_idx, cpu_idx, best_locality, test_cpu;
@@ -8618,7 +8662,14 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +				other_rq = cpu_rq(ordered_cpus[test_cpu]);
 +				/* set up cpu orders */
 +				rq->cpu_order[total_cpus++] = other_rq;
-+				if (other_rq->is_leader) {
++				if (
++#ifdef CONFIG_SCHED_MC
++				    (other_rq->mc_leader == other_rq) &&
++#endif
++#ifdef CONFIG_SCHED_SMT
++				    (other_rq->smt_leader == other_rq) &&
++#endif
++				    (other_rq->smp_leader == other_rq)) {
 +					/* set up RQ orders */
 +					rq->rq_order[total_rqs++] = other_rq;
 +				}
@@ -8626,7 +8677,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +		}
 +	}
 +
-+#ifdef CONFIG_X86
 +	for_each_online_cpu(cpu) {
 +		rq = cpu_rq(cpu);
 +		for (i = 0; i < total_runqueues; i++) {
@@ -8642,43 +8692,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +			       rq->cpu_order[i]->cpu, per_cpu(cpu_llc_id, rq->cpu_order[i]->cpu));
 +		}
 +	}
-+#endif
-+}
-+
-+void __init sched_init_smp(void)
-+{
-+	sched_init_numa();
-+
-+	/*
-+	 * There's no userspace yet to cause hotplug operations; hence all the
-+	 * cpu masks are stable and all blatant races in the below code cannot
-+	 * happen.
-+	 */
-+	mutex_lock(&sched_domains_mutex);
-+	sched_init_domains(cpu_active_mask);
-+	mutex_unlock(&sched_domains_mutex);
-+
-+	/* Move init over to a non-isolated CPU */
-+	if (set_cpus_allowed_ptr(current, housekeeping_cpumask(HK_FLAG_DOMAIN)) < 0)
-+		BUG();
-+
-+	local_irq_disable();
-+	mutex_lock(&sched_domains_mutex);
-+	lock_all_rqs();
-+
-+	printk(KERN_INFO "MuQSS possible/present/online CPUs: %d/%d/%d\n",
-+		num_possible_cpus(), num_present_cpus(), num_online_cpus());
-+
-+	select_leaders();
-+
-+	unlock_all_rqs();
-+	mutex_unlock(&sched_domains_mutex);
-+
-+	share_rqs();
-+
-+	local_irq_enable();
-+
-+	setup_rq_orders();
 +
 +	switch (rqshare) {
 +		case RQSHARE_ALL:
@@ -8797,13 +8810,12 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +		rq->iso_ticks = 0;
 +		rq->iso_refractory = false;
 +#ifdef CONFIG_SMP
-+		rq->is_leader = true;
-+		rq->smp_leader = NULL;
++		rq->smp_leader = rq;
 +#ifdef CONFIG_SCHED_MC
-+		rq->mc_leader = NULL;
++		rq->mc_leader = rq;
 +#endif
 +#ifdef CONFIG_SCHED_SMT
-+		rq->smt_leader = NULL;
++		rq->smt_leader = rq;
 +#endif
 +		rq->sd = NULL;
 +		rq->rd = NULL;
@@ -9206,7 +9218,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +#undef CREATE_TRACE_POINTS
 --- /dev/null
 +++ b/kernel/sched/MuQSS.h
-@@ -0,0 +1,1019 @@
+@@ -0,0 +1,1010 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +#ifndef MUQSS_SCHED_H
 +#define MUQSS_SCHED_H
@@ -9214,7 +9226,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +#include <linux/sched/clock.h>
 +#include <linux/sched/cpufreq.h>
 +#include <linux/sched/cputime.h>
-+#include <linux/sched/deadline.h>
 +#include <linux/sched/debug.h>
 +#include <linux/sched/hotplug.h>
 +#include <linux/sched/init.h>
@@ -9238,6 +9249,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +#include <linux/ctype.h>
 +#include <linux/energy_model.h>
 +#include <linux/freezer.h>
++#include <linux/interrupt.h>
 +#include <linux/kernel_stat.h>
 +#include <linux/kthread.h>
 +#include <linux/membarrier.h>
@@ -9266,13 +9278,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +#else
 +# define SCHED_WARN_ON(x)	((void)(x))
 +#endif
-+
-+/*
-+ * wake flags
-+ */
-+#define WF_SYNC		0x01		/* waker goes to sleep after wakeup */
-+#define WF_FORK		0x02		/* child wakeup after fork */
-+#define WF_MIGRATED	0x04		/* internal use, task got migrated */
 +
 +/* task_struct::on_rq states: */
 +#define TASK_ON_RQ_QUEUED	1
@@ -9386,9 +9391,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	raw_spinlock_t *lock;
 +	raw_spinlock_t *orig_lock;
 +
-+	struct task_struct __rcu	*curr;
-+	struct task_struct	*idle;
-+	struct task_struct	*stop;
++	struct task_struct *curr, *idle, *stop;
 +	struct mm_struct *prev_mm;
 +
 +	unsigned int nr_running;
@@ -9451,7 +9454,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +	struct rq **rq_order; /* Shared RQs ordered by relative cache distance */
 +	struct rq **cpu_order; /* RQs of discrete CPUs ordered by distance */
 +
-+	bool is_leader;
 +	struct rq *smp_leader; /* First physical CPU per node */
 +#ifdef CONFIG_SCHED_SMT
 +	struct rq *smt_leader; /* First logical CPU in SMT siblings */
@@ -10017,6 +10019,20 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +#define arch_scale_freq_invariant()	(false)
 +#endif
 +
++/*
++ * This should only be called when current == rq->idle. Dodgy workaround for
++ * when softirqs are pending and we are in the idle loop. Setting current to
++ * resched will kick us out of the idle loop and the softirqs will be serviced
++ * on our next pass through schedule().
++ */
++static inline bool softirq_pending(int cpu)
++{
++	if (likely(!local_softirq_pending()))
++		return false;
++	set_tsk_need_resched(current);
++	return true;
++}
++
 +#ifdef CONFIG_64BIT
 +static inline u64 read_sum_exec_runtime(struct task_struct *t)
 +{
@@ -10212,19 +10228,6 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +}
 +#endif
 +
-+#ifdef CONFIG_SMP
-+static inline bool is_per_cpu_kthread(struct task_struct *p)
-+{
-+	if (!(p->flags & PF_KTHREAD))
-+		return false;
-+
-+	if (p->nr_cpus_allowed != 1)
-+		return false;
-+
-+	return true;
-+}
-+#endif
-+
 +#endif /* MUQSS_SCHED_H */
 --- a/kernel/sched/cpufreq_schedutil.c
 +++ b/kernel/sched/cpufreq_schedutil.c
@@ -10316,7 +10319,38 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  	task_cputime(p, &cputime.utime, &cputime.stime);
 --- a/kernel/sched/idle.c
 +++ b/kernel/sched/idle.c
-@@ -356,6 +356,7 @@ void cpu_startup_entry(enum cpuhp_state
+@@ -225,6 +225,8 @@ exit_idle:
+ static void do_idle(void)
+ {
+ 	int cpu = smp_processor_id();
++	bool pending = false;
++
+ 	/*
+ 	 * If the arch has a polling bit, we maintain an invariant:
+ 	 *
+@@ -235,7 +237,10 @@ static void do_idle(void)
+ 	 */
+ 
+ 	__current_set_polling();
+-	tick_nohz_idle_enter();
++	if (unlikely(softirq_pending(cpu)))
++		pending = true;
++	else
++		tick_nohz_idle_enter();
+ 
+ 	while (!need_resched()) {
+ 		rmb();
+@@ -274,7 +279,8 @@ static void do_idle(void)
+ 	 * an IPI to fold the state for us.
+ 	 */
+ 	preempt_set_need_resched();
+-	tick_nohz_idle_exit();
++	if (!pending)
++		tick_nohz_idle_exit();
+ 	__current_clr_polling();
+ 
+ 	/*
+@@ -356,6 +362,7 @@ void cpu_startup_entry(enum cpuhp_state
  		do_idle();
  }
  
@@ -10324,7 +10358,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  /*
   * idle-task scheduling class.
   */
-@@ -480,3 +481,4 @@ const struct sched_class idle_sched_clas
+@@ -480,3 +487,4 @@ const struct sched_class idle_sched_clas
  	.switched_to		= switched_to_idle,
  	.update_curr		= update_curr_idle,
  };
@@ -10351,12 +10385,17 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  #include <linux/sched.h>
  
  #include <linux/sched/autogroup.h>
-@@ -2551,3 +2564,25 @@ static inline void membarrier_switch_mm(
+@@ -2551,3 +2564,30 @@ static inline void membarrier_switch_mm(
  {
  }
  #endif
 +
 +/* MuQSS compatibility functions */
++static inline bool softirq_pending(int cpu)
++{
++	return false;
++}
++
 +#ifdef CONFIG_64BIT
 +static inline u64 read_sum_exec_runtime(struct task_struct *t)
 +{
@@ -10379,7 +10418,15 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 +#endif /* CONFIG_SCHED_MUQSS */
 --- a/kernel/sched/topology.c
 +++ b/kernel/sched/topology.c
-@@ -442,7 +442,11 @@ void rq_attach_root(struct rq *rq, struc
+@@ -3,6 +3,7 @@
+  * Scheduler topology setup/handling methods
+  */
+ #include "sched.h"
++#include "linux/sched/deadline.h"
+ 
+ DEFINE_MUTEX(sched_domains_mutex);
+ 
+@@ -442,7 +443,11 @@ void rq_attach_root(struct rq *rq, struc
  	struct root_domain *old_rd = NULL;
  	unsigned long flags;
  
@@ -10391,7 +10438,7 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  
  	if (rq->rd) {
  		old_rd = rq->rd;
-@@ -468,7 +472,11 @@ void rq_attach_root(struct rq *rq, struc
+@@ -468,7 +473,11 @@ void rq_attach_root(struct rq *rq, struc
  	if (cpumask_test_cpu(rq->cpu, cpu_active_mask))
  		set_rq_online(rq);
  
@@ -10564,9 +10611,9 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
 -static int one_thousand = 1000;
 +static int __read_mostly one_hundred = 100;
 +static int __read_mostly one_thousand = 1000;
++#ifdef CONFIG_SCHED_MUQSS
 +static int zero = 0;
 +static int one = 1;
-+#ifdef CONFIG_SCHED_MUQSS
 +extern int rr_interval;
 +extern int sched_interactive;
 +extern int sched_iso_cpu;
@@ -10729,14 +10776,3 @@ Subject: [PATCH 01/11] MultiQueue Skiplist Scheduler v0.198
  	};
  	struct wakeup_test_data *x = data;
  
---- a/kernel/time/Kconfig
-+++ b/kernel/time/Kconfig
-@@ -123,7 +123,7 @@ config CONTEXT_TRACKING
- 
- config CONTEXT_TRACKING_FORCE
- 	bool "Force context tracking"
--	depends on CONTEXT_TRACKING
-+	depends on CONTEXT_TRACKING && !SCHED_MUQSS
- 	default y if !NO_HZ_FULL
- 	help
- 	  The major pre-requirement for full dynticks to work is to
