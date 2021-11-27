@@ -413,8 +413,8 @@ index b4daad2bac23..f9faeb82f677 100644
 +	depends on SCHED_BMQ
 +	help
 +	  Time slice in ms for BMQ CPU scheduler, default 4 ms.
-+	default 2 if PREEMPT
-+	default 4 if !PREEMPT
++	default 6 if PREEMPT
++	default 6 if !PREEMPT
 +
  config UCLAMP_TASK
  	bool "Enable utilization clamping for RT/FAIR tasks"
