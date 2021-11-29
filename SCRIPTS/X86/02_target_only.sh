@@ -12,6 +12,9 @@ echo '
 CONFIG_CRYPTO_AES_NI_INTEL=y
 ' >>./target/linux/x86/64/config-5.4
 
+# BMQ
+cp -f ../PATCH/BMQ/01-bmq_v5.4-r2.patch ./target/linux/generic/hack-5.4/694-01-bmq_v5.4-r2.patch
+
 # UKSM
 #echo '
 #CONFIG_KSM=y
