@@ -162,9 +162,13 @@ CONFIG_LIBCURL_OPENSSL=y
 # CONFIG_LIBCURL_GNUTLS is not set
 # CONFIG_LIBCURL_NOSSL is not set
 
+### Video Support ###
+CONFIG_PACKAGE_kmod-drm-rockchip=y
+CONFIG_PACKAGE_kmod-drm-lima=y
+CONFIG_PACKAGE_kmod-multimedia-input=y
+
 
 ### DOCKER ###（实验性,有需要的删掉下面的注释)
-
 #CONFIG_PACKAGE_luci-app-dockerman=y
 #CONFIG_DOCKER_KERNEL_OPTIONS=y
 #CONFIG_DOCKER_NET_ENCRYPT=y
@@ -175,17 +179,3 @@ CONFIG_LIBCURL_OPENSSL=y
 #CONFIG_DOCKER_SECCOMP=y
 #CONFIG_DOCKER_STO_BTRFS=y
 #CONFIG_DOCKER_STO_EXT4=y
-
-### Video Support ### （实验性,有需要的删掉下面的注释)
-#CONFIG_PACKAGE_kmod-backlight=y
-#CONFIG_PACKAGE_kmod-drm=y
-#CONFIG_PACKAGE_kmod-drm-kms-helper=y
-#CONFIG_PACKAGE_kmod-drm-rockchip=y
-#CONFIG_PACKAGE_kmod-fb=y
-#CONFIG_PACKAGE_kmod-fb-cfb-copyarea=y
-#CONFIG_PACKAGE_kmod-fb-cfb-fillrect=y
-#CONFIG_PACKAGE_kmod-fb-cfb-imgblt=y
-#CONFIG_PACKAGE_kmod-fb-sys-fops=y
-#CONFIG_PACKAGE_kmod-fb-sys-ram=y
-#CONFIG_PACKAGE_kmod-gpu-lima=y
-#CONFIG_PACKAGE_kmod-multimedia-input=y
