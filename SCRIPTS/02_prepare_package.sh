@@ -253,7 +253,7 @@ svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy feed
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/new/tcping
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-go package/new/trojan-go
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/brook
-svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-plus package/new/trojan-plus
+svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/trojan-plus package/new/trojan-plus
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/ssocks package/new/ssocks
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/hysteria package/new/hysteria
 # qBittorrent 下载
@@ -284,7 +284,6 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/dns2socks package
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/redsocks2 package/lean/redsocks2
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/ipt2socks package/lean/ipt2socks
 svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev package/lean/shadowsocks-libev
-svn co https://github.com/fw876/helloworld/trunk/trojan package/lean/trojan
 svn co https://github.com/fw876/helloworld/trunk/simple-obfs package/lean/simple-obfs
 svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
 svn co https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-core
