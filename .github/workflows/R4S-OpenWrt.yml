@@ -120,8 +120,8 @@ jobs:
         gzip --best *.img
         ls -Ahl
         sha256sum openwrt*r4s* | tee R4S-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}.sha256sum
-        zip R4S-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}-ext4.zip *r4s*ext4*
-        zip R4S-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}-sfs.zip *r4s*squashfs*
+        zip R4S-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-ext4.zip *r4s*ext4*
+        zip R4S-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-sfs.zip *r4s*squashfs*
         ls -Ahl
     - name: Upload artifact
       uses: actions/upload-artifact@main
