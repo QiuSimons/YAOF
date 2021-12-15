@@ -22,6 +22,8 @@ sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
 ### 必要的 Patches ###
+# offload bug fix
+wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
 # TCP performance optimizations backport from linux/net-next
 cp -f ../PATCH/backport/695-tcp-optimizations.patch ./target/linux/generic/backport-5.4/695-tcp-optimizations.patch
 # introduce "le9" Linux kernel patches
