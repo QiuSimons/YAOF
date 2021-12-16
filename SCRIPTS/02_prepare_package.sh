@@ -371,6 +371,8 @@ pushd feeds/luci/applications/luci-app-zerotier
 bash move_2_services.sh
 popd
 ln -sf ../../../feeds/luci/applications/luci-app-zerotier ./package/feeds/luci/luci-app-zerotier
+rm -rf ./feeds/packages/net/zerotier
+svn co https://github.com/openwrt/packages/trunk/net/zerotier feeds/packages/net/zerotier
 rm -rf ./feeds/packages/net/zerotier/files/etc/init.d/zerotier
 sed -i '/Default,one/a\\t$(STAGING_DIR_HOST)/bin/upx --lzma --best $(PKG_BUILD_DIR)/zerotier-one' feeds/packages/net/zerotier/Makefile
 # 翻译及部分功能优化
