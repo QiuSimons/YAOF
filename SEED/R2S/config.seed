@@ -16,6 +16,7 @@ CONFIG_TOOLCHAINOPTS=y
 CONFIG_GCC_USE_VERSION_8=y
 
 ### BASIC ###
+CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
 CONFIG_PACKAGE_r8169-firmware=y
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
