@@ -87,7 +87,7 @@ patch -p1 <../PATCH/firewall/luci-app-firewall_add_fullcone.patch
 # FullCone 相关组件
 svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/openwrt-fullconenat package/lean/openwrt-fullconenat
 pushd package/lean/openwrt-fullconenat
-patch -p1 <../../../../PATCH/firewall/fullcone6.patch
+patch -p2 <../../../../PATCH/firewall/fullcone6.patch
 popd
 
 ### 获取额外的基础软件包 ###
@@ -259,10 +259,16 @@ svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasi
 svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
 # Passwall
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
-sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
-sed -i '/Trojan_GO:/d' package/new/luci-app-passwall/Makefile
-sed -i '/V2ray:/d' package/new/luci-app-passwall/Makefile
-sed -i '/Plugin:/d' package/new/luci-app-passwall/Makefile
+pushd package/new/luci-app-passwall
+sed -i 's,default n,default y,g' Makefile
+sed -i '/trojan-go/d' Makefile
+sed -i '/v2ray-core/d' Makefile
+sed -i '/v2ray-plugin/d' Makefile
+sed -i '/xray-plugin/d' Makefile
+sed -i '/shadowsocks-libev-ss-redir/d' Makefile
+sed -i '/shadowsocks-libev-ss-server/d' Makefile
+sed -i '/shadowsocks-libev-ss-local/d' Makefile
+popd
 wget -P package/new/luci-app-passwall/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
 chmod -R 755 ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
@@ -310,7 +316,8 @@ svn co https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-c
 svn co https://github.com/fw876/helloworld/trunk/xray-core package/lean/xray-core
 svn co https://github.com/fw876/helloworld/trunk/v2ray-plugin package/lean/v2ray-plugin
 svn co https://github.com/fw876/helloworld/trunk/xray-plugin package/lean/xray-plugin
-svn co https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust feeds/packages/net/shadowsocks-rust
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/shadowsocks-rust feeds/packages/net/shadowsocks-rust
+#svn co https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust feeds/packages/net/shadowsocks-rust
 sed -i '/Build\/Compile/a\\t$(STAGING_DIR_HOST)/bin/upx --lzma --best $$(PKG_BUILD_DIR)/$(component)' feeds/packages/net/shadowsocks-rust/Makefile
 ln -sf ../../../feeds/packages/net/shadowsocks-rust ./package/feeds/packages/shadowsocks-rust
 svn co https://github.com/immortalwrt/packages/trunk/net/kcptun feeds/packages/net/kcptun
@@ -325,7 +332,13 @@ wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/323fbf0.patch | 
 popd
 pushd package/lean/luci-app-ssr-plus
 sed -i 's,default n,default y,g' Makefile
-sed -i '/Plugin:/d' Makefile
+sed -i '/trojan-go/d' Makefile
+sed -i '/v2ray-core/d' Makefile
+sed -i '/v2ray-plugin/d' Makefile
+sed -i '/xray-plugin/d' Makefile
+sed -i '/shadowsocks-libev-ss-redir/d' Makefile
+sed -i '/shadowsocks-libev-ss-server/d' Makefile
+sed -i '/shadowsocks-libev-ss-local/d' Makefile
 sed -i '/result.encrypt_method/a\result.fast_open = "1"' root/usr/share/shadowsocksr/subscribe.lua
 sed -i 's,ispip.clang.cn/all_cn,gh.404delivr.workers.dev/https://github.com/QiuSimons/Chnroute/raw/master/dist/chnroute/chnroute,' root/etc/init.d/shadowsocksr
 sed -i 's,YW5vbnltb3Vz/domain-list-community/release/gfwlist.txt,Loyalsoldier/v2ray-rules-dat/release/gfw.txt,' root/etc/init.d/shadowsocksr
@@ -360,9 +373,15 @@ svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/vlmcsd package/le
 # VSSR
 git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
 git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
-sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
-sed -i '/plugin:/d' package/lean/luci-app-vssr/Makefile
-#sed -i '/plugin:v2ray/d' package/lean/luci-app-vssr/Makefile
+pushd package/lean/luci-app-vssr
+sed -i 's,default n,default y,g' Makefile
+sed -i '/trojan-go/d' Makefile
+sed -i '/v2ray-core/d' Makefile
+sed -i '/v2ray-plugin/d' Makefile
+sed -i '/xray-plugin/d' Makefile
+sed -i 's,+shadowsocks-libev-ss-local ,,g' Makefile
+sed -i 's,+shadowsocks-libev-ss-redir ,,g' Makefile
+popd
 sed -i '/result.encrypt_method/a\result.fast_open = "1"' package/lean/luci-app-vssr/root/usr/share/vssr/subscribe.lua
 sed -i 's,ispip.clang.cn/all_cn.txt,raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/luasrc/controller/vssr.lua
 sed -i 's,ispip.clang.cn/all_cn.txt,raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/root/usr/share/vssr/update.lua
