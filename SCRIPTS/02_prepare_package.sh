@@ -190,6 +190,7 @@ svn co https://github.com/QiuSimons/OpenWrt-Add/trunk/luci-app-cpulimit package/
 svn co https://github.com/immortalwrt/packages/trunk/utils/cpulimit feeds/packages/utils/cpulimit
 ln -sf ../../../feeds/packages/utils/cpulimit ./package/feeds/packages/cpulimit
 # 动态DNS
+sed -i '/boot()/,+2d' feeds/packages/net/ddns-scripts/files/etc/init.d/ddns
 svn co https://github.com/kiddin9/openwrt-packages/trunk/ddns-scripts-aliyun package/lean/ddns-scripts_dnspod
 svn co https://github.com/kiddin9/openwrt-packages/trunk/ddns-scripts-dnspod package/lean/ddns-scripts_aliyun
 svn co https://github.com/QiuSimons/OpenWrt_luci-app/trunk/luci-app-tencentddns package/lean/luci-app-tencentddns
@@ -380,7 +381,6 @@ sed -i '/v2ray-core/d' Makefile
 sed -i '/v2ray-plugin/d' Makefile
 sed -i '/xray-plugin/d' Makefile
 sed -i 's,+shadowsocks-libev-ss-local ,,g' Makefile
-sed -i 's,+shadowsocks-libev-ss-redir ,,g' Makefile
 popd
 sed -i '/result.encrypt_method/a\result.fast_open = "1"' package/lean/luci-app-vssr/root/usr/share/vssr/subscribe.lua
 sed -i 's,ispip.clang.cn/all_cn.txt,raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/luasrc/controller/vssr.lua
