@@ -345,6 +345,9 @@ sed -i 's,ispip.clang.cn/all_cn,gh.404delivr.workers.dev/https://github.com/QiuS
 sed -i 's,YW5vbnltb3Vz/domain-list-community/release/gfwlist.txt,Loyalsoldier/v2ray-rules-dat/release/gfw.txt,' root/etc/init.d/shadowsocksr
 sed -i '/Clang.CN.CIDR/a\o:value("https://gh.404delivr.workers.dev/https://github.com/QiuSimons/Chnroute/raw/master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
 popd
+# v2raya
+git clone --depth 1 https://github.com/zxlhhyccc/luci-app-v2raya.git package/new/luci-app-v2raya
+svn co https://github.com/v2rayA/v2raya-openwrt/trunk/v2raya package/new/v2raya
 # socat
 svn co https://github.com/Lienol/openwrt-package/trunk/luci-app-socat package/new/luci-app-socat
 # 订阅转换
