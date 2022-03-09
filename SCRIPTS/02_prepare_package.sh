@@ -263,7 +263,8 @@ svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasi
 svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/phtunnel package/new/phtunnel
 svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
 # Passwall
-svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
+svn co https://github.com/immortalwrt/luci/trunk/applications/luci-app-passwall package/new/luci-app-passwall
+#svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
 pushd package/new/luci-app-passwall
 sed -i 's,default n,default y,g' Makefile
 sed -i '/trojan-go/d' Makefile
