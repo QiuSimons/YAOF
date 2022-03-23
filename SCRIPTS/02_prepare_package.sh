@@ -398,6 +398,8 @@ svn export https://github.com/immortalwrt/packages/trunk/libs/toml11 feeds/packa
 ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
 # 网易云音乐解锁
 git clone --depth 1 https://github.com/immortalwrt/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
+# ucode
+svn export https://github.com/openwrt/openwrt/trunk/package/utils/ucode package/utils/ucode
 # USB 打印机
 svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-usb-printer package/lean/luci-app-usb-printer
 # UU加速器
