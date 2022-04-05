@@ -235,7 +235,7 @@ svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-frps
 svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-frpc package/lean/luci-app-frpc
 svn export https://github.com/coolsnowwolf/packages/trunk/net/frp package/lean/frp
 # IPSec
-svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-ipsec-vpnd package/lean/luci-app-ipsec-vpnd
+svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-ipsec-server package/lean/luci-app-ipsec-server
 # IPv6 兼容助手
 svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/ipv6-helper package/lean/ipv6-helper
 # 京东签到 By Jerrykuku
