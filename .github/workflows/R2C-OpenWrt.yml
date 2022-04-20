@@ -99,6 +99,7 @@ jobs:
       run: |
         df -h
         cd openwrt
+        echo | make kernel_oldconfig -j$(($(nproc) + 1)) 
         make -j$(($(nproc) + 1)) || make -j$(($(nproc) + 1)) V=s
         echo $?
     - name: If Error

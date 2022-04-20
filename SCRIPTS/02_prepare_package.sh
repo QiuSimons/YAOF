@@ -15,30 +15,30 @@ sed -i 's,-SNAPSHOT,,g' package/base-files/image-config.in
 # 维多利亚的秘密
 rm -rf ./scripts/download.pl
 rm -rf ./include/download.mk
-wget -P scripts/ https://github.com/immortalwrt/immortalwrt/raw/openwrt-21.02/scripts/download.pl
-wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/openwrt-21.02/include/download.mk
+wget -P scripts/ https://github.com/immortalwrt/immortalwrt/raw/master/scripts/download.pl
+wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/download.mk
 sed -i '/unshift/d' scripts/download.pl
 sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
 ### 必要的 Patches ###
 # offload bug fix
-wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
+#wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
 # TCP performance optimizations backport from linux/net-next
-cp -f ../PATCH/backport/695-tcp-optimizations.patch ./target/linux/generic/backport-5.4/695-tcp-optimizations.patch
+#cp -f ../PATCH/backport/695-tcp-optimizations.patch ./target/linux/generic/backport-5.4/695-tcp-optimizations.patch
 # introduce "le9" Linux kernel patches
-cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.4/695-le9i.patch
+cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.10/695-le9i.patch
 # Patch arm64 型号名称
-wget -P target/linux/generic/hack-5.4/ https://github.com/immortalwrt/immortalwrt/raw/openwrt-21.02/target/linux/generic/hack-5.4/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
+wget -P target/linux/generic/hack-5.10/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
 # Patch jsonc
-patch -p1 <../PATCH/jsonc/use_json_object_new_int64.patch
+#patch -p1 <../PATCH/jsonc/use_json_object_new_int64.patch
 # Patch dnsmasq
 patch -p1 <../PATCH/dnsmasq/dnsmasq-add-filter-aaaa-option.patch
 patch -p1 <../PATCH/dnsmasq/luci-add-filter-aaaa-option.patch
 cp -f ../PATCH/dnsmasq/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
 # BBRv2
 patch -p1 <../PATCH/BBRv2/openwrt-kmod-bbr2.patch
-cp -f ../PATCH/BBRv2/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch ./target/linux/generic/hack-5.4/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch
+cp -f ../PATCH/BBRv2/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch ./target/linux/generic/hack-5.10/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch
 wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
 # CacULE
 #wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/7d44cab.patch | patch -p1
@@ -55,13 +55,13 @@ wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
 # UKSM
 #cp -f ../PATCH/UKSM/695-uksm-5.4.patch ./target/linux/generic/hack-5.4/695-uksm-5.4.patch
 # LRNG
-cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.4/
+cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
 echo '
 CONFIG_LRNG=y
 CONFIG_LRNG_JENT=y
-' >>./target/linux/generic/config-5.4
+' >>./target/linux/generic/config-5.10
 # Grub 2
-wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/afed16a.patch | patch -p1
+wget -qO - https://github.com/openwrt/openwrt/commit/31f1033.patch | patch -p1
 # Haproxy
 rm -rf ./feeds/packages/net/haproxy
 svn export https://github.com/openwrt/packages/trunk/net/haproxy feeds/packages/net/haproxy
@@ -75,30 +75,36 @@ wget -P package/libs/openssl/patches/ https://github.com/openssl/openssl/pull/16
 
 ### Fullcone-NAT 部分 ###
 # Patch Kernel 以解决 FullCone 冲突
-pushd target/linux/generic/hack-5.4
-wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.4/952-net-conntrack-events-support-multiple-registrant.patch
+pushd target/linux/generic/hack-5.10
+wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.10/952-net-conntrack-events-support-multiple-registrant.patch
 popd
 # Patch FireWall 以增添 FullCone 功能
-mkdir package/network/config/firewall/patches
-wget -P package/network/config/firewall/patches/ https://github.com/immortalwrt/immortalwrt/raw/master/package/network/config/firewall/patches/fullconenat.patch
+mkdir package/network/config/firewall4/patches
+wget -P package/network/config/firewall4/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/network/config/firewall4/patches/999-00-backport-firewall4.git-425ea8a736ac81948bad7e201f4817848cb1813c.patch
+wget -P package/network/config/firewall4/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
+sed -i 's/-1,3 +1,5/-2,3 +2,5/g' package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
+mkdir package/libs/libnftnl/patches
+wget -P package/libs/libnftnl/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/libs/libnftnl/patches/999-01-libnftnl-add-fullcone-expression-support.patch
+sed -i '/PKG_LICENSE_FILES/a PKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
+mkdir package/network/utils/nftables/patches
+wget -P package/network/utils/nftables/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/network/utils/nftables/patches/999-01-nftables-add-fullcone-expression-support.patch
 wget -qO- https://github.com/msylgj/R2S-R4S-OpenWrt/raw/21.02/PATCHES/001-fix-firewall-flock.patch | patch -p1
 # Patch LuCI 以增添 FullCone 开关
 patch -p1 <../PATCH/firewall/luci-app-firewall_add_fullcone.patch
-# FullCone 相关组件
-svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/openwrt-fullconenat package/lean/openwrt-fullconenat
-pushd package/lean/openwrt-fullconenat
-patch -p2 <../../../../PATCH/firewall/fullcone6.patch
-popd
+# FullCone PKG
+git clone --depth 1 https://github.com/fullcone-nat-nftables/nft-fullcone package/new/nft-fullcone
 
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
-svn export https://github.com/immortalwrt/immortalwrt/branches/openwrt-21.02/target/linux/rockchip target/linux/rockchip
+svn export https://github.com/immortalwrt/immortalwrt/branches/master/target/linux/rockchip target/linux/rockchip
 rm -rf ./package/boot/uboot-rockchip
-svn export https://github.com/immortalwrt/immortalwrt/branches/openwrt-21.02/package/boot/uboot-rockchip package/boot/uboot-rockchip
-svn export https://github.com/immortalwrt/immortalwrt/branches/openwrt-21.02/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
+svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/uboot-rockchip package/boot/uboot-rockchip
+svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
 rm -rf ./package/kernel/linux/modules/video.mk
-wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/openwrt-21.02/package/kernel/linux/modules/video.mk
+wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/master/package/kernel/linux/modules/video.mk
+rm -rf ./target/linux/generic/config-5.10
+wget -P target/linux/generic/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/config-5.10
 # ImmortalWrt Uboot TMP Fix
 wget -qO- https://github.com/immortalwrt/immortalwrt/commit/433c93e.patch | patch -REp1
 # R4S超频到 2.2/1.8 GHz
@@ -113,12 +119,12 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-efi.c
 sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-iso.cfg
 sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cfg
 # AutoCore
-svn export https://github.com/immortalwrt/immortalwrt/branches/openwrt-21.02/package/emortal/autocore package/lean/autocore
+svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/emortal/autocore package/lean/autocore
 sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package/lean/autocore/files/generic/luci-mod-status-autocore.json
 rm -rf ./feeds/packages/utils/coremark
 svn export https://github.com/immortalwrt/packages/trunk/utils/coremark feeds/packages/utils/coremark
 # DPDK
-svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/dpdk package/new/dpdk
+#svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/dpdk package/new/dpdk
 # 更换 Nodejs 版本
 rm -rf ./feeds/packages/lang/node
 svn export https://github.com/nxhack/openwrt-node-packages/trunk/node feeds/packages/lang/node
@@ -184,8 +190,8 @@ ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/lu
 svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-autoreboot package/lean/luci-app-autoreboot
 # Boost 通用即插即用
 svn export https://github.com/QiuSimons/slim-wrt/branches/main/slimapps/application/luci-app-boostupnp package/new/luci-app-boostupnp
-rm -rf ./feeds/packages/net/miniupnpd
-svn export https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
+#rm -rf ./feeds/packages/net/miniupnpd
+#svn export https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
 # ChinaDNS
 git clone -b luci --depth 1 https://github.com/QiuSimons/openwrt-chinadns-ng.git package/new/luci-app-chinadns-ng
 svn export https://github.com/xiaorouji/openwrt-passwall/trunk/chinadns-ng package/new/chinadns-ng
@@ -263,7 +269,7 @@ popd
 # OLED 驱动程序
 git clone -b master --depth 1 https://github.com/NateLol/luci-app-oled.git package/new/luci-app-oled
 # OpenClash
-wget -qO - https://github.com/openwrt/openwrt/commit/efc8aff.patch | patch -p1
+#wget -qO - https://github.com/openwrt/openwrt/commit/efc8aff.patch | patch -p1
 git clone --single-branch --depth 1 -b dev https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 # 花生壳内网穿透
 svn export https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/luci-app-phtunnel package/new/luci-app-phtunnel
@@ -358,8 +364,8 @@ svn export https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/l
 rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
 pushd package/lean
 #wget -qO - https://github.com/fw876/helloworld/pull/656.patch | patch -p1
-wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/5bbf6e7.patch | patch -p1
-wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/323fbf0.patch | patch -p1
+wget -qO - https://github.com/fw876/helloworld/commit/5bbf6e7.patch | patch -p1
+wget -qO - https://github.com/fw876/helloworld/commit/ea3b4bd.patch | patch -p1
 popd
 pushd package/lean/luci-app-ssr-plus
 sed -i 's,default n,default y,g' Makefile
@@ -447,6 +453,7 @@ rm -rf ./feeds/packages/net/zerotier/files/etc/init.d/zerotier
 sed -i '/Default,one/a\\t$(STAGING_DIR_HOST)/bin/upx --lzma --best $(PKG_BUILD_DIR)/zerotier-one' feeds/packages/net/zerotier/Makefile
 # 翻译及部分功能优化
 svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/addition-trans-zh package/lean/lean-translate
+sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/lean/lean-translate/Makefile
 
 ### 最后的收尾工作 ###
 # Lets Fuck

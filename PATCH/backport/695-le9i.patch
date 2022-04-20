@@ -1,48 +1,18 @@
-le9i.patch
-revision 4 from le9h.patch: removed CONFIG_IKCONFIG_PROC because I remembered that IKCONFIG_PROC was initially used by le9e.patch as a personal preference(so I'd know whether CONFIG_LE9D_PATCH was part of the kernel ie. was patch applied to the running kernel?), but for everyone else it's not needed because the presence of the sysctl values gives away that the patch was applied or not!
+This patch is an attempt to rebase the original `le9i.patch` for Linux 5.9
+and also may be correctly applied to Linux 5.10 (with some offset).
 
-le9i.patch
-trying to keep inactive ones above threshold too, to see if no freezes with memtest3
-these freezes seem to be caused by writing dmesg/journald, but in fact are possibly caused by both!
-a better patch would be keeping executable data unevictable - so todo: see memlockd
-
-le9h.patch
-revision 2: fixed 1 compilation warning
-warning: there's a regression that is fixed by reverting commit aa56a292ce623734ddd30f52d73f527d1f3529b5 which is required to use this patch successfully(even tho this regression happens without this patch too!) see https://bugzilla.kernel.org/show_bug.cgi?id=203317#c4
-
-this is licensed under all/any of:
-Apache License, Version 2.0
-MIT license
-0BSD
-CC0
-UNLICENSE
-
-Interesting, a phoronix user here https://www.phoronix.com/forums/forum/phoronix/general-discussion/1118164-yes-linux-does-bad-in-low-ram-memory-pressure-situations-on-the-desktop/page17#post1120291 linked to two older patches(that I was completely unaware of) which are supposedly doing this same thing (9yrs ago for the first, Oct 23, 2018 or earlier for the second):
-https://lore.kernel.org/patchwork/patch/222042/
-https://gitlab.freedesktop.org/seanpaul/dpu-staging/commit/0b992f2dbb044896c3584e10bd5b97cf41e2ec6d
-
-they seem way more complicated though, at first glance.
-but hey, they were at least aware of the issue and how to fix it!
-
-see also: https://gitlab.freedesktop.org/hadess/low-memory-monitor/
-earlyoom
-etc.
-
-
-diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-index 64aeee1009ca..d30f0a967375 100644
 --- a/Documentation/admin-guide/sysctl/vm.rst
 +++ b/Documentation/admin-guide/sysctl/vm.rst
-@@ -68,6 +68,8 @@ Currently, these files are in /proc/sys/vm:
+@@ -69,6 +69,8 @@ Currently, these files are in /proc/sys/
+ - stat_refresh
  - numa_stat
  - swappiness
- - unprivileged_userfaultfd
 +- unevictable_activefile_kbytes
 +- unevictable_inactivefile_kbytes
+ - unprivileged_userfaultfd
  - user_reserve_kbytes
  - vfs_cache_pressure
- - watermark_boost_factor
-@@ -848,6 +850,75 @@ privileged users (with SYS_CAP_PTRACE capability).
+@@ -881,6 +883,76 @@ privileged users (with SYS_CAP_PTRACE ca
  The default value is 1.
  
  
@@ -107,7 +77,8 @@ index 64aeee1009ca..d30f0a967375 100644
 +and is unlikely the change in the future.
 +
 +The hub of disk thrashing tests/explanations is here:
-+https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
++https://web.archive.org/web/20191018023405/https://gist.github.com/constantoverride/84eba764f487049ed642eb2111a20830
++
 +
 +unevictable_inactivefile_kbytes
 +===============================
@@ -118,20 +89,18 @@ index 64aeee1009ca..d30f0a967375 100644
  user_reserve_kbytes
  ===================
  
-diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index 078950d9605b..57a379b89d4c 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
-@@ -110,6 +110,24 @@ extern int core_uses_pid;
- extern char core_pattern[];
- extern unsigned int core_pipe_limit;
+@@ -111,6 +111,25 @@
+ static int sixty = 60;
  #endif
+ 
 +#if defined(CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING)
 +unsigned long sysctl_unevictable_activefile_kbytes __read_mostly =
 +#if CONFIG_RESERVE_ACTIVEFILE_KBYTES < 0
 +#error "CONFIG_RESERVE_ACTIVEFILE_KBYTES should be >= 0"
 +#else
-+  CONFIG_RESERVE_ACTIVEFILE_KBYTES
++	CONFIG_RESERVE_ACTIVEFILE_KBYTES
 +#endif
 +;
 +#endif
@@ -140,18 +109,18 @@ index 078950d9605b..57a379b89d4c 100644
 +#if CONFIG_RESERVE_INACTIVEFILE_KBYTES < 0
 +#error "CONFIG_RESERVE_INACTIVEFILE_KBYTES should be >= 0"
 +#else
-+  CONFIG_RESERVE_INACTIVEFILE_KBYTES
++	CONFIG_RESERVE_INACTIVEFILE_KBYTES
 +#endif
 +;
 +#endif
- extern int pid_max;
- extern int pid_max_min, pid_max_max;
- extern int percpu_pagelist_fraction;
-@@ -1691,6 +1710,24 @@ static struct ctl_table vm_table[] = {
- 		.extra1		= SYSCTL_ZERO,
++
+ static int __maybe_unused neg_one = -1;
+ static int __maybe_unused two = 2;
+ static int __maybe_unused four = 4;
+@@ -3108,6 +3127,24 @@ static struct ctl_table vm_table[] = {
  		.extra2		= SYSCTL_ONE,
  	},
-+#endif
+ #endif
 +#if defined(CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING)
 +	{
 +		.procname	= "unevictable_activefile_kbytes",
@@ -169,11 +138,10 @@ index 078950d9605b..57a379b89d4c 100644
 +		.mode		= 0644,
 +		.proc_handler	= proc_doulongvec_minmax,
 +	},
- #endif
++#endif
  	{
  		.procname	= "user_reserve_kbytes",
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 56cec636a1fc..6d5c34b11990 100644
+ 		.data		= &sysctl_user_reserve_kbytes,
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -63,6 +63,74 @@ config SPARSEMEM_MANUAL
@@ -198,7 +166,7 @@ index 56cec636a1fc..6d5c34b11990 100644
 +
 +config RESERVE_ACTIVEFILE_KBYTES
 +	int "Set default value for vm.unevictable_activefile_kbytes"
-+  depends on RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING
++	depends on RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING
 +	default "65536"
 +	help
 +	  This is the default value(in KiB) that vm.unevictable_activefile_kbytes gets.
@@ -233,7 +201,7 @@ index 56cec636a1fc..6d5c34b11990 100644
 +
 +config RESERVE_INACTIVEFILE_KBYTES
 +	int "Set default value for vm.unevictable_inactivefile_kbytes"
-+  depends on RESERVE_INACTIVEFILE_TO_PREVENT_DISK_THRASHING
++	depends on RESERVE_INACTIVEFILE_TO_PREVENT_DISK_THRASHING
 +	default "65536"
 +	help
 +	  This is the default value(in KiB) that vm.unevictable_inactivefile_kbytes gets.
@@ -251,34 +219,33 @@ index 56cec636a1fc..6d5c34b11990 100644
  config DISCONTIGMEM
  	def_bool y
  	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
-diff --git a/mm/vmscan.c b/mm/vmscan.c
-index dbdc46a84f63..c177225bd4cd 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
-@@ -2552,6 +2552,26 @@
+@@ -2427,6 +2427,27 @@ out:
  			BUG();
  		}
  
 +#if defined(CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING)
-+    extern unsigned int sysctl_unevictable_activefile_kbytes; //FIXME: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]   //this just needs to be moved earlier in this same function (too lazy to, atm)
-+    if (LRU_ACTIVE_FILE == lru) { //doneFIXME: warning: comparison between ‘enum node_stat_item’ and ‘enum lru_list’ [-Wenum-compare] //fixed: replaced NR_ACTIVE_FILE with LRU_ACTIVE_FILE (they are both == 3 )
-+      long long kib_active_file_now=global_node_page_state(NR_ACTIVE_FILE) * MAX_NR_ZONES;
-+      if (kib_active_file_now <= sysctl_unevictable_activefile_kbytes) {
-+        nr[lru] = 0; //ie. don't reclaim any Active(file) (see /proc/meminfo) if they are under sysctl_unevictable_activefile_kbytes see Documentation/admin-guide/sysctl/vm.rst and CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING and CONFIG_RESERVE_ACTIVEFILE_KBYTES
-+        continue;
-+      }
-+    }
++	extern unsigned int sysctl_unevictable_activefile_kbytes; //FIXME: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]   //this just needs to be moved earlier in this same function (too lazy to, atm)
++	if (LRU_ACTIVE_FILE == lru) { //doneFIXME: warning: comparison between ‘enum node_stat_item’ and ‘enum lru_list’ [-Wenum-compare] //fixed: replaced NR_ACTIVE_FILE with LRU_ACTIVE_FILE (they are both == 3 )
++		long long kib_active_file_now=global_node_page_state(NR_ACTIVE_FILE) * MAX_NR_ZONES;
++		if (kib_active_file_now <= sysctl_unevictable_activefile_kbytes) {
++			nr[lru] = 0; //ie. don't reclaim any Active(file) (see /proc/meminfo) if they are under sysctl_unevictable_activefile_kbytes see Documentation/admin-guide/sysctl/vm.rst and CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING and CONFIG_RESERVE_ACTIVEFILE_KBYTES
++			continue;
++		}
++	}
 +#endif
 +#if defined(CONFIG_RESERVE_INACTIVEFILE_TO_PREVENT_DISK_THRASHING)
-+    extern unsigned int sysctl_unevictable_inactivefile_kbytes; //FIXME: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]   //this just needs to be moved earlier in this same function (too lazy to, atm)
-+    if (LRU_INACTIVE_FILE == lru) {
-+      long long kib_inactive_file_now=global_node_page_state(NR_INACTIVE_FILE) * MAX_NR_ZONES;
-+      if (kib_inactive_file_now <= sysctl_unevictable_inactivefile_kbytes) {
-+        nr[lru] = 0; //ie. don't reclaim any Inactive(file) (see /proc/meminfo) if they are under sysctl_unevictable_inactivefile_kbytes see Documentation/admin-guide/sysctl/vm.rst and CONFIG_RESERVE_INACTIVEFILE_TO_PREVENT_DISK_THRASHING and CONFIG_RESERVE_INACTIVEFILE_KBYTES
-+        continue;
-+      }
-+    }
++	extern unsigned int sysctl_unevictable_inactivefile_kbytes; //FIXME: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]   //this just needs to be moved earlier in this same function (too lazy to, atm)
++	if (LRU_INACTIVE_FILE == lru) {
++		long long kib_inactive_file_now=global_node_page_state(NR_INACTIVE_FILE) * MAX_NR_ZONES;
++		if (kib_inactive_file_now <= sysctl_unevictable_inactivefile_kbytes) {
++			nr[lru] = 0; //ie. don't reclaim any Inactive(file) (see /proc/meminfo) if they are under sysctl_unevictable_inactivefile_kbytes see Documentation/admin-guide/sysctl/vm.rst and CONFIG_RESERVE_INACTIVEFILE_TO_PREVENT_DISK_THRASHING and CONFIG_RESERVE_INACTIVEFILE_KBYTES
++			continue;
++		}
++	}
 +#endif
- 		*lru_pages += lruvec_size;
++
  		nr[lru] = scan;
  	}
+ }
