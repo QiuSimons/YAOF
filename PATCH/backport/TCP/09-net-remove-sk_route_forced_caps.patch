@@ -1,0 +1,65 @@
+From 65ff4ba213d0b4d30e203e5ad04ba267f652e48e Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 15 Nov 2021 11:02:34 -0800
+Subject: [PATCH 09/24] net: remove sk_route_forced_caps
+
+We were only using one bit, and we can replace it by sk_is_tcp()
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ include/net/sock.h | 3 ---
+ net/core/sock.c    | 4 +++-
+ net/ipv4/tcp.c     | 1 -
+ 3 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/include/net/sock.h b/include/net/sock.h
+index fa4073867233..e59a17ecc6bd 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -285,8 +285,6 @@ struct bpf_local_storage;
+   *	@sk_no_check_rx: allow zero checksum in RX packets
+   *	@sk_route_caps: route capabilities (e.g. %NETIF_F_TSO)
+   *	@sk_route_nocaps: forbidden route capabilities (e.g NETIF_F_GSO_MASK)
+-  *	@sk_route_forced_caps: static, forced route capabilities
+-  *		(set in tcp_init_sock())
+   *	@sk_gso_type: GSO type (e.g. %SKB_GSO_TCPV4)
+   *	@sk_gso_max_size: Maximum GSO segment size to build
+   *	@sk_gso_max_segs: Maximum number of GSO segments
+@@ -463,7 +461,6 @@ struct sock {
+ 	struct page_frag	sk_frag;
+ 	netdev_features_t	sk_route_caps;
+ 	netdev_features_t	sk_route_nocaps;
+-	netdev_features_t	sk_route_forced_caps;
+ 	int			sk_gso_type;
+ 	unsigned int		sk_gso_max_size;
+ 	gfp_t			sk_allocation;
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 2a669d047391..913e920fbaf6 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -2162,7 +2162,9 @@ void sk_setup_caps(struct sock *sk, struct dst_entry *dst)
+ 	u32 max_segs = 1;
+ 
+ 	sk_dst_set(sk, dst);
+-	sk->sk_route_caps = dst->dev->features | sk->sk_route_forced_caps;
++	sk->sk_route_caps = dst->dev->features;
++	if (sk_is_tcp(sk))
++		sk->sk_route_caps |= NETIF_F_GSO;
+ 	if (sk->sk_route_caps & NETIF_F_GSO)
+ 		sk->sk_route_caps |= NETIF_F_GSO_SOFTWARE;
+ 	sk->sk_route_caps &= ~sk->sk_route_nocaps;
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 238c4ec3b296..8cdaa7c4c2a7 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -462,7 +462,6 @@ void tcp_init_sock(struct sock *sk)
+ 	WRITE_ONCE(sk->sk_rcvbuf, sock_net(sk)->ipv4.sysctl_tcp_rmem[1]);
+ 
+ 	sk_sockets_allocated_inc(sk);
+-	sk->sk_route_forced_caps = NETIF_F_GSO;
+ }
+ EXPORT_SYMBOL(tcp_init_sock);
+ 
+-- 
+2.33.1
+
