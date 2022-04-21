@@ -27,7 +27,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 # TCP performance optimizations backport from linux/net-next
 cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # UDP performance optimizations backport from linux/net-next
-cp -rf ../PATCH/backport/UDP/* ./target/linux/generic/backport-5.10/
+#cp -rf ../PATCH/backport/UDP/* ./target/linux/generic/backport-5.10/
 # introduce "le9" Linux kernel patches
 cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.10/695-le9i.patch
 # Patch arm64 型号名称
@@ -41,7 +41,7 @@ patch -p1 <../PATCH/BBRv2/openwrt/openwrt-kmod-bbr2.patch
 cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
 wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
 # PRJC
-cp -f ../PATCH/PRJC/960-prjc_v5.10-lts-r3.patch ./target/linux/generic/hack-5.10/960-prjc_v5.10-lts-r3.patch
+#cp -f ../PATCH/PRJC/960-prjc_v5.10-lts-r3.patch ./target/linux/generic/hack-5.10/960-prjc_v5.10-lts-r3.patch
 
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
