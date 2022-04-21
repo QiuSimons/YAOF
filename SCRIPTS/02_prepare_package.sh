@@ -27,7 +27,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 # TCP performance optimizations backport from linux/net-next
 cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # UDP performance optimizations backport from linux/net-next
-#cp -rf ../PATCH/backport/UDP/* ./target/linux/generic/backport-5.10/
+cp -rf ../PATCH/backport/UDP/* ./target/linux/generic/backport-5.10/
 # introduce "le9" Linux kernel patches
 cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.10/695-le9i.patch
 # Patch arm64 型号名称
