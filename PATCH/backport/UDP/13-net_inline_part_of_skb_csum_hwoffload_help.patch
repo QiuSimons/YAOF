@@ -1,0 +1,83 @@
+From: Pavel Begunkov <asml.silence@gmail.com>
+To: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Pavel Begunkov <asml.silence@gmail.com>
+Subject: [PATCH 13/14] net: inline part of skb_csum_hwoffload_help
+Date: Tue, 11 Jan 2022 01:21:46 +0000	[thread overview]
+Message-ID: <0bc041d2d38a08064a642c05ca8cceb0ca165f88.1641863490.git.asml.silence@gmail.com> (raw)
+In-Reply-To: <cover.1641863490.git.asml.silence@gmail.com>
+
+Inline a HW csum'ed part of skb_csum_hwoffload_help().
+
+Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+---
+ include/linux/netdevice.h | 16 ++++++++++++++--
+ net/core/dev.c            | 13 +++----------
+ 2 files changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 3213c7227b59..fbe6c764ce57 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -4596,8 +4596,20 @@ void netdev_rss_key_fill(void *buffer, size_t len);
+ 
+ int skb_checksum_help(struct sk_buff *skb);
+ int skb_crc32c_csum_help(struct sk_buff *skb);
+-int skb_csum_hwoffload_help(struct sk_buff *skb,
+-			    const netdev_features_t features);
++int __skb_csum_hwoffload_help(struct sk_buff *skb,
++			      const netdev_features_t features);
++
++static inline int skb_csum_hwoffload_help(struct sk_buff *skb,
++					  const netdev_features_t features)
++{
++	if (unlikely(skb_csum_is_sctp(skb)))
++		return !!(features & NETIF_F_SCTP_CRC) ? 0 :
++			skb_crc32c_csum_help(skb);
++
++	if (features & NETIF_F_HW_CSUM)
++		return 0;
++	return __skb_csum_hwoffload_help(skb, features);
++}
+ 
+ struct sk_buff *__skb_gso_segment(struct sk_buff *skb,
+ 				  netdev_features_t features, bool tx_path);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 877ebc0f72bd..e65a3b311810 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3513,16 +3513,9 @@ static struct sk_buff *validate_xmit_vlan(struct sk_buff *skb,
+ 	return skb;
+ }
+ 
+-int skb_csum_hwoffload_help(struct sk_buff *skb,
+-			    const netdev_features_t features)
++int __skb_csum_hwoffload_help(struct sk_buff *skb,
++			      const netdev_features_t features)
+ {
+-	if (unlikely(skb_csum_is_sctp(skb)))
+-		return !!(features & NETIF_F_SCTP_CRC) ? 0 :
+-			skb_crc32c_csum_help(skb);
+-
+-	if (features & NETIF_F_HW_CSUM)
+-		return 0;
+-
+ 	if (features & (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM)) {
+ 		switch (skb->csum_offset) {
+ 		case offsetof(struct tcphdr, check):
+@@ -3533,7 +3526,7 @@ int skb_csum_hwoffload_help(struct sk_buff *skb,
+ 
+ 	return skb_checksum_help(skb);
+ }
+-EXPORT_SYMBOL(skb_csum_hwoffload_help);
++EXPORT_SYMBOL(__skb_csum_hwoffload_help);
+ 
+ static struct sk_buff *validate_xmit_skb(struct sk_buff *skb, struct net_device *dev, bool *again)
+ {
+-- 
+2.34.1

@@ -1,0 +1,84 @@
+From: Pavel Begunkov <asml.silence@gmail.com>
+To: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Pavel Begunkov <asml.silence@gmail.com>
+Subject: [PATCH 09/14] ipv6: hand dst refs to cork setup
+Date: Tue, 11 Jan 2022 01:21:42 +0000	[thread overview]
+Message-ID: <07031c43d3e5c005fbfc76b60a58e30c66d7c620.1641863490.git.asml.silence@gmail.com> (raw)
+In-Reply-To: <cover.1641863490.git.asml.silence@gmail.com>
+
+During cork->dst setup, ip6_make_skb() gets an additional reference to
+a passed in dst. However, udpv6_sendmsg() doesn't need dst after calling
+ip6_make_skb(), and so we can save two additional atomics by passing
+dst references to ip6_make_skb(). udpv6_sendmsg() is the only caller, so
+it's enough to make sure it doesn't use dst afterwards.
+
+Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+---
+ net/ipv6/ip6_output.c | 9 ++++++---
+ net/ipv6/udp.c        | 3 ++-
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 0cc490f2cfbf..6a7bba4dd04d 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -1356,6 +1356,8 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+ 	unsigned int mtu;
+ 	struct ipv6_txoptions *nopt, *opt = ipc6->opt;
+ 
++	cork->base.dst = &rt->dst;
++
+ 	/*
+ 	 * setup for corking
+ 	 */
+@@ -1389,8 +1391,6 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+ 
+ 		/* need source address above miyazawa*/
+ 	}
+-	dst_hold(&rt->dst);
+-	cork->base.dst = &rt->dst;
+ 	v6_cork->hop_limit = ipc6->hlimit;
+ 	v6_cork->tclass = ipc6->tclass;
+ 	if (rt->dst.flags & DST_XFRM_TUNNEL)
+@@ -1784,6 +1784,7 @@ int ip6_append_data(struct sock *sk,
+ 		/*
+ 		 * setup for corking
+ 		 */
++		dst_hold(&rt->dst);
+ 		err = ip6_setup_cork(sk, &inet->cork, &np->cork,
+ 				     ipc6, rt);
+ 		if (err)
+@@ -1974,8 +1975,10 @@ struct sk_buff *ip6_make_skb(struct sock *sk,
+ 	int exthdrlen = (ipc6->opt ? ipc6->opt->opt_flen : 0);
+ 	int err;
+ 
+-	if (flags & MSG_PROBE)
++	if (flags & MSG_PROBE) {
++		dst_release(&rt->dst);
+ 		return NULL;
++	}
+ 
+ 	__skb_queue_head_init(&queue);
+ 
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index eec83e34ae27..3039dff7fe64 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -1541,7 +1541,8 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+ 		err = PTR_ERR(skb);
+ 		if (!IS_ERR_OR_NULL(skb))
+ 			err = udp_v6_send_skb(skb, fl6, &cork.base);
+-		goto out;
++		/* ip6_make_skb steals dst reference */
++		goto out_no_dst;
+ 	}
+ 
+ 	lock_sock(sk);
+-- 
+2.34.1

@@ -1,0 +1,65 @@
+From: Pavel Begunkov <asml.silence@gmail.com>
+To: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Pavel Begunkov <asml.silence@gmail.com>
+Subject: [PATCH 06/14] ipv6: pass full cork into __ip6_append_data()
+Date: Tue, 11 Jan 2022 01:21:38 +0000	[thread overview]
+Message-ID: <56c58d7537b65a5bcadf5d17f86e010dbba81485.1641863490.git.asml.silence@gmail.com> (raw)
+In-Reply-To: <cover.1641863490.git.asml.silence@gmail.com>
+
+Convert a struct inet_cork argument in __ip6_append_data() to struct
+inet_cork_full. As one struct contains another inet_cork is still can
+be accessed via ->base field. It's a preparation patch making further
+changes a bit cleaner.
+
+Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+---
+ net/ipv6/ip6_output.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index b8fdda9ac797..62da09819750 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -1424,7 +1424,7 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+ static int __ip6_append_data(struct sock *sk,
+ 			     struct flowi6 *fl6,
+ 			     struct sk_buff_head *queue,
+-			     struct inet_cork *cork,
++			     struct inet_cork_full *cork_full,
+ 			     struct inet6_cork *v6_cork,
+ 			     struct page_frag *pfrag,
+ 			     int getfrag(void *from, char *to, int offset,
+@@ -1433,6 +1433,7 @@ static int __ip6_append_data(struct sock *sk,
+ 			     unsigned int flags, struct ipcm6_cookie *ipc6)
+ {
+ 	struct sk_buff *skb, *skb_prev = NULL;
++	struct inet_cork *cork = &cork_full->base;
+ 	unsigned int maxfraglen, fragheaderlen, mtu, orig_mtu, pmtu;
+ 	struct ubuf_info *uarg = NULL;
+ 	int exthdrlen = 0;
+@@ -1797,7 +1798,7 @@ int ip6_append_data(struct sock *sk,
+ 		transhdrlen = 0;
+ 	}
+ 
+-	return __ip6_append_data(sk, fl6, &sk->sk_write_queue, &inet->cork.base,
++	return __ip6_append_data(sk, fl6, &sk->sk_write_queue, &inet->cork,
+ 				 &np->cork, sk_page_frag(sk), getfrag,
+ 				 from, length, transhdrlen, flags, ipc6);
+ }
+@@ -1993,7 +1994,7 @@ struct sk_buff *ip6_make_skb(struct sock *sk,
+ 	if (ipc6->dontfrag < 0)
+ 		ipc6->dontfrag = inet6_sk(sk)->dontfrag;
+ 
+-	err = __ip6_append_data(sk, fl6, &queue, &cork->base, &v6_cork,
++	err = __ip6_append_data(sk, fl6, &queue, cork, &v6_cork,
+ 				&current->task_frag, getfrag, from,
+ 				length + exthdrlen, transhdrlen + exthdrlen,
+ 				flags, ipc6);
+-- 
+2.34.1

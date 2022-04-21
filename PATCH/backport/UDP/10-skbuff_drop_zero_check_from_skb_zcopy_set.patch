@@ -1,0 +1,68 @@
+From: Pavel Begunkov <asml.silence@gmail.com>
+To: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	Pavel Begunkov <asml.silence@gmail.com>
+Subject: [PATCH 10/14] skbuff: drop zero check from skb_zcopy_set
+Date: Tue, 11 Jan 2022 01:21:43 +0000	[thread overview]
+Message-ID: <d9a6ae91295e88f15d73b42823f1d67906bc52ab.1641863490.git.asml.silence@gmail.com> (raw)
+In-Reply-To: <cover.1641863490.git.asml.silence@gmail.com>
+
+Only two skb_zcopy_set() callers may pass a NULL skb, so kill the zero
+check from inside the function, which can't be compiled out, and place
+it where needed. It's also needed by the following patch.
+
+Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+---
+ include/linux/skbuff.h | 2 +-
+ net/ipv4/ip_output.c   | 3 ++-
+ net/ipv6/ip6_output.c  | 3 ++-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 642acb0d1646..8a7d0d03a100 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -1499,7 +1499,7 @@ static inline void skb_zcopy_init(struct sk_buff *skb, struct ubuf_info *uarg)
+ static inline void skb_zcopy_set(struct sk_buff *skb, struct ubuf_info *uarg,
+ 				 bool *have_ref)
+ {
+-	if (skb && uarg && !skb_zcopy(skb)) {
++	if (uarg && !skb_zcopy(skb)) {
+ 		if (unlikely(have_ref && *have_ref))
+ 			*have_ref = false;
+ 		else
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index 57c1d8431386..87d4472545a5 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -1010,7 +1010,8 @@ static int __ip_append_data(struct sock *sk,
+ 			paged = true;
+ 		} else {
+ 			uarg->zerocopy = 0;
+-			skb_zcopy_set(skb, uarg, &extra_uref);
++			if (skb)
++				skb_zcopy_set(skb, uarg, &extra_uref);
+ 		}
+ 	}
+ 
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 6a7bba4dd04d..9881b61da493 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -1522,7 +1522,8 @@ static int __ip6_append_data(struct sock *sk,
+ 			paged = true;
+ 		} else {
+ 			uarg->zerocopy = 0;
+-			skb_zcopy_set(skb, uarg, &extra_uref);
++			if (skb)
++				skb_zcopy_set(skb, uarg, &extra_uref);
+ 		}
+ 	}
+ 
+-- 
+2.34.1
