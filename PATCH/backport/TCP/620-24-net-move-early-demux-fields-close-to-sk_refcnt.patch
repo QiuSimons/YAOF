@@ -27,32 +27,27 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  include/net/sock.h | 8 +++++---
  1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 758b913bca51..08b949942a73 100644
 --- a/include/net/sock.h
 +++ b/include/net/sock.h
-@@ -391,6 +391,11 @@ struct sock {
+@@ -385,6 +385,11 @@ struct sock {
  #define sk_flags		__sk_common.skc_flags
  #define sk_rxhash		__sk_common.skc_rxhash
  
 +	/* early demux fields */
-+	struct dst_entry __rcu	*sk_rx_dst;
++	struct dst_entry	*sk_rx_dst;
 +	int			sk_rx_dst_ifindex;
 +	u32			sk_rx_dst_cookie;
 +
  	socket_lock_t		sk_lock;
  	atomic_t		sk_drops;
  	int			sk_rcvlowat;
-@@ -433,9 +438,6 @@ struct sock {
+@@ -427,9 +432,6 @@ struct sock {
  #ifdef CONFIG_XFRM
  	struct xfrm_policy __rcu *sk_policy[2];
  #endif
--	struct dst_entry __rcu	*sk_rx_dst;
+-	struct dst_entry	*sk_rx_dst;
 -	int			sk_rx_dst_ifindex;
 -	u32			sk_rx_dst_cookie;
  
  	struct dst_entry __rcu	*sk_dst_cache;
  	atomic_t		sk_omem_alloc;
--- 
-2.33.1
-

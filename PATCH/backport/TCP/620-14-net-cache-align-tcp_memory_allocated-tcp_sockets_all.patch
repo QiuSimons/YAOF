@@ -16,11 +16,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/mptcp/protocol.c | 2 +-
  3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 8cdaa7c4c2a7..4a7ef634b32d 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -293,7 +293,7 @@ EXPORT_PER_CPU_SYMBOL_GPL(tcp_orphan_count);
+@@ -286,7 +286,7 @@ EXPORT_PER_CPU_SYMBOL_GPL(tcp_orphan_cou
  long sysctl_tcp_mem[3] __read_mostly;
  EXPORT_SYMBOL(sysctl_tcp_mem);
  
@@ -29,7 +27,7 @@ index 8cdaa7c4c2a7..4a7ef634b32d 100644
  EXPORT_SYMBOL(tcp_memory_allocated);
  
  #if IS_ENABLED(CONFIG_SMC)
-@@ -304,7 +304,7 @@ EXPORT_SYMBOL(tcp_have_smc);
+@@ -297,7 +297,7 @@ EXPORT_SYMBOL(tcp_have_smc);
  /*
   * Current number of TCP sockets.
   */
@@ -38,8 +36,6 @@ index 8cdaa7c4c2a7..4a7ef634b32d 100644
  EXPORT_SYMBOL(tcp_sockets_allocated);
  
  /*
-diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
-index 2fffcf2b54f3..801456c08d1f 100644
 --- a/net/ipv4/udp.c
 +++ b/net/ipv4/udp.c
 @@ -123,7 +123,7 @@ EXPORT_SYMBOL(udp_table);
@@ -51,19 +47,14 @@ index 2fffcf2b54f3..801456c08d1f 100644
  EXPORT_SYMBOL(udp_memory_allocated);
  
  #define MAX_UDP_PORTS 65536
-diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
-index 4379d69aead7..9239268bfaf5 100644
 --- a/net/mptcp/protocol.c
 +++ b/net/mptcp/protocol.c
-@@ -48,7 +48,7 @@ enum {
- 	MPTCP_CMSG_TS = BIT(0),
- };
+@@ -39,7 +39,7 @@ struct mptcp_skb_cb {
+ 
+ #define MPTCP_SKB_CB(__skb)	((struct mptcp_skb_cb *)&((__skb)->cb[0]))
  
 -static struct percpu_counter mptcp_sockets_allocated;
 +static struct percpu_counter mptcp_sockets_allocated ____cacheline_aligned_in_smp;
  
- static void __mptcp_destroy_sock(struct sock *sk);
- static void __mptcp_check_send_data_fin(struct sock *sk);
--- 
-2.33.1
-
+ /* If msk has an initial subflow socket, and the MP_CAPABLE handshake has not
+  * completed yet or has failed, return the subflow socket.

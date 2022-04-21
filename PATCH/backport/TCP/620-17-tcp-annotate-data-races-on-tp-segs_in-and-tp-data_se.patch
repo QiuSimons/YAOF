@@ -17,11 +17,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv4/tcp.c    | 6 ++++--
  2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 744e7f55a46c..637ffe53fcc4 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -2179,9 +2179,13 @@ static inline void tcp_segs_in(struct tcp_sock *tp, const struct sk_buff *skb)
+@@ -2147,9 +2147,13 @@ static inline void tcp_segs_in(struct tc
  	u16 segs_in;
  
  	segs_in = max_t(u16, 1, skb_shinfo(skb)->gso_segs);
@@ -37,11 +35,9 @@ index 744e7f55a46c..637ffe53fcc4 100644
  }
  
  /*
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index e713f45dbc8e..b903caa21237 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -3797,10 +3797,12 @@ void tcp_get_info(struct sock *sk, struct tcp_info *info)
+@@ -3564,10 +3564,12 @@ void tcp_get_info(struct sock *sk, struc
  	tcp_get_info_chrono_stats(tp, info);
  
  	info->tcpi_segs_out = tp->segs_out;
@@ -56,6 +52,3 @@ index e713f45dbc8e..b903caa21237 100644
  	info->tcpi_data_segs_out = tp->data_segs_out;
  
  	info->tcpi_delivery_rate_app_limited = tp->rate_app_limited ? 1 : 0;
--- 
-2.33.1
-

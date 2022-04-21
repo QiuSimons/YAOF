@@ -16,11 +16,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv4/tcp.c | 20 +++++++++++++++-----
  1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 6c4fc3ec2f58..d8becd02e382 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -1598,6 +1598,16 @@ void tcp_cleanup_rbuf(struct sock *sk, int copied)
+@@ -1587,6 +1587,16 @@ void tcp_cleanup_rbuf(struct sock *sk, i
  		tcp_send_ack(sk);
  }
  
@@ -37,7 +35,7 @@ index 6c4fc3ec2f58..d8becd02e382 100644
  static struct sk_buff *tcp_recv_skb(struct sock *sk, u32 seq, u32 *off)
  {
  	struct sk_buff *skb;
-@@ -1617,7 +1627,7 @@ static struct sk_buff *tcp_recv_skb(struct sock *sk, u32 seq, u32 *off)
+@@ -1606,7 +1616,7 @@ static struct sk_buff *tcp_recv_skb(stru
  		 * splitted a fat GRO packet, while we released socket lock
  		 * in skb_splice_bits()
  		 */
@@ -46,7 +44,7 @@ index 6c4fc3ec2f58..d8becd02e382 100644
  	}
  	return NULL;
  }
-@@ -1683,11 +1693,11 @@ int tcp_read_sock(struct sock *sk, read_descriptor_t *desc,
+@@ -1674,11 +1684,11 @@ int tcp_read_sock(struct sock *sk, read_
  				continue;
  		}
  		if (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN) {
@@ -60,7 +58,7 @@ index 6c4fc3ec2f58..d8becd02e382 100644
  		if (!desc->count)
  			break;
  		WRITE_ONCE(tp->copied_seq, seq);
-@@ -2499,14 +2509,14 @@ static int tcp_recvmsg_locked(struct sock *sk, struct msghdr *msg, size_t len,
+@@ -2308,14 +2318,14 @@ skip_copy:
  		if (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN)
  			goto found_fin_ok;
  		if (!(flags & MSG_PEEK))
@@ -77,6 +75,3 @@ index 6c4fc3ec2f58..d8becd02e382 100644
  		break;
  	} while (len > 0);
  
--- 
-2.33.1
-

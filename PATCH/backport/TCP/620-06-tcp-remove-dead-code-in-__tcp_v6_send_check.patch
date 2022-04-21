@@ -13,11 +13,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  include/net/ip6_checksum.h | 12 +++---------
  1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/ip6_checksum.h b/include/net/ip6_checksum.h
-index b3f4eaa88672..ea681910b7a3 100644
 --- a/include/net/ip6_checksum.h
 +++ b/include/net/ip6_checksum.h
-@@ -65,15 +65,9 @@ static inline void __tcp_v6_send_check(struct sk_buff *skb,
+@@ -65,15 +65,9 @@ static inline void __tcp_v6_send_check(s
  {
  	struct tcphdr *th = tcp_hdr(skb);
  
@@ -36,6 +34,3 @@ index b3f4eaa88672..ea681910b7a3 100644
  }
  
  static inline void tcp_v6_gso_csum_prep(struct sk_buff *skb)
--- 
-2.33.1
-

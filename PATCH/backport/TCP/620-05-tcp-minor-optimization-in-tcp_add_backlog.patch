@@ -11,11 +11,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv4/tcp_ipv4.c | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index 5b8ce65dfc06..aa75add4c13f 100644
 --- a/net/ipv4/tcp_ipv4.c
 +++ b/net/ipv4/tcp_ipv4.c
-@@ -1797,8 +1797,7 @@ int tcp_v4_early_demux(struct sk_buff *skb)
+@@ -1767,8 +1767,7 @@ int tcp_v4_early_demux(struct sk_buff *s
  
  bool tcp_add_backlog(struct sock *sk, struct sk_buff *skb)
  {
@@ -25,7 +23,7 @@ index 5b8ce65dfc06..aa75add4c13f 100644
  	struct skb_shared_info *shinfo;
  	const struct tcphdr *th;
  	struct tcphdr *thtail;
-@@ -1906,7 +1905,7 @@ bool tcp_add_backlog(struct sock *sk, struct sk_buff *skb)
+@@ -1875,7 +1874,7 @@ no_coalesce:
  	 * to reduce memory overhead, so add a little headroom here.
  	 * Few sockets backlog are possibly concurrently non empty.
  	 */
@@ -34,6 +32,3 @@ index 5b8ce65dfc06..aa75add4c13f 100644
  
  	if (unlikely(sk_add_backlog(sk, skb, limit))) {
  		bh_unlock_sock(sk);
--- 
-2.33.1
-

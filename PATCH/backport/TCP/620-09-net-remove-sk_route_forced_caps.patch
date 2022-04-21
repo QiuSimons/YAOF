@@ -12,11 +12,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv4/tcp.c     | 1 -
  3 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/sock.h b/include/net/sock.h
-index fa4073867233..e59a17ecc6bd 100644
 --- a/include/net/sock.h
 +++ b/include/net/sock.h
-@@ -285,8 +285,6 @@ struct bpf_local_storage;
+@@ -284,8 +284,6 @@ struct bpf_local_storage;
    *	@sk_no_check_rx: allow zero checksum in RX packets
    *	@sk_route_caps: route capabilities (e.g. %NETIF_F_TSO)
    *	@sk_route_nocaps: forbidden route capabilities (e.g NETIF_F_GSO_MASK)
@@ -25,7 +23,7 @@ index fa4073867233..e59a17ecc6bd 100644
    *	@sk_gso_type: GSO type (e.g. %SKB_GSO_TCPV4)
    *	@sk_gso_max_size: Maximum GSO segment size to build
    *	@sk_gso_max_segs: Maximum number of GSO segments
-@@ -463,7 +461,6 @@ struct sock {
+@@ -457,7 +455,6 @@ struct sock {
  	struct page_frag	sk_frag;
  	netdev_features_t	sk_route_caps;
  	netdev_features_t	sk_route_nocaps;
@@ -33,11 +31,9 @@ index fa4073867233..e59a17ecc6bd 100644
  	int			sk_gso_type;
  	unsigned int		sk_gso_max_size;
  	gfp_t			sk_allocation;
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 2a669d047391..913e920fbaf6 100644
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -2162,7 +2162,9 @@ void sk_setup_caps(struct sock *sk, struct dst_entry *dst)
+@@ -2015,7 +2015,9 @@ void sk_setup_caps(struct sock *sk, stru
  	u32 max_segs = 1;
  
  	sk_dst_set(sk, dst);
@@ -48,11 +44,9 @@ index 2a669d047391..913e920fbaf6 100644
  	if (sk->sk_route_caps & NETIF_F_GSO)
  		sk->sk_route_caps |= NETIF_F_GSO_SOFTWARE;
  	sk->sk_route_caps &= ~sk->sk_route_nocaps;
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 238c4ec3b296..8cdaa7c4c2a7 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -462,7 +462,6 @@ void tcp_init_sock(struct sock *sk)
+@@ -455,7 +455,6 @@ void tcp_init_sock(struct sock *sk)
  	WRITE_ONCE(sk->sk_rcvbuf, sock_net(sk)->ipv4.sysctl_tcp_rmem[1]);
  
  	sk_sockets_allocated_inc(sk);
@@ -60,6 +54,3 @@ index 238c4ec3b296..8cdaa7c4c2a7 100644
  }
  EXPORT_SYMBOL(tcp_init_sock);
  
--- 
-2.33.1
-

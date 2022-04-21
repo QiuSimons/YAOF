@@ -16,11 +16,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv6/ip6_output.c |  2 +-
  5 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/sock.h b/include/net/sock.h
-index e59a17ecc6bd..6c0ad2a8247f 100644
 --- a/include/net/sock.h
 +++ b/include/net/sock.h
-@@ -284,7 +284,7 @@ struct bpf_local_storage;
+@@ -283,7 +283,7 @@ struct bpf_local_storage;
    *	@sk_no_check_tx: %SO_NO_CHECK setting, set checksum in TX packets
    *	@sk_no_check_rx: allow zero checksum in RX packets
    *	@sk_route_caps: route capabilities (e.g. %NETIF_F_TSO)
@@ -29,7 +27,7 @@ index e59a17ecc6bd..6c0ad2a8247f 100644
    *	@sk_gso_type: GSO type (e.g. %SKB_GSO_TCPV4)
    *	@sk_gso_max_size: Maximum GSO segment size to build
    *	@sk_gso_max_segs: Maximum number of GSO segments
-@@ -460,7 +460,6 @@ struct sock {
+@@ -454,7 +454,6 @@ struct sock {
  	unsigned long		sk_max_pacing_rate;
  	struct page_frag	sk_frag;
  	netdev_features_t	sk_route_caps;
@@ -37,7 +35,7 @@ index e59a17ecc6bd..6c0ad2a8247f 100644
  	int			sk_gso_type;
  	unsigned int		sk_gso_max_size;
  	gfp_t			sk_allocation;
-@@ -470,7 +469,7 @@ struct sock {
+@@ -464,7 +463,7 @@ struct sock {
  	 * Because of non atomicity rules, all
  	 * changes are protected by socket lock.
  	 */
@@ -46,7 +44,7 @@ index e59a17ecc6bd..6c0ad2a8247f 100644
  				sk_kern_sock : 1,
  				sk_no_check_tx : 1,
  				sk_no_check_rx : 1,
-@@ -2105,10 +2104,10 @@ static inline bool sk_can_gso(const struct sock *sk)
+@@ -2038,10 +2037,10 @@ static inline bool sk_can_gso(const stru
  
  void sk_setup_caps(struct sock *sk, struct dst_entry *dst);
  
@@ -60,11 +58,9 @@ index e59a17ecc6bd..6c0ad2a8247f 100644
  }
  
  static inline int skb_do_copy_data_nocache(struct sock *sk, struct sk_buff *skb,
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 913e920fbaf6..74aedc22ab90 100644
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -2167,7 +2167,8 @@ void sk_setup_caps(struct sock *sk, struct dst_entry *dst)
+@@ -2020,7 +2020,8 @@ void sk_setup_caps(struct sock *sk, stru
  		sk->sk_route_caps |= NETIF_F_GSO;
  	if (sk->sk_route_caps & NETIF_F_GSO)
  		sk->sk_route_caps |= NETIF_F_GSO_SOFTWARE;
@@ -74,11 +70,9 @@ index 913e920fbaf6..74aedc22ab90 100644
  	if (sk_can_gso(sk)) {
  		if (dst->header_len && !xfrm_dst_offload_ok(dst)) {
  			sk->sk_route_caps &= ~NETIF_F_GSO_MASK;
-diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index aa75add4c13f..7ff78e26fa72 100644
 --- a/net/ipv4/tcp_ipv4.c
 +++ b/net/ipv4/tcp_ipv4.c
-@@ -1179,7 +1179,7 @@ int tcp_md5_do_add(struct sock *sk, const union tcp_md5_addr *addr,
+@@ -1162,7 +1162,7 @@ int tcp_md5_do_add(struct sock *sk, cons
  		if (!md5sig)
  			return -ENOMEM;
  
@@ -87,20 +81,18 @@ index aa75add4c13f..7ff78e26fa72 100644
  		INIT_HLIST_HEAD(&md5sig->head);
  		rcu_assign_pointer(tp->md5sig_info, md5sig);
  	}
-@@ -1617,7 +1617,7 @@ struct sock *tcp_v4_syn_recv_sock(const struct sock *sk, struct sk_buff *skb,
+@@ -1591,7 +1591,7 @@ struct sock *tcp_v4_syn_recv_sock(const
  		 */
- 		tcp_md5_do_add(newsk, addr, AF_INET, 32, l3index, key->flags,
+ 		tcp_md5_do_add(newsk, addr, AF_INET, 32, l3index,
  			       key->key, key->keylen, GFP_ATOMIC);
 -		sk_nocaps_add(newsk, NETIF_F_GSO_MASK);
 +		sk_gso_disable(newsk);
  	}
  #endif
  
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index da11fde1610f..d026b2b2304d 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1361,7 +1361,7 @@ static int __tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,
+@@ -1362,7 +1362,7 @@ static int __tcp_transmit_skb(struct soc
  #ifdef CONFIG_TCP_MD5SIG
  	/* Calculate the MD5 hash, as we have all we need now */
  	if (md5) {
@@ -109,11 +101,9 @@ index da11fde1610f..d026b2b2304d 100644
  		tp->af_specific->calc_md5_hash(opts.hash_location,
  					       md5, sk, skb);
  	}
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 2f044a49afa8..007e433d4d4d 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -977,7 +977,7 @@ int ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+@@ -999,7 +999,7 @@ slow_path:
  
  fail_toobig:
  	if (skb->sk && dst_allfrag(skb_dst(skb)))
@@ -122,6 +112,3 @@ index 2f044a49afa8..007e433d4d4d 100644
  
  	icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, mtu);
  	err = -EMSGSIZE;
--- 
-2.33.1
-

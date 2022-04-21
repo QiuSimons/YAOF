@@ -22,20 +22,18 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  include/net/sock.h | 11 +++++++++++
  1 file changed, 11 insertions(+)
 
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 7b0c7f5aab67..9a1a92b9b589 100644
 --- a/include/net/sock.h
 +++ b/include/net/sock.h
-@@ -1207,6 +1207,8 @@ struct proto {
+@@ -1184,6 +1184,8 @@ struct proto {
  	unsigned int		inuse_idx;
  #endif
  
 +	int			(*forward_alloc_get)(const struct sock *sk);
 +
  	bool			(*stream_memory_free)(const struct sock *sk, int wake);
- 	bool			(*sock_is_readable)(struct sock *sk);
+ 	bool			(*stream_memory_read)(const struct sock *sk);
  	/* Memory pressure */
-@@ -1214,6 +1216,7 @@ struct proto {
+@@ -1191,6 +1193,7 @@ struct proto {
  	void			(*leave_memory_pressure)(struct sock *sk);
  	atomic_long_t		*memory_allocated;	/* Current allocated memory. */
  	struct percpu_counter	*sockets_allocated;	/* Current number of sockets. */
@@ -43,9 +41,9 @@ index 7b0c7f5aab67..9a1a92b9b589 100644
  	/*
  	 * Pressure flag: try to collapse.
  	 * Technical note: it is used by multiple contexts non atomically.
-@@ -1291,6 +1294,14 @@ static inline void sk_refcnt_debug_release(const struct sock *sk)
- 
- INDIRECT_CALLABLE_DECLARE(bool tcp_stream_memory_free(const struct sock *sk, int wake));
+@@ -1266,6 +1269,14 @@ static inline void sk_refcnt_debug_relea
+ #define sk_refcnt_debug_release(sk) do { } while (0)
+ #endif /* SOCK_REFCNT_DEBUG */
  
 +static inline int sk_forward_alloc_get(const struct sock *sk)
 +{
@@ -58,6 +56,3 @@ index 7b0c7f5aab67..9a1a92b9b589 100644
  static inline bool __sk_stream_memory_free(const struct sock *sk, int wake)
  {
  	if (READ_ONCE(sk->sk_wmem_queued) >= READ_ONCE(sk->sk_sndbuf))
--- 
-2.33.1
-

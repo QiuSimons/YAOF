@@ -11,11 +11,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv4/tcp_input.c |  4 ++--
  2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index c07cdd7d0921..6c4fc3ec2f58 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -553,7 +553,7 @@ __poll_t tcp_poll(struct file *file, struct socket *sock, poll_table *wait)
+@@ -557,7 +557,7 @@ __poll_t tcp_poll(struct file *file, str
  		int target = sock_rcvlowat(sk, 0, INT_MAX);
  		u16 urg_data = READ_ONCE(tp->urg_data);
  
@@ -24,7 +22,7 @@ index c07cdd7d0921..6c4fc3ec2f58 100644
  		    READ_ONCE(tp->urg_seq) == READ_ONCE(tp->copied_seq) &&
  		    !sock_flag(sk, SOCK_URGINLINE))
  			target++;
-@@ -1651,7 +1651,7 @@ int tcp_read_sock(struct sock *sk, read_descriptor_t *desc,
+@@ -1640,7 +1640,7 @@ int tcp_read_sock(struct sock *sk, read_
  
  			len = skb->len - offset;
  			/* Stop reading if we hit a patch of urgent data */
@@ -33,7 +31,7 @@ index c07cdd7d0921..6c4fc3ec2f58 100644
  				u32 urg_offset = tp->urg_seq - seq;
  				if (urg_offset < len)
  					len = urg_offset;
-@@ -2344,7 +2344,7 @@ static int tcp_recvmsg_locked(struct sock *sk, struct msghdr *msg, size_t len,
+@@ -2153,7 +2153,7 @@ int tcp_recvmsg(struct sock *sk, struct
  		u32 offset;
  
  		/* Are we at urgent data? Stop if we have read anything or have SIGURG pending. */
@@ -42,7 +40,7 @@ index c07cdd7d0921..6c4fc3ec2f58 100644
  			if (copied)
  				break;
  			if (signal_pending(current)) {
-@@ -2449,7 +2449,7 @@ static int tcp_recvmsg_locked(struct sock *sk, struct msghdr *msg, size_t len,
+@@ -2258,7 +2258,7 @@ found_ok_skb:
  			used = len;
  
  		/* Do we have urgent data here? */
@@ -51,7 +49,7 @@ index c07cdd7d0921..6c4fc3ec2f58 100644
  			u32 urg_offset = tp->urg_seq - *seq;
  			if (urg_offset < used) {
  				if (!urg_offset) {
-@@ -2483,7 +2483,7 @@ static int tcp_recvmsg_locked(struct sock *sk, struct msghdr *msg, size_t len,
+@@ -2292,7 +2292,7 @@ found_ok_skb:
  		tcp_rcv_space_adjust(sk);
  
  skip_copy:
@@ -60,11 +58,9 @@ index c07cdd7d0921..6c4fc3ec2f58 100644
  			WRITE_ONCE(tp->urg_data, 0);
  			tcp_fast_path_check(sk);
  		}
-diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
-index 4b5f439fc5e5..1c784f3fae3e 100644
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -5605,11 +5605,11 @@ static void tcp_urg(struct sock *sk, struct sk_buff *skb, const struct tcphdr *t
+@@ -5539,11 +5539,11 @@ static void tcp_urg(struct sock *sk, str
  	struct tcp_sock *tp = tcp_sk(sk);
  
  	/* Check if we get a new urgent pointer - normally not. */
@@ -78,6 +74,3 @@ index 4b5f439fc5e5..1c784f3fae3e 100644
  		u32 ptr = tp->urg_seq - ntohl(th->seq) + (th->doff * 4) -
  			  th->syn;
  
--- 
-2.33.1
-

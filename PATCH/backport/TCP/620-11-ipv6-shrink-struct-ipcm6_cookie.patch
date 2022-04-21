@@ -11,11 +11,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  include/net/ipv6.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index f2d0ecc257bb..8bcd113f1b6e 100644
 --- a/include/net/ipv6.h
 +++ b/include/net/ipv6.h
-@@ -345,9 +345,9 @@ struct ipcm6_cookie {
+@@ -344,9 +344,9 @@ struct ipcm6_cookie {
  	struct sockcm_cookie sockc;
  	__s16 hlimit;
  	__s16 tclass;
@@ -26,6 +24,3 @@ index f2d0ecc257bb..8bcd113f1b6e 100644
  };
  
  static inline void ipcm6_init(struct ipcm6_cookie *ipc6)
--- 
-2.33.1
-

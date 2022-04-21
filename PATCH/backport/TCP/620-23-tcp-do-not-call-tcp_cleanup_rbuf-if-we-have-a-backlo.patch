@@ -16,11 +16,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv4/tcp.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index f387581f749f..daa8e915e2f4 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -2454,12 +2454,11 @@ static int tcp_recvmsg_locked(struct sock *sk, struct msghdr *msg, size_t len,
+@@ -2263,12 +2263,11 @@ int tcp_recvmsg(struct sock *sk, struct
  			}
  		}
  
@@ -34,6 +32,3 @@ index f387581f749f..daa8e915e2f4 100644
  			sk_defer_free_flush(sk);
  			sk_wait_data(sk, &timeo, last);
  		}
--- 
-2.33.1
-

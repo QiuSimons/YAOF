@@ -17,11 +17,9 @@ Signed-off-by: Eric Dumazet <edumazet@google.com>
  net/ipv4/tcp.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 4a7ef634b32d..e713f45dbc8e 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -2427,8 +2427,7 @@ static int tcp_recvmsg_locked(struct sock *sk, struct msghdr *msg, size_t len,
+@@ -2236,8 +2236,7 @@ int tcp_recvmsg(struct sock *sk, struct
  
  		if (copied >= target) {
  			/* Do not sleep, just process backlog. */
@@ -31,6 +29,3 @@ index 4a7ef634b32d..e713f45dbc8e 100644
  		} else {
  			sk_wait_data(sk, &timeo, last);
  		}
--- 
-2.33.1
-

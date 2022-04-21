@@ -25,7 +25,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 # offload bug fix
 #wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
 # TCP performance optimizations backport from linux/net-next
-#cp -f ../PATCH/backport/695-tcp-optimizations.patch ./target/linux/generic/backport-5.4/695-tcp-optimizations.patch
+cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # introduce "le9" Linux kernel patches
 cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.10/695-le9i.patch
 # Patch arm64 型号名称
