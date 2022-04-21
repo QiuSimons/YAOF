@@ -32,8 +32,6 @@ cp -rf ../PATCH/backport/UDP/* ./target/linux/generic/backport-5.10/
 cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.10/695-le9i.patch
 # Patch arm64 型号名称
 wget -P target/linux/generic/hack-5.10/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
-# Patch jsonc
-#patch -p1 <../PATCH/jsonc/use_json_object_new_int64.patch
 # Patch dnsmasq
 patch -p1 <../PATCH/dnsmasq/dnsmasq-add-filter-aaaa-option.patch
 patch -p1 <../PATCH/dnsmasq/luci-add-filter-aaaa-option.patch
@@ -42,20 +40,9 @@ cp -f ../PATCH/dnsmasq/900-add-filter-aaaa-option.patch ./package/network/servic
 patch -p1 <../PATCH/BBRv2/openwrt/openwrt-kmod-bbr2.patch
 cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
 wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
-# CacULE
-#wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/7d44cab.patch | patch -p1
-#wget https://github.com/hamadmarri/cacule-cpu-scheduler/raw/master/patches/CacULE/v5.4/cacule-5.4.patch -O ./target/linux/generic/hack-5.4/694-cacule-5.4.patch
-# MuQSS
-#cp -f ../PATCH/MuQSS/0001-MultiQueue-Skiplist-Scheduler-v0.196.patch ./target/linux/generic/hack-5.4/694-0001-MultiQueue-Skiplist-Scheduler-v0.196.patch
-#cp -f ../PATCH/MuQSS/0002-MuQSS-Fix-build-error-on-config-leak.patch ./target/linux/generic/hack-5.4/694-0002-MuQSS-Fix-build-error-on-config-leak.patch
-#cp -f ../PATCH/MuQSS/0003-Work-around-x86-only-llc-stuff.patch ./target/linux/generic/hack-5.4/694-0003-Work-around-x86-only-llc-stuff.patch
-# BMQ
-#cp -f ../PATCH/BMQ/01-bmq_v5.4-r2.patch ./target/linux/generic/hack-5.4/694-01-bmq_v5.4-r2.patch
-# PDS
-#cp -f ../PATCH/PDS/v5.4_undead-pds099o.patch ./target/linux/generic/hack-5.4/694-v5.4_undead-pds099o.patch
-#wget https://github.com/Frogging-Family/linux-tkg/raw/master/linux-tkg-patches/5.4/0005-glitched-pds.patch -O ./target/linux/generic/hack-5.4/694-0005-02-glitched-pds.patch
-# UKSM
-#cp -f ../PATCH/UKSM/695-uksm-5.4.patch ./target/linux/generic/hack-5.4/695-uksm-5.4.patch
+# PRJC
+cp -f ../PATCH/PRJC/960-prjc_v5.10-lts-r3.patch ./target/linux/generic/hack-5.10/960-prjc_v5.10-lts-r3.patch
+
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
 echo '
@@ -125,8 +112,6 @@ svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/em
 sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package/lean/autocore/files/generic/luci-mod-status-autocore.json
 rm -rf ./feeds/packages/utils/coremark
 svn export https://github.com/immortalwrt/packages/trunk/utils/coremark feeds/packages/utils/coremark
-# DPDK
-#svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/dpdk package/new/dpdk
 # 更换 Nodejs 版本
 rm -rf ./feeds/packages/lang/node
 svn export https://github.com/nxhack/openwrt-node-packages/trunk/node feeds/packages/lang/node
@@ -385,6 +370,7 @@ sed -i '/Clang.CN.CIDR/a\o:value("https://gh.404delivr.workers.dev/https://githu
 popd
 # v2raya
 git clone --depth 1 https://github.com/zxlhhyccc/luci-app-v2raya.git package/new/luci-app-v2raya
+rm -rf ./feeds/packages/net/v2raya
 svn export https://github.com/openwrt/packages/trunk/net/v2raya feeds/packages/net/v2raya
 ln -sf ../../../feeds/packages/net/v2raya ./package/feeds/packages/v2raya
 # socat
