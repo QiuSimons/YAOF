@@ -37,8 +37,8 @@ patch -p1 <../PATCH/dnsmasq/dnsmasq-add-filter-aaaa-option.patch
 patch -p1 <../PATCH/dnsmasq/luci-add-filter-aaaa-option.patch
 cp -f ../PATCH/dnsmasq/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
 # BBRv2
-patch -p1 <../PATCH/BBRv2/openwrt-kmod-bbr2.patch
-cp -f ../PATCH/BBRv2/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch ./target/linux/generic/hack-5.10/693-Add_BBRv2_congestion_control_for_Linux_TCP.patch
+patch -p1 <../PATCH/BBRv2/openwrt/openwrt-kmod-bbr2.patch
+cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
 wget -qO - https://github.com/openwrt/openwrt/commit/cfaf039.patch | patch -p1
 # CacULE
 #wget -qO - https://github.com/QiuSimons/openwrt-NoTengoBattery/commit/7d44cab.patch | patch -p1

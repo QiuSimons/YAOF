@@ -1,0 +1,65 @@
+From 036792956b42e9956f46bd861380bc03aadffff9 Mon Sep 17 00:00:00 2001
+From: Adithya Abraham Philip <abrahamphilip@google.com>
+Date: Fri, 11 Jun 2021 21:56:10 +0000
+Subject: [PATCH 21/21] net-tcp_bbr: v2: Fix missing ECT markings on retransmits for
+ BBRv2
+
+Adds a new flag TCP_ECN_ECT_PERMANENT that is used by CCAs to
+indicate that retransmitted packets and pure ACKs must have the
+ECT bit set. This is a necessary fix for BBRv2, which when using
+ECN expects ECT to be set even on retransmitted packets and ACKs.
+Currently CCAs like BBRv2 which can use ECN but don't "need" it
+do not have a way to indicate that ECT should be set on
+retransmissions/ACKs.
+
+Signed-off-by: Adithya Abraham Philip <abrahamphilip@google.com>
+Signed-off-by: Neal Cardwell <ncardwell@google.com>
+---
+ include/net/tcp.h     | 1 +
+ net/ipv4/tcp_bbr2.c   | 3 +++
+ net/ipv4/tcp_output.c | 3 ++-
+ 3 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/tcp.h b/include/net/tcp.h
+index 0c18de493ac3..79721b981825 100644
+--- a/include/net/tcp.h
++++ b/include/net/tcp.h
+@@ -368,6 +368,7 @@ static inline void tcp_dec_quickack_mode(struct sock *sk,
+ #define	TCP_ECN_QUEUE_CWR	2
+ #define	TCP_ECN_DEMAND_CWR	4
+ #define	TCP_ECN_SEEN		8
++#define	TCP_ECN_ECT_PERMANENT	16
+ 
+ enum tcp_tw_status {
+ 	TCP_TW_SUCCESS = 0,
+diff --git a/net/ipv4/tcp_bbr2.c b/net/ipv4/tcp_bbr2.c
+index 5510adc92bbb..fa49e17c47ca 100644
+--- a/net/ipv4/tcp_bbr2.c
++++ b/net/ipv4/tcp_bbr2.c
+@@ -2471,6 +2471,9 @@ static void bbr2_init(struct sock *sk)
+ 	bbr->alpha_last_delivered_ce = 0;
+ 
+ 	tp->fast_ack_mode = min_t(u32, 0x2U, bbr_fast_ack_mode);
++
++	if ((tp->ecn_flags & TCP_ECN_OK) && bbr_ecn_enable)
++		tp->ecn_flags |= TCP_ECN_ECT_PERMANENT;
+ }
+ 
+ /* Core TCP stack informs us that the given skb was just marked lost. */
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index 43bdf1e3d031..330002476ee8 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -377,7 +377,8 @@ static void tcp_ecn_send(struct sock *sk, struct sk_buff *skb,
+ 				th->cwr = 1;
+ 				skb_shinfo(skb)->gso_type |= SKB_GSO_TCP_ECN;
+ 			}
+-		} else if (!tcp_ca_needs_ecn(sk)) {
++		} else if (!(tp->ecn_flags & TCP_ECN_ECT_PERMANENT) &&
++			!tcp_ca_needs_ecn(sk)) {
+ 			/* ACK or retransmitted segment: clear ECT|CE */
+ 			INET_ECN_dontxmit(sk);
+ 		}
+-- 
+2.32.0
+
