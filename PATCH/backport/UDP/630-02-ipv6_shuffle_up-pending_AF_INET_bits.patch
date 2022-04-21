@@ -21,11 +21,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/udp.c | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
-index df216268cb02..0c10ee0124b5 100644
 --- a/net/ipv6/udp.c
 +++ b/net/ipv6/udp.c
-@@ -1363,9 +1363,6 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+@@ -1346,9 +1346,6 @@ do_udp_sendmsg:
  		}
  	}
  
@@ -35,7 +33,7 @@ index df216268cb02..0c10ee0124b5 100644
  	/* Rough check on arithmetic overflow,
  	   better check is made in ip6_append_data().
  	   */
-@@ -1374,6 +1371,8 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+@@ -1357,6 +1354,8 @@ do_udp_sendmsg:
  
  	getfrag  =  is_udplite ?  udplite_getfrag : ip_generic_getfrag;
  	if (up->pending) {
@@ -44,5 +42,3 @@ index df216268cb02..0c10ee0124b5 100644
  		/*
  		 * There are pending frames.
  		 * The socket lock must be held while it's corked.
--- 
-2.34.1

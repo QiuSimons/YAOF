@@ -22,11 +22,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/ip6_output.c | 7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index b8fdda9ac797..62da09819750 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -1424,7 +1424,7 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+@@ -1446,7 +1446,7 @@ static int ip6_setup_cork(struct sock *s
  static int __ip6_append_data(struct sock *sk,
  			     struct flowi6 *fl6,
  			     struct sk_buff_head *queue,
@@ -35,7 +33,7 @@ index b8fdda9ac797..62da09819750 100644
  			     struct inet6_cork *v6_cork,
  			     struct page_frag *pfrag,
  			     int getfrag(void *from, char *to, int offset,
-@@ -1433,6 +1433,7 @@ static int __ip6_append_data(struct sock *sk,
+@@ -1455,6 +1455,7 @@ static int __ip6_append_data(struct sock
  			     unsigned int flags, struct ipcm6_cookie *ipc6)
  {
  	struct sk_buff *skb, *skb_prev = NULL;
@@ -43,7 +41,7 @@ index b8fdda9ac797..62da09819750 100644
  	unsigned int maxfraglen, fragheaderlen, mtu, orig_mtu, pmtu;
  	struct ubuf_info *uarg = NULL;
  	int exthdrlen = 0;
-@@ -1797,7 +1798,7 @@ int ip6_append_data(struct sock *sk,
+@@ -1825,7 +1826,7 @@ int ip6_append_data(struct sock *sk,
  		transhdrlen = 0;
  	}
  
@@ -52,7 +50,7 @@ index b8fdda9ac797..62da09819750 100644
  				 &np->cork, sk_page_frag(sk), getfrag,
  				 from, length, transhdrlen, flags, ipc6);
  }
-@@ -1993,7 +1994,7 @@ struct sk_buff *ip6_make_skb(struct sock *sk,
+@@ -2021,7 +2022,7 @@ struct sk_buff *ip6_make_skb(struct sock
  	if (ipc6->dontfrag < 0)
  		ipc6->dontfrag = inet6_sk(sk)->dontfrag;
  
@@ -61,5 +59,3 @@ index b8fdda9ac797..62da09819750 100644
  				&current->task_frag, getfrag, from,
  				length + exthdrlen, transhdrlen + exthdrlen,
  				flags, ipc6);
--- 
-2.34.1

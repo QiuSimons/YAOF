@@ -36,24 +36,20 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/ip6_output.c  | 7 +++++--
  6 files changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 8a7d0d03a100..7fd2b44aada0 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -1469,7 +1469,7 @@ static inline struct skb_shared_hwtstamps *skb_hwtstamps(struct sk_buff *skb)
+@@ -1434,7 +1434,7 @@ static inline struct skb_shared_hwtstamp
  
  static inline struct ubuf_info *skb_zcopy(struct sk_buff *skb)
  {
--	bool is_zcopy = skb && skb_shinfo(skb)->flags & SKBFL_ZEROCOPY_ENABLE;
+-	bool is_zcopy = skb && skb_shinfo(skb)->tx_flags & SKBTX_DEV_ZEROCOPY;
 +	bool is_zcopy = skb_shinfo(skb)->flags & SKBFL_ZEROCOPY_ENABLE;
  
  	return is_zcopy ? skb_uarg(skb) : NULL;
  }
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 83a4089990a0..877ebc0f72bd 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -2239,7 +2239,7 @@ void dev_queue_xmit_nit(struct sk_buff *skb, struct net_device *dev)
+@@ -2439,7 +2439,7 @@ again:
  	}
  out_unlock:
  	if (pt_prev) {
@@ -62,11 +58,9 @@ index 83a4089990a0..877ebc0f72bd 100644
  			pt_prev->func(skb2, skb->dev, pt_prev, skb->dev);
  		else
  			kfree_skb(skb2);
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index e514a36bcffc..a9b8ac38dc1a 100644
 --- a/net/core/skbuff.c
 +++ b/net/core/skbuff.c
-@@ -890,7 +890,8 @@ EXPORT_SYMBOL(skb_dump);
+@@ -827,7 +827,8 @@ EXPORT_SYMBOL(skb_dump);
   */
  void skb_tx_error(struct sk_buff *skb)
  {
@@ -76,15 +70,13 @@ index e514a36bcffc..a9b8ac38dc1a 100644
  }
  EXPORT_SYMBOL(skb_tx_error);
  
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 87d4472545a5..b63f307cc5ab 100644
 --- a/net/ipv4/ip_output.c
 +++ b/net/ipv4/ip_output.c
-@@ -1001,10 +1001,13 @@ static int __ip_append_data(struct sock *sk,
+@@ -1026,10 +1026,13 @@ static int __ip_append_data(struct sock
  		csummode = CHECKSUM_PARTIAL;
  
  	if (flags & MSG_ZEROCOPY && length && sock_flag(sk, SOCK_ZEROCOPY)) {
--		uarg = msg_zerocopy_realloc(sk, length, skb_zcopy(skb));
+-		uarg = sock_zerocopy_realloc(sk, length, skb_zcopy(skb));
 +		if (skb)
 +			uarg = skb_zcopy(skb);
 +		extra_uref = !uarg; /* only ref on new uarg */
@@ -96,15 +88,13 @@ index 87d4472545a5..b63f307cc5ab 100644
  		if (rt->dst.dev->features & NETIF_F_SG &&
  		    csummode == CHECKSUM_PARTIAL) {
  			paged = true;
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 3b75836db19b..f35e49ea08ec 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -1188,7 +1188,10 @@ int tcp_sendmsg_locked(struct sock *sk, struct msghdr *msg, size_t size)
+@@ -1202,7 +1202,10 @@ int tcp_sendmsg_locked(struct sock *sk,
  
  	if (flags & MSG_ZEROCOPY && size && sock_flag(sk, SOCK_ZEROCOPY)) {
  		skb = tcp_write_queue_tail(sk);
--		uarg = msg_zerocopy_realloc(sk, size, skb_zcopy(skb));
+-		uarg = sock_zerocopy_realloc(sk, size, skb_zcopy(skb));
 +		if (skb)
 +			uarg = skb_zcopy(skb);
 +
@@ -112,15 +102,13 @@ index 3b75836db19b..f35e49ea08ec 100644
  		if (!uarg) {
  			err = -ENOBUFS;
  			goto out_err;
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 9881b61da493..41abe83c3419 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -1513,10 +1513,13 @@ static int __ip6_append_data(struct sock *sk,
+@@ -1540,10 +1540,13 @@ emsgsize:
  		csummode = CHECKSUM_PARTIAL;
  
  	if (flags & MSG_ZEROCOPY && length && sock_flag(sk, SOCK_ZEROCOPY)) {
--		uarg = msg_zerocopy_realloc(sk, length, skb_zcopy(skb));
+-		uarg = sock_zerocopy_realloc(sk, length, skb_zcopy(skb));
 +		if (skb)
 +			uarg = skb_zcopy(skb);
 +		extra_uref = !uarg; /* only ref on new uarg */
@@ -132,5 +120,3 @@ index 9881b61da493..41abe83c3419 100644
  		if (rt->dst.dev->features & NETIF_F_SG &&
  		    csummode == CHECKSUM_PARTIAL) {
  			paged = true;
--- 
-2.34.1

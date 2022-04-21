@@ -25,11 +25,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/udp.c        | 10 ++--------
  2 files changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 88349e49717a..b8fdda9ac797 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -1831,7 +1831,6 @@ static void ip6_cork_release(struct inet_cork_full *cork,
+@@ -1859,7 +1859,6 @@ static void ip6_cork_release(struct inet
  		cork->base.dst = NULL;
  		cork->base.flags &= ~IPCORK_ALLFRAG;
  	}
@@ -37,11 +35,9 @@ index 88349e49717a..b8fdda9ac797 100644
  }
  
  struct sk_buff *__ip6_make_skb(struct sock *sk,
-diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
-index 0c10ee0124b5..9a91b51d8e3f 100644
 --- a/net/ipv6/udp.c
 +++ b/net/ipv6/udp.c
-@@ -1266,23 +1266,17 @@ static int udp_v6_push_pending_frames(struct sock *sk)
+@@ -1249,23 +1249,17 @@ static int udp_v6_push_pending_frames(st
  {
  	struct sk_buff *skb;
  	struct udp_sock  *up = udp_sk(sk);
@@ -67,5 +63,3 @@ index 0c10ee0124b5..9a91b51d8e3f 100644
  out:
  	up->len = 0;
  	up->pending = 0;
--- 
-2.34.1

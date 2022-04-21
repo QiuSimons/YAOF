@@ -21,11 +21,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/ip6_output.c | 44 +++++++++++++++++++++----------------------
  1 file changed, 21 insertions(+), 23 deletions(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 4acd577d5ec5..88349e49717a 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -1354,7 +1354,7 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+@@ -1378,7 +1378,7 @@ static int ip6_setup_cork(struct sock *s
  {
  	struct ipv6_pinfo *np = inet6_sk(sk);
  	unsigned int mtu;
@@ -34,7 +32,7 @@ index 4acd577d5ec5..88349e49717a 100644
  
  	/*
  	 * setup for corking
-@@ -1363,32 +1363,28 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+@@ -1387,32 +1387,28 @@ static int ip6_setup_cork(struct sock *s
  		if (WARN_ON(v6_cork->opt))
  			return -EINVAL;
  
@@ -47,13 +45,14 @@ index 4acd577d5ec5..88349e49717a 100644
 -		v6_cork->opt->tot_len = sizeof(*opt);
 -		v6_cork->opt->opt_flen = opt->opt_flen;
 -		v6_cork->opt->opt_nflen = opt->opt_nflen;
-+		nopt->tot_len = sizeof(*opt);
-+		nopt->opt_flen = opt->opt_flen;
-+		nopt->opt_nflen = opt->opt_nflen;
- 
+-
 -		v6_cork->opt->dst0opt = ip6_opt_dup(opt->dst0opt,
 -						    sk->sk_allocation);
 -		if (opt->dst0opt && !v6_cork->opt->dst0opt)
++		nopt->tot_len = sizeof(*opt);
++		nopt->opt_flen = opt->opt_flen;
++		nopt->opt_nflen = opt->opt_nflen;
++
 +		nopt->dst0opt = ip6_opt_dup(opt->dst0opt, sk->sk_allocation);
 +		if (opt->dst0opt && !nopt->dst0opt)
  			return -ENOBUFS;
@@ -80,7 +79,7 @@ index 4acd577d5ec5..88349e49717a 100644
  			return -ENOBUFS;
  
  		/* need source address above miyazawa*/
-@@ -1820,11 +1816,13 @@ static void ip6_cork_release(struct inet_cork_full *cork,
+@@ -1848,11 +1844,13 @@ static void ip6_cork_release(struct inet
  			     struct inet6_cork *v6_cork)
  {
  	if (v6_cork->opt) {
@@ -99,5 +98,3 @@ index 4acd577d5ec5..88349e49717a 100644
  		v6_cork->opt = NULL;
  	}
  
--- 
-2.34.1

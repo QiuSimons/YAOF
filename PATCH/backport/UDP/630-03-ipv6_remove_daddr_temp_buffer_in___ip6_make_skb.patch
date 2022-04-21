@@ -22,11 +22,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/ip6_output.c | 7 +++----
  1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 14d607ccfeea..4acd577d5ec5 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -1843,7 +1843,7 @@ struct sk_buff *__ip6_make_skb(struct sock *sk,
+@@ -1871,7 +1871,7 @@ struct sk_buff *__ip6_make_skb(struct so
  {
  	struct sk_buff *skb, *tmp_skb;
  	struct sk_buff **tail_skb;
@@ -35,7 +33,7 @@ index 14d607ccfeea..4acd577d5ec5 100644
  	struct ipv6_pinfo *np = inet6_sk(sk);
  	struct net *net = sock_net(sk);
  	struct ipv6hdr *hdr;
-@@ -1873,9 +1873,9 @@ struct sk_buff *__ip6_make_skb(struct sock *sk,
+@@ -1901,9 +1901,9 @@ struct sk_buff *__ip6_make_skb(struct so
  
  	/* Allow local fragmentation. */
  	skb->ignore_df = ip6_sk_ignore_df(sk);
@@ -47,7 +45,7 @@ index 14d607ccfeea..4acd577d5ec5 100644
  	if (opt && opt->opt_flen)
  		ipv6_push_frag_opts(skb, opt, &proto);
  	if (opt && opt->opt_nflen)
-@@ -1895,7 +1895,6 @@ struct sk_buff *__ip6_make_skb(struct sock *sk,
+@@ -1923,7 +1923,6 @@ struct sk_buff *__ip6_make_skb(struct so
  
  	skb->priority = sk->sk_priority;
  	skb->mark = cork->base.mark;
@@ -55,5 +53,3 @@ index 14d607ccfeea..4acd577d5ec5 100644
  	skb->tstamp = cork->base.transmit_time;
  
  	ip6_cork_steal_dst(skb, cork);
--- 
-2.34.1

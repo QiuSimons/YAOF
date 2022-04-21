@@ -23,11 +23,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/core/skbuff.c      | 31 ++++++++++++-------------------
  2 files changed, 48 insertions(+), 24 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 7fd2b44aada0..8ea145101b56 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -1130,11 +1130,42 @@ static inline struct sk_buff *alloc_skb(unsigned int size,
+@@ -1096,11 +1096,42 @@ static inline struct sk_buff *alloc_skb(
  	return __alloc_skb(size, priority, 0, NUMA_NO_NODE);
  }
  
@@ -75,11 +73,9 @@ index 7fd2b44aada0..8ea145101b56 100644
  struct sk_buff *alloc_skb_for_msg(struct sk_buff *first);
  
  /* Layout of fast clones : [skb1][skb2][fclone_ref] */
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index a9b8ac38dc1a..7811dde22f26 100644
 --- a/net/core/skbuff.c
 +++ b/net/core/skbuff.c
-@@ -5922,40 +5922,32 @@ int skb_mpls_dec_ttl(struct sk_buff *skb)
+@@ -5861,40 +5861,32 @@ int skb_mpls_dec_ttl(struct sk_buff *skb
  EXPORT_SYMBOL_GPL(skb_mpls_dec_ttl);
  
  /**
@@ -130,7 +126,7 @@ index a9b8ac38dc1a..7811dde22f26 100644
  	skb->truesize += npages << PAGE_SHIFT;
  
  	for (i = 0; npages > 0; i++) {
-@@ -5989,9 +5981,10 @@ struct sk_buff *alloc_skb_with_frags(unsigned long header_len,
+@@ -5928,9 +5920,10 @@ fill_page:
  
  failure:
  	kfree_skb(skb);
@@ -142,5 +138,3 @@ index a9b8ac38dc1a..7811dde22f26 100644
  
  /* carve out the first off bytes from skb when off < headlen */
  static int pskb_carve_inside_header(struct sk_buff *skb, const u32 off,
--- 
-2.34.1

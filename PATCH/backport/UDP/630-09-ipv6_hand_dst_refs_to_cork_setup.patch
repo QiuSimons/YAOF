@@ -24,11 +24,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/udp.c        | 3 ++-
  2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 0cc490f2cfbf..6a7bba4dd04d 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -1356,6 +1356,8 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+@@ -1380,6 +1380,8 @@ static int ip6_setup_cork(struct sock *s
  	unsigned int mtu;
  	struct ipv6_txoptions *nopt, *opt = ipc6->opt;
  
@@ -37,7 +35,7 @@ index 0cc490f2cfbf..6a7bba4dd04d 100644
  	/*
  	 * setup for corking
  	 */
-@@ -1389,8 +1391,6 @@ static int ip6_setup_cork(struct sock *sk, struct inet_cork_full *cork,
+@@ -1413,8 +1415,6 @@ static int ip6_setup_cork(struct sock *s
  
  		/* need source address above miyazawa*/
  	}
@@ -46,7 +44,7 @@ index 0cc490f2cfbf..6a7bba4dd04d 100644
  	v6_cork->hop_limit = ipc6->hlimit;
  	v6_cork->tclass = ipc6->tclass;
  	if (rt->dst.flags & DST_XFRM_TUNNEL)
-@@ -1784,6 +1784,7 @@ int ip6_append_data(struct sock *sk,
+@@ -1812,6 +1812,7 @@ int ip6_append_data(struct sock *sk,
  		/*
  		 * setup for corking
  		 */
@@ -54,7 +52,7 @@ index 0cc490f2cfbf..6a7bba4dd04d 100644
  		err = ip6_setup_cork(sk, &inet->cork, &np->cork,
  				     ipc6, rt);
  		if (err)
-@@ -1974,8 +1975,10 @@ struct sk_buff *ip6_make_skb(struct sock *sk,
+@@ -2002,8 +2003,10 @@ struct sk_buff *ip6_make_skb(struct sock
  	int exthdrlen = (ipc6->opt ? ipc6->opt->opt_flen : 0);
  	int err;
  
@@ -66,11 +64,9 @@ index 0cc490f2cfbf..6a7bba4dd04d 100644
  
  	__skb_queue_head_init(&queue);
  
-diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
-index eec83e34ae27..3039dff7fe64 100644
 --- a/net/ipv6/udp.c
 +++ b/net/ipv6/udp.c
-@@ -1541,7 +1541,8 @@ int udpv6_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
+@@ -1524,7 +1524,8 @@ back_from_confirm:
  		err = PTR_ERR(skb);
  		if (!IS_ERR_OR_NULL(skb))
  			err = udp_v6_send_skb(skb, fl6, &cork.base);
@@ -80,5 +76,3 @@ index eec83e34ae27..3039dff7fe64 100644
  	}
  
  	lock_sock(sk);
--- 
-2.34.1

@@ -25,11 +25,9 @@ Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
  net/ipv6/ip6_output.c | 11 ++++++++++-
  1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 2995f8d89e7e..14d607ccfeea 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
-@@ -1807,6 +1807,15 @@ int ip6_append_data(struct sock *sk,
+@@ -1835,6 +1835,15 @@ int ip6_append_data(struct sock *sk,
  }
  EXPORT_SYMBOL_GPL(ip6_append_data);
  
@@ -45,7 +43,7 @@ index 2995f8d89e7e..14d607ccfeea 100644
  static void ip6_cork_release(struct inet_cork_full *cork,
  			     struct inet6_cork *v6_cork)
  {
-@@ -1889,7 +1898,7 @@ struct sk_buff *__ip6_make_skb(struct sock *sk,
+@@ -1917,7 +1926,7 @@ struct sk_buff *__ip6_make_skb(struct so
  
  	skb->tstamp = cork->base.transmit_time;
  
@@ -54,5 +52,3 @@ index 2995f8d89e7e..14d607ccfeea 100644
  	IP6_UPD_PO_STATS(net, rt->rt6i_idev, IPSTATS_MIB_OUT, skb->len);
  	if (proto == IPPROTO_ICMPV6) {
  		struct inet6_dev *idev = ip6_dst_idev(skb_dst(skb));
--- 
-2.34.1
