@@ -16,11 +16,9 @@ Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
  net/ipv4/tcp_rate.c | 14 ++++++++++++++
  2 files changed, 19 insertions(+)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 51b396cb50d1..99c0ab5a71e3 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -881,6 +881,10 @@ struct tcp_skb_cb {
+@@ -869,6 +869,10 @@ struct tcp_skb_cb {
  			u32 first_tx_mstamp;
  			/* when we reached the "delivered" count */
  			u32 delivered_mstamp;
@@ -31,7 +29,7 @@ index 51b396cb50d1..99c0ab5a71e3 100644
  		} tx;   /* only used for outgoing skbs */
  		union {
  			struct inet_skb_parm	h4;
-@@ -1052,6 +1056,7 @@ struct rate_sample {
+@@ -1040,6 +1044,7 @@ struct rate_sample {
  	u64  prior_mstamp; /* starting timestamp for interval */
  	u32  prior_delivered;	/* tp->delivered at "prior_mstamp" */
  	u32  prior_delivered_ce;/* tp->delivered_ce at "prior_mstamp" */
@@ -39,8 +37,6 @@ index 51b396cb50d1..99c0ab5a71e3 100644
  	s32  delivered;		/* number of packets delivered over interval */
  	s32  delivered_ce;	/* number of packets delivered w/ CE marks*/
  	long interval_us;	/* time for tp->delivered to incr "delivered" */
-diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
-index b64d82481ae9..3ecc831206b5 100644
 --- a/net/ipv4/tcp_rate.c
 +++ b/net/ipv4/tcp_rate.c
 @@ -40,6 +40,7 @@
@@ -51,7 +47,7 @@ index b64d82481ae9..3ecc831206b5 100644
  
  	 /* In general we need to start delivery rate samples from the
  	  * time we received the most recent ACK, to ensure we include
-@@ -67,6 +68,18 @@ void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb)
+@@ -67,6 +68,18 @@ void tcp_rate_skb_sent(struct sock *sk,
  	TCP_SKB_CB(skb)->tx.delivered		= tp->delivered;
  	TCP_SKB_CB(skb)->tx.delivered_ce	= tp->delivered_ce;
  	TCP_SKB_CB(skb)->tx.is_app_limited	= tp->app_limited ? 1 : 0;
@@ -70,7 +66,7 @@ index b64d82481ae9..3ecc831206b5 100644
  }
  
  /* When an skb is sacked or acked, we fill in the rate sample with the (prior)
-@@ -92,6 +105,7 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
+@@ -92,6 +105,7 @@ void tcp_rate_skb_delivered(struct sock
  		rs->prior_mstamp     = scb->tx.delivered_mstamp;
  		rs->is_app_limited   = scb->tx.is_app_limited;
  		rs->is_retrans	     = scb->sacked & TCPCB_RETRANS;
@@ -78,6 +74,3 @@ index b64d82481ae9..3ecc831206b5 100644
  
  		/* Record send time of most recently ACKed packet: */
  		tp->first_tx_mstamp  = tcp_skb_timestamp_us(skb);
--- 
-2.29.2
-

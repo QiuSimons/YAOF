@@ -32,11 +32,9 @@ Change-Id: I575dce871c2f20e91e3e9449e1706f42a07b8118
  net/ipv4/tcp_bbr2.c | 7 ++-----
  1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv4/tcp_bbr2.c b/net/ipv4/tcp_bbr2.c
-index 57b4abebb275..5510adc92bbb 100644
 --- a/net/ipv4/tcp_bbr2.c
 +++ b/net/ipv4/tcp_bbr2.c
-@@ -2617,15 +2617,12 @@ static void bbr2_set_state(struct sock *sk, u8 new_state)
+@@ -2617,15 +2617,12 @@ static void bbr2_set_state(struct sock *
  			/* bbr_adapt_lower_bounds() needs cwnd before
  			 * we suffered an RTO, to update inflight_lo:
  			 */
@@ -54,6 +52,3 @@ index 57b4abebb275..5510adc92bbb 100644
  		tp->snd_cwnd = max(tp->snd_cwnd, bbr->prior_cwnd);
  		bbr->try_fast_path = 0; /* bound cwnd using latest model */
  	}
--- 
-2.29.2
-

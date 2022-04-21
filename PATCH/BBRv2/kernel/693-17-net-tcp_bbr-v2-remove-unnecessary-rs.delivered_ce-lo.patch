@@ -33,11 +33,9 @@ Change-Id: I37f83f418a259ec31d8f82de986db071b364b76a
  net/ipv4/tcp_bbr2.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/net/ipv4/tcp_bbr2.c b/net/ipv4/tcp_bbr2.c
-index a6959b70e51d..e00b47850dce 100644
 --- a/net/ipv4/tcp_bbr2.c
 +++ b/net/ipv4/tcp_bbr2.c
-@@ -2508,7 +2508,6 @@ static void bbr2_skb_marked_lost(struct sock *sk, const struct sk_buff *skb)
+@@ -2508,7 +2508,6 @@ static void bbr2_skb_marked_lost(struct
  	memset(&rs, 0, sizeof(rs));
  	rs.tx_in_flight = scb->tx.in_flight;
  	rs.lost = tp->lost - scb->tx.lost;
@@ -45,6 +43,3 @@ index a6959b70e51d..e00b47850dce 100644
  	rs.is_app_limited = scb->tx.is_app_limited;
  	if (bbr2_is_inflight_too_high(sk, &rs)) {
  		rs.tx_in_flight = bbr2_inflight_hi_from_lost_skb(sk, &rs, skb);
--- 
-2.29.2
-

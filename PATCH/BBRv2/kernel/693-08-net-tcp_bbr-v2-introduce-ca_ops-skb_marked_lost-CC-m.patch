@@ -27,11 +27,9 @@ Change-Id: I54826ab53df636be537e5d3c618a46145d12d51a
  net/ipv4/tcp_input.c | 5 +++++
  2 files changed, 7 insertions(+)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 4e82601382a8..8969f968f1c7 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1103,6 +1103,8 @@ struct tcp_congestion_ops {
+@@ -1091,6 +1091,8 @@ struct tcp_congestion_ops {
  	u32 (*min_tso_segs)(struct sock *sk);
  	/* returns the multiplier used in tcp_sndbuf_expand (optional) */
  	u32 (*sndbuf_expand)(struct sock *sk);
@@ -40,11 +38,9 @@ index 4e82601382a8..8969f968f1c7 100644
  	/* call when packets are delivered to update cwnd and pacing rate,
  	 * after all the ca_state processing. (optional)
  	 */
-diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
-index fb63bf389ab6..be08073e6f74 100644
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -1039,7 +1039,12 @@ static void tcp_verify_retransmit_hint(struct tcp_sock *tp, struct sk_buff *skb)
+@@ -1039,7 +1039,12 @@ static void tcp_verify_retransmit_hint(s
   */
  static void tcp_notify_skb_loss_event(struct tcp_sock *tp, const struct sk_buff *skb)
  {
@@ -57,6 +53,3 @@ index fb63bf389ab6..be08073e6f74 100644
  }
  
  void tcp_mark_skb_lost(struct sock *sk, struct sk_buff *skb)
--- 
-2.29.2
-

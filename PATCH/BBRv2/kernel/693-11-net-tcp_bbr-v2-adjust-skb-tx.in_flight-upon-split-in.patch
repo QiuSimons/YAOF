@@ -25,11 +25,9 @@ Change-Id: I617f8cab4e9be7a0b8e8d30b047bf8645393354d
  net/ipv4/tcp_output.c | 11 ++++++++++-
  1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 0e9501fa7a3d..2aa85e78d7f5 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1534,7 +1534,7 @@ int tcp_fragment(struct sock *sk, enum tcp_queue tcp_queue,
+@@ -1533,7 +1533,7 @@ int tcp_fragment(struct sock *sk, enum t
  {
  	struct tcp_sock *tp = tcp_sk(sk);
  	struct sk_buff *buff;
@@ -38,7 +36,7 @@ index 0e9501fa7a3d..2aa85e78d7f5 100644
  	long limit;
  	int nlen;
  	u8 flags;
-@@ -1613,6 +1613,15 @@ int tcp_fragment(struct sock *sk, enum tcp_queue tcp_queue,
+@@ -1611,6 +1611,15 @@ int tcp_fragment(struct sock *sk, enum t
  
  		if (diff)
  			tcp_adjust_pcount(sk, skb, diff);
@@ -54,6 +52,3 @@ index 0e9501fa7a3d..2aa85e78d7f5 100644
  	}
  
  	/* Link BUFF into the send queue. */
--- 
-2.29.2
-

@@ -9,8 +9,6 @@ Change-Id: Iee1df7e41e42de199068d7c89131ed3d228327c0
  net/ipv4/tcp_bbr2.c | 3 ---
  1 file changed, 3 deletions(-)
 
-diff --git a/net/ipv4/tcp_bbr2.c b/net/ipv4/tcp_bbr2.c
-index 6121cd46f81a..57b4abebb275 100644
 --- a/net/ipv4/tcp_bbr2.c
 +++ b/net/ipv4/tcp_bbr2.c
 @@ -303,8 +303,6 @@ static int bbr_pacing_gain[] = {
@@ -22,7 +20,7 @@ index 6121cd46f81a..57b4abebb275 100644
  
  /* Try to keep at least this many packets in flight, if things go smoothly. For
   * smooth functioning, a sliding window protocol ACKing every other packet
-@@ -395,7 +393,6 @@ module_param_named(startup_cwnd_gain, bbr_startup_cwnd_gain, int,    0644);
+@@ -395,7 +393,6 @@ module_param_named(startup_cwnd_gain, bb
  module_param_named(cwnd_gain,         bbr_cwnd_gain,         int,    0644);
  module_param_array_named(pacing_gain, bbr_pacing_gain,       int,
  			 &bbr_pacing_gain_size, 0644);
@@ -30,6 +28,3 @@ index 6121cd46f81a..57b4abebb275 100644
  module_param_named(cwnd_min_target,   bbr_cwnd_min_target,   uint,   0644);
  module_param_named(probe_rtt_cwnd_gain,
  		   bbr_probe_rtt_cwnd_gain,		     uint,   0664);
--- 
-2.29.2
-

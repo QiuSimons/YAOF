@@ -20,11 +20,9 @@ Change-Id: I4fbd4a6e18a51ab06d50ab1c9ad820ce5bea89af
  net/ipv4/tcp_rate.c | 32 +++++++++++++++++++-------------
  2 files changed, 20 insertions(+), 13 deletions(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 8969f968f1c7..7381cdc4fd18 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1175,6 +1175,7 @@ static inline void tcp_ca_event(struct sock *sk, const enum tcp_ca_event event)
+@@ -1163,6 +1163,7 @@ static inline void tcp_ca_event(struct s
  }
  
  /* From tcp_rate.c */
@@ -32,8 +30,6 @@ index 8969f968f1c7..7381cdc4fd18 100644
  void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb);
  void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
  			    struct rate_sample *rs);
-diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
-index f454fce5e1fd..796fa6e5310c 100644
 --- a/net/ipv4/tcp_rate.c
 +++ b/net/ipv4/tcp_rate.c
 @@ -34,13 +34,30 @@
@@ -68,7 +64,7 @@ index f454fce5e1fd..796fa6e5310c 100644
  
  	 /* In general we need to start delivery rate samples from the
  	  * time we received the most recent ACK, to ensure we include
-@@ -69,18 +86,7 @@ void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb)
+@@ -69,18 +86,7 @@ void tcp_rate_skb_sent(struct sock *sk,
  	TCP_SKB_CB(skb)->tx.delivered_ce	= tp->delivered_ce;
  	TCP_SKB_CB(skb)->tx.lost		= tp->lost;
  	TCP_SKB_CB(skb)->tx.is_app_limited	= tp->app_limited ? 1 : 0;
@@ -88,6 +84,3 @@ index f454fce5e1fd..796fa6e5310c 100644
  }
  
  /* When an skb is sacked or acked, we fill in the rate sample with the (prior)
--- 
-2.29.2
-

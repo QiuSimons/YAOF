@@ -20,11 +20,9 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
  net/ipv4/tcp_output.c | 3 ++-
  3 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 0c18de493ac3..79721b981825 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -368,6 +368,7 @@ static inline void tcp_dec_quickack_mode(struct sock *sk,
+@@ -357,6 +357,7 @@ static inline void tcp_dec_quickack_mode
  #define	TCP_ECN_QUEUE_CWR	2
  #define	TCP_ECN_DEMAND_CWR	4
  #define	TCP_ECN_SEEN		8
@@ -32,8 +30,6 @@ index 0c18de493ac3..79721b981825 100644
  
  enum tcp_tw_status {
  	TCP_TW_SUCCESS = 0,
-diff --git a/net/ipv4/tcp_bbr2.c b/net/ipv4/tcp_bbr2.c
-index 5510adc92bbb..fa49e17c47ca 100644
 --- a/net/ipv4/tcp_bbr2.c
 +++ b/net/ipv4/tcp_bbr2.c
 @@ -2471,6 +2471,9 @@ static void bbr2_init(struct sock *sk)
@@ -46,11 +42,9 @@ index 5510adc92bbb..fa49e17c47ca 100644
  }
  
  /* Core TCP stack informs us that the given skb was just marked lost. */
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 43bdf1e3d031..330002476ee8 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -377,7 +377,8 @@ static void tcp_ecn_send(struct sock *sk, struct sk_buff *skb,
+@@ -377,7 +377,8 @@ static void tcp_ecn_send(struct sock *sk
  				th->cwr = 1;
  				skb_shinfo(skb)->gso_type |= SKB_GSO_TCP_ECN;
  			}
@@ -60,6 +54,3 @@ index 43bdf1e3d031..330002476ee8 100644
  			/* ACK or retransmitted segment: clear ECT|CE */
  			INET_ECN_dontxmit(sk);
  		}
--- 
-2.32.0
-

@@ -14,11 +14,9 @@ Change-Id: I0968fb33fe19b5c774e8c3afd2685558a6ec8710
  net/ipv4/tcp_rate.c | 6 ++++++
  2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 9cd693101842..e483d137a136 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -865,9 +865,11 @@ struct tcp_skb_cb {
+@@ -853,9 +853,11 @@ struct tcp_skb_cb {
  	__u32		ack_seq;	/* Sequence number ACK'd	*/
  	union {
  		struct {
@@ -31,7 +29,7 @@ index 9cd693101842..e483d137a136 100644
  			/* pkts S/ACKed so far upon tx of skb, incl retrans: */
  			__u32 delivered;
  			/* start of send pipeline phase */
-@@ -1044,7 +1046,9 @@ struct ack_sample {
+@@ -1032,7 +1034,9 @@ struct ack_sample {
  struct rate_sample {
  	u64  prior_mstamp; /* starting timestamp for interval */
  	u32  prior_delivered;	/* tp->delivered at "prior_mstamp" */
@@ -41,11 +39,9 @@ index 9cd693101842..e483d137a136 100644
  	long interval_us;	/* time for tp->delivered to incr "delivered" */
  	u32 snd_interval_us;	/* snd interval for delivered packets */
  	u32 rcv_interval_us;	/* rcv interval for delivered packets */
-diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
-index 0de693565963..fbab921670cc 100644
 --- a/net/ipv4/tcp_rate.c
 +++ b/net/ipv4/tcp_rate.c
-@@ -65,6 +65,7 @@ void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb)
+@@ -65,6 +65,7 @@ void tcp_rate_skb_sent(struct sock *sk,
  	TCP_SKB_CB(skb)->tx.first_tx_mstamp	= tp->first_tx_mstamp;
  	TCP_SKB_CB(skb)->tx.delivered_mstamp	= tp->delivered_mstamp;
  	TCP_SKB_CB(skb)->tx.delivered		= tp->delivered;
@@ -53,7 +49,7 @@ index 0de693565963..fbab921670cc 100644
  	TCP_SKB_CB(skb)->tx.is_app_limited	= tp->app_limited ? 1 : 0;
  }
  
-@@ -86,6 +87,7 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
+@@ -86,6 +87,7 @@ void tcp_rate_skb_delivered(struct sock
  
  	if (!rs->prior_delivered ||
  	    after(scb->tx.delivered, rs->prior_delivered)) {
@@ -61,7 +57,7 @@ index 0de693565963..fbab921670cc 100644
  		rs->prior_delivered  = scb->tx.delivered;
  		rs->prior_mstamp     = scb->tx.delivered_mstamp;
  		rs->is_app_limited   = scb->tx.is_app_limited;
-@@ -138,6 +140,10 @@ void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
+@@ -138,6 +140,10 @@ void tcp_rate_gen(struct sock *sk, u32 d
  	}
  	rs->delivered   = tp->delivered - rs->prior_delivered;
  
@@ -72,6 +68,3 @@ index 0de693565963..fbab921670cc 100644
  	/* Model sending data and receiving ACKs as separate pipeline phases
  	 * for a window. Usually the ACK phase is longer, but with ACK
  	 * compression the send phase can be longer. To be safe we use the
--- 
-2.29.2
-
