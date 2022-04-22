@@ -33,9 +33,11 @@ cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.10/695-le9i
 # Patch arm64 型号名称
 wget -P target/linux/generic/hack-5.10/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
 # Patch dnsmasq
-patch -p1 <../PATCH/dnsmasq/dnsmasq-add-filter-aaaa-option.patch
-patch -p1 <../PATCH/dnsmasq/luci-add-filter-aaaa-option.patch
-cp -f ../PATCH/dnsmasq/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
+rm -rf ./package/network/services/dnsmasq
+svn export https://github.com/aparcar/openwrt/branches/dnsmasq-2.87test5/package/network/services/dnsmasq package/network/services/dnsmasq
+#patch -p1 <../PATCH/dnsmasq/dnsmasq-add-filter-aaaa-option.patch
+#patch -p1 <../PATCH/dnsmasq/luci-add-filter-aaaa-option.patch
+#cp -f ../PATCH/dnsmasq/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
 # BBRv2
 patch -p1 <../PATCH/BBRv2/openwrt/openwrt-kmod-bbr2.patch
 cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
