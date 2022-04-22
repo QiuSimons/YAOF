@@ -3,7 +3,7 @@
 # 内核加解密组件
 echo '
 CONFIG_CRYPTO_AES_NI_INTEL=y
-' >>./target/linux/x86/64/config-5.4
+' >>./target/linux/x86/config-5.10
 
 # UKSM
 #echo '

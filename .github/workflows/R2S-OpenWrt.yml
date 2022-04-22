@@ -138,7 +138,7 @@ jobs:
         name: OpenWRT-${{ env.latest_release }}
         allowUpdates: true
         tag: ${{ env.latest_release }}
-        commit: master
+        commit: 22.03
         replacesArtifacts: true
         token: ${{ secrets.workflow_token }}
         artifacts: ./artifact/*.zip
