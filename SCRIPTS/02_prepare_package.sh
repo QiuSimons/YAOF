@@ -29,8 +29,10 @@ cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # UDP performance optimizations backport from linux/net-next
 cp -rf ../PATCH/backport/UDP/* ./target/linux/generic/backport-5.10/
 # introduce "le9" Linux kernel patches
-cp -f ../PATCH/backport/695-le9i.patch ./target/linux/generic/hack-5.10/695-le9i.patch
-cp -f ../PATCH/backport/990-remove-kconfig-CONFIG_I8K.patch ./target/linux/generic/hack-5.10/990-remove-kconfig-CONFIG_I8K.patch
+cp -f ../PATCH/backport/995-le9i.patch ./target/linux/generic/hack-5.10/995-le9i.patch
+cp -f ../PATCH/backport/290-remove-kconfig-CONFIG_I8K.patch ./target/linux/generic/hack-5.10/290-remove-kconfig-CONFIG_I8K.patch
+# ZSTD
+cp -rf ../PATCH/backport/ZSTD/* ./target/linux/generic/hack-5.10/
 # Patch arm64 型号名称
 wget -P target/linux/generic/hack-5.10/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
 #FW4
@@ -39,8 +41,8 @@ wget -P target/linux/generic/hack-5.10/ https://github.com/immortalwrt/immortalw
 #rm -rf ./package/utils/ucode
 #svn export https://github.com/openwrt/openwrt/trunk/package/utils/ucode package/utils/ucode
 # Patch dnsmasq
-rm -rf ./package/network/services/dnsmasq
-svn export https://github.com/aparcar/openwrt/branches/dnsmasq-2.87test5/package/network/services/dnsmasq package/network/services/dnsmasq
+#rm -rf ./package/network/services/dnsmasq
+#svn export https://github.com/aparcar/openwrt/branches/dnsmasq-2.87test5/package/network/services/dnsmasq package/network/services/dnsmasq
 #patch -p1 <../PATCH/dnsmasq/dnsmasq-add-filter-aaaa-option.patch
 #patch -p1 <../PATCH/dnsmasq/luci-add-filter-aaaa-option.patch
 #cp -f ../PATCH/dnsmasq/900-add-filter-aaaa-option.patch ./package/network/services/dnsmasq/patches/900-add-filter-aaaa-option.patch
@@ -153,8 +155,8 @@ sed -i 's,kmod-usb-net-rtl8152,kmod-usb-net-rtl8152-vendor,g' target/linux/rockc
 # UPX 可执行软件压缩
 sed -i '/patchelf pkgconf/i\tools-y += ucl upx' ./tools/Makefile
 sed -i '\/autoconf\/compile :=/i\$(curdir)/upx/compile := $(curdir)/ucl/compile' ./tools/Makefile
-svn export https://github.com/WYC-2020/lede/trunk/tools/ucl tools/ucl
-svn export https://github.com/WYC-2020/lede/trunk/tools/upx tools/upx
+svn export https://github.com/coolsnowwolf/lede/trunk/tools/ucl tools/ucl
+svn export https://github.com/coolsnowwolf/lede/trunk/tools/upx tools/upx
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 更换 golang 版本
@@ -210,7 +212,7 @@ svn export https://github.com/kiddin9/openwrt-packages/trunk/ddns-scripts-dnspod
 svn export https://github.com/QiuSimons/OpenWrt_luci-app/trunk/luci-app-tencentddns package/lean/luci-app-tencentddns
 svn export https://github.com/kenzok8/openwrt-packages/trunk/luci-app-aliddns feeds/luci/applications/luci-app-aliddns
 ln -sf ../../../feeds/luci/applications/luci-app-aliddns ./package/feeds/luci/luci-app-aliddns
-# Docker 容器（会导致 OpenWrt 出现 UDP 转发问题，慎用）
+# Docker 容器
 rm -rf ./feeds/luci/applications/luci-app-dockerman
 svn export https://github.com/lisaac/luci-app-dockerman/trunk/applications/luci-app-dockerman feeds/luci/applications/luci-app-dockerman
 rm -rf ./feeds/luci/collections/luci-lib-docker
