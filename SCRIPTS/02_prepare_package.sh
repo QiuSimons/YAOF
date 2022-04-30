@@ -23,6 +23,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 
 ### 必要的 Patches ###
 # offload bug fix
+#wget -qO - https://github.com/openwrt/openwrt/commit/53fc6e9.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
 # TCP performance optimizations backport from linux/net-next
 #cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
@@ -217,8 +218,8 @@ svn export https://github.com/immortalwrt/packages/trunk/utils/cpulimit feeds/pa
 ln -sf ../../../feeds/packages/utils/cpulimit ./package/feeds/packages/cpulimit
 # 动态DNS
 sed -i '/boot()/,+2d' feeds/packages/net/ddns-scripts/files/etc/init.d/ddns
-svn export https://github.com/kiddin9/openwrt-packages/trunk/ddns-scripts-aliyun package/lean/ddns-scripts_dnspod
-svn export https://github.com/kiddin9/openwrt-packages/trunk/ddns-scripts-dnspod package/lean/ddns-scripts_aliyun
+svn export https://github.com/linkease/istore-packages/trunk/ddns-scripts_dnspod package/lean/ddns-scripts_dnspod
+#svn export https://github.com/linkease/istore-packages/trunk/ddns-scripts_aliyun package/lean/ddns-scripts_aliyun
 svn export https://github.com/QiuSimons/OpenWrt_luci-app/trunk/luci-app-tencentddns package/lean/luci-app-tencentddns
 svn export https://github.com/kenzok8/openwrt-packages/trunk/luci-app-aliddns feeds/luci/applications/luci-app-aliddns
 ln -sf ../../../feeds/luci/applications/luci-app-aliddns ./package/feeds/luci/luci-app-aliddns
@@ -229,6 +230,7 @@ rm -rf ./feeds/luci/collections/luci-lib-docker
 svn export https://github.com/lisaac/luci-lib-docker/trunk/collections/luci-lib-docker feeds/luci/collections/luci-lib-docker
 #sed -i 's/+docker/+docker \\\n\t+dockerd/g' ./feeds/luci/applications/luci-app-dockerman/Makefile
 sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
+sed -i 's,# CONFIG_BLK_CGROUP_IOCOST is not set,CONFIG_BLK_CGROUP_IOCOST=y,g' target/linux/generic/config-5.10
 # DiskMan
 mkdir -p package/new/luci-app-diskman && \
 wget https://raw.githubusercontent.com/lisaac/luci-app-diskman/master/applications/luci-app-diskman/Makefile -O package/new/luci-app-diskman/Makefile
