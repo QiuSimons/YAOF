@@ -24,7 +24,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 ### 必要的 Patches ###
 # offload bug fix
 #wget -qO - https://github.com/openwrt/openwrt/commit/53fc6e9.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
+#wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
 # TCP performance optimizations backport from linux/net-next
 #cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # UDP performance optimizations backport from linux/net-next
@@ -475,6 +475,7 @@ svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/addition-trans-zh pack
 # Lets Fuck
 mkdir package/base-files/files/usr/bin
 wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/fuck
+wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/ss2v2ray
 # 最大连接数
 sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 # 生成默认配置及缓存
