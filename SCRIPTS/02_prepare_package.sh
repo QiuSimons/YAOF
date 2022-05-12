@@ -109,16 +109,24 @@ popd
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
-svn export https://github.com/immortalwrt/immortalwrt/branches/master/target/linux/rockchip target/linux/rockchip
+#svn export https://github.com/immortalwrt/immortalwrt/branches/master/target/linux/rockchip target/linux/rockchip
+svn export https://github.com/coolsnowwolf/lede/trunk/target/linux/rockchip target/linux/rockchip
+wget -qO - https://github.com/immortalwrt/immortalwrt/commit/af93561.patch | patch -p1
+rm -rf ./target/linux/rockchip/Makefile
+wget -P target/linux/rockchip/ https://github.com/openwrt/openwrt/raw/openwrt-22.03/target/linux/rockchip/Makefile
+rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configuration-from-OF.patch
+rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
 rm -rf ./package/boot/uboot-rockchip
-svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/uboot-rockchip package/boot/uboot-rockchip
+#svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/uboot-rockchip package/boot/uboot-rockchip
+svn export https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchip package/boot/uboot-rockchip
 svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
 rm -rf ./package/kernel/linux/modules/video.mk
 wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/master/package/kernel/linux/modules/video.mk
 rm -rf ./target/linux/generic/config-5.10
 wget -P target/linux/generic/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/config-5.10
 # ImmortalWrt Uboot TMP Fix
-wget -qO- https://github.com/immortalwrt/immortalwrt/commit/433c93e.patch | patch -REp1
+#wget -qO- https://github.com/immortalwrt/immortalwrt/commit/433c93e.patch | patch -REp1
+wget -qO- https://github.com/coolsnowwolf/lede/commit/0104258.patch | patch -REtp1
 # R4S超频到 2.2/1.8 GHz
 #rm -rf ./target/linux/rockchip/patches-5.4/992-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch
 #cp -f ../PATCH/target_r4s/991-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch ./target/linux/rockchip/patches-5.4/991-rockchip-rk3399-overclock-to-2.2-1.8-GHz-for-NanoPi4.patch
