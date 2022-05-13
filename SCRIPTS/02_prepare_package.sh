@@ -96,7 +96,7 @@ wget -P package/network/utils/nftables/patches/ https://github.com/wongsyrone/le
 # FW3
 mkdir package/network/config/firewall/patches
 wget -P package/network/config/firewall/patches/ https://github.com/immortalwrt/immortalwrt/raw/master/package/network/config/firewall/patches/fullconenat.patch
-wget -qO- https://github.com/msylgj/R2S-R4S-OpenWrt/raw/master/PATCHES/001-fix-firewall-flock.patch | patch -p1
+wget -qO- https://github.com/msylgj/R2S-R4S-OpenWrt/raw/master/PATCHES/001-fix-firewall3-flock.patch | patch -p1
 # Patch LuCI 以增添 FullCone 开关
 patch -p1 <../PATCH/firewall/luci-app-firewall_add_fullcone.patch
 # FullCone PKG
@@ -209,9 +209,9 @@ ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/lu
 svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-autoreboot package/lean/luci-app-autoreboot
 # Boost 通用即插即用
 svn export https://github.com/QiuSimons/slim-wrt/branches/main/slimapps/application/luci-app-boostupnp package/new/luci-app-boostupnp
-rm -rf ./feeds/packages/net/miniupnpd
+#rm -rf ./feeds/packages/net/miniupnpd
 #svn export https://github.com/msylgj/packages/branches/miniupnpd-nftables/net/miniupnpd feeds/packages/net/miniupnpd
-svn export https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
+#svn export https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
 # ChinaDNS
 git clone -b luci --depth 1 https://github.com/QiuSimons/openwrt-chinadns-ng.git package/new/luci-app-chinadns-ng
 svn export https://github.com/xiaorouji/openwrt-passwall/trunk/chinadns-ng package/new/chinadns-ng
@@ -392,6 +392,7 @@ svn export https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/le
 svn export https://github.com/fw876/helloworld/trunk/simple-obfs package/lean/simple-obfs
 svn export https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
 svn export https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-core
+#svn export https://github.com/1715173329/helloworld/branches/v2v5/sagernet-core package/lean/sagernet-core
 svn export https://github.com/zxlhhyccc/bf-package-master/trunk/ctcgfw/sagernet-core package/lean/sagernet-core
 svn export https://github.com/fw876/helloworld/trunk/xray-core package/lean/xray-core
 svn export https://github.com/fw876/helloworld/trunk/v2ray-plugin package/lean/v2ray-plugin
@@ -403,12 +404,12 @@ ln -sf ../../../feeds/packages/net/shadowsocks-rust ./package/feeds/packages/sha
 svn export https://github.com/immortalwrt/packages/trunk/net/kcptun feeds/packages/net/kcptun
 ln -sf ../../../feeds/packages/net/kcptun ./package/feeds/packages/kcptun
 # ShadowsocksR Plus+
+#svn export https://github.com/1715173329/helloworld/branches/v2v5/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 svn export https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
 rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
 pushd package/lean
-#wget -qO - https://github.com/fw876/helloworld/pull/656.patch | patch -p1
+wget -qO - https://github.com/fw876/helloworld/commit/2875c57.patch | patch -p1
 wget -qO - https://github.com/fw876/helloworld/commit/5bbf6e7.patch | patch -p1
-#wget -qO - https://github.com/fw876/helloworld/commit/ea3b4bd.patch | patch -p1
 popd
 pushd package/lean/luci-app-ssr-plus
 sed -i '/Trojan:/d' Makefile
@@ -505,7 +506,7 @@ svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/addition-trans-zh pack
 # Lets Fuck
 mkdir package/base-files/files/usr/bin
 wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/fuck
-wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/ss2v2ray
+#wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/ss2v2ray
 # 最大连接数
 sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 # 生成默认配置及缓存
@@ -523,8 +524,5 @@ rm -rf .config
 #svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/lean/fast-classifier
 #wget -P package/base-files/files/etc/init.d/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/shortcut-fe
 
-# 回滚通用即插即用
-#rm -rf ./feeds/packages/net/miniupnpd
-#svn export https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
 
 #exit 0
