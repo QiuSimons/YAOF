@@ -3,7 +3,9 @@ clear
 
 ### 基础部分 ###
 # 使用 O3 级别的优化
-sed -i 's/Os/O3 -funsafe-math-optimizations -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections/g' include/target.mk
+sed -i 's/Os/O3 -ffast-math -ftree-vectorize -Wl,--gc-sections/g' include/target.mk
+wget -qO - https://github.com/openwrt/openwrt/commit/8249a8c.patch | patch -p1
+wget -qO - https://github.com/openwrt/openwrt/commit/66fa343.patch | patch -p1
 # 更新 Feeds
 ./scripts/feeds update -a
 ./scripts/feeds install -a
@@ -70,13 +72,11 @@ echo '
 CONFIG_LRNG=y
 CONFIG_LRNG_JENT=y
 ' >>./target/linux/generic/config-5.10
-# Grub 2
-wget -qO - https://github.com/openwrt/openwrt/commit/31f1033.patch | patch -p1
 # Haproxy
 rm -rf ./feeds/packages/net/haproxy
 svn export https://github.com/openwrt/packages/trunk/net/haproxy feeds/packages/net/haproxy
 pushd feeds/packages
-wget -qO - https://github.com/QiuSimons/packages/commit/7ffbfbe.patch | patch -p1
+wget -qO - https://github.com/openwrt/packages/commit/a09cbcd.patch | patch -p1
 popd
 # OPENSSL
 wget -P package/libs/openssl/patches/ https://github.com/openssl/openssl/pull/11895.patch
