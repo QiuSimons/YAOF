@@ -3,7 +3,7 @@ clear
 
 ### 基础部分 ###
 # 使用 O3 级别的优化
-sed -i 's/Os/O3 -ffast-math -ftree-vectorize -Wl,--gc-sections/g' include/target.mk
+sed -i 's/Os/O3 -fno-tree-loop-vectorize -Wl,--gc-sections/g' include/target.mk
 wget -qO - https://github.com/openwrt/openwrt/commit/8249a8c.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/66fa343.patch | patch -p1
 # 更新 Feeds
@@ -66,12 +66,6 @@ wget -qO - https://github.com/openwrt/openwrt/commit/7db9763.patch | patch -p1
 #CONFIG_SCHED_ALT=y
 #CONFIG_SCHED_BMQ=y
 #' >>./target/linux/generic/config-5.10
-# LRNG
-cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
-echo '
-CONFIG_LRNG=y
-CONFIG_LRNG_JENT=y
-' >>./target/linux/generic/config-5.10
 # Haproxy
 rm -rf ./feeds/packages/net/haproxy
 svn export https://github.com/openwrt/packages/trunk/net/haproxy feeds/packages/net/haproxy
@@ -93,7 +87,6 @@ popd
 mkdir package/network/config/firewall4/patches
 wget -P package/network/config/firewall4/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
 sed -i 's/-1,3 +1,5/-2,3 +2,5/g' package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
-wget 'https://git.openwrt.org/?p=project/firewall4.git;a=patch;h=38423fae' -O package/network/config/firewall4/patches/990-unconditionally-allow-ct-status-dnat.patch
 mkdir package/libs/libnftnl/patches
 wget -P package/libs/libnftnl/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/libs/libnftnl/patches/999-01-libnftnl-add-fullcone-expression-support.patch
 sed -i '/PKG_LICENSE_FILES/a PKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
@@ -130,6 +123,15 @@ rm -rf ./package/kernel/linux/modules/video.mk
 wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/master/package/kernel/linux/modules/video.mk
 rm -rf ./target/linux/generic/config-5.10
 wget -P target/linux/generic/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/config-5.10
+echo '
+CONFIG_DEBUG_INFO_REDUCED=y
+' >>./target/linux/generic/config-5.10
+# LRNG
+cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
+echo '
+CONFIG_LRNG=y
+CONFIG_LRNG_JENT=y
+' >>./target/linux/generic/config-5.10
 # ImmortalWrt Uboot TMP Fix
 #wget -qO- https://github.com/immortalwrt/immortalwrt/commit/433c93e.patch | patch -REp1
 wget -qO- https://github.com/coolsnowwolf/lede/commit/0104258.patch | patch -REtp1
