@@ -16,11 +16,9 @@ Link: https://lore.kernel.org/r/20210422194705.244476369@linutronix.de
  kernel/futex.c | 63 +++++++++++++++++++++++++++++---------------------
  1 file changed, 37 insertions(+), 26 deletions(-)
 
-diff --git a/kernel/futex.c b/kernel/futex.c
-index e4a4633f2834..744fd178c7e6 100644
 --- a/kernel/futex.c
 +++ b/kernel/futex.c
-@@ -3760,30 +3760,48 @@ long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
+@@ -3760,30 +3760,48 @@ long do_futex(u32 __user *uaddr, int op,
  	return -ENOSYS;
  }
  
@@ -82,7 +80,7 @@ index e4a4633f2834..744fd178c7e6 100644
  		tp = &t;
  	}
  
-@@ -3953,23 +3971,16 @@ SYSCALL_DEFINE6(futex_time32, u32 __user *, uaddr, int, op, u32, val,
+@@ -3953,23 +3971,16 @@ SYSCALL_DEFINE6(futex_time32, u32 __user
  		struct old_timespec32 __user *, utime, u32 __user *, uaddr2,
  		u32, val3)
  {
@@ -112,6 +110,3 @@ index e4a4633f2834..744fd178c7e6 100644
  		tp = &t;
  	}
  
--- 
-2.33.1
-

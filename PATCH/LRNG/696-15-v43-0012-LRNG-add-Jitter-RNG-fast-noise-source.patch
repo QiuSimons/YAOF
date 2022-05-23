@@ -39,8 +39,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 127 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_es_jent.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 25684c54d6a9..478b12839907 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -215,6 +215,35 @@ config LRNG_IRQ_ENTROPY_RATE
@@ -79,18 +77,13 @@ index 25684c54d6a9..478b12839907 100644
  comment "CPU Entropy Source"
  
  config LRNG_CPU
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 85abeaa68136..c797fbd10a98 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
+@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_s
  obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
  obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
  obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
 +obj-$(CONFIG_LRNG_JENT)		+= lrng_es_jent.o
-diff --git a/drivers/char/lrng/lrng_es_jent.c b/drivers/char/lrng/lrng_es_jent.c
-new file mode 100644
-index 000000000000..2ed221cc9372
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_jent.c
 @@ -0,0 +1,97 @@
@@ -191,6 +184,3 @@ index 000000000000..2ed221cc9372
 +		 "JitterRNG ES properties:\n"
 +		 " Enabled: %s\n", lrng_jent_initialized ? "true" : "false");
 +}
--- 
-2.31.1
-

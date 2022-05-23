@@ -18,8 +18,6 @@ Signed-off-by: André Almeida <andrealmeid@collabora.com>
  kernel/futex.c             | 75 +++++++++++++++++++++++++++++++++++++-
  2 files changed, 86 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/futex.h b/include/uapi/linux/futex.h
-index 1666f5e4b837..e1616d5b845b 100644
 --- a/include/uapi/linux/futex.h
 +++ b/include/uapi/linux/futex.h
 @@ -21,6 +21,7 @@
@@ -48,11 +46,9 @@ index 1666f5e4b837..e1616d5b845b 100644
  
  /*
   * Support for robust futexes: the kernel cleans up held futexes at
-diff --git a/kernel/futex.c b/kernel/futex.c
-index d15ec942f06f..e8866ace3ea0 100644
 --- a/kernel/futex.c
 +++ b/kernel/futex.c
-@@ -3779,6 +3779,7 @@ static __always_inline bool futex_cmd_has_timeout(u32 cmd)
+@@ -3779,6 +3779,7 @@ static __always_inline bool futex_cmd_ha
  	case FUTEX_LOCK_PI:
  	case FUTEX_WAIT_BITSET:
  	case FUTEX_WAIT_REQUEUE_PI:
@@ -60,7 +56,7 @@ index d15ec942f06f..e8866ace3ea0 100644
  		return true;
  	}
  	return false;
-@@ -3791,13 +3792,79 @@ futex_init_timeout(u32 cmd, u32 op, struct timespec64 *ts, ktime_t *t)
+@@ -3791,13 +3792,79 @@ futex_init_timeout(u32 cmd, u32 op, stru
  		return -EINVAL;
  
  	*t = timespec64_to_ktime(*ts);
@@ -141,7 +137,7 @@ index d15ec942f06f..e8866ace3ea0 100644
  SYSCALL_DEFINE6(futex, u32 __user *, uaddr, int, op, u32, val,
  		struct __kernel_timespec __user *, utime, u32 __user *, uaddr2,
  		u32, val3)
-@@ -3817,6 +3884,9 @@ SYSCALL_DEFINE6(futex, u32 __user *, uaddr, int, op, u32, val,
+@@ -3817,6 +3884,9 @@ SYSCALL_DEFINE6(futex, u32 __user *, uad
  		tp = &t;
  	}
  
@@ -151,7 +147,7 @@ index d15ec942f06f..e8866ace3ea0 100644
  	return do_futex(uaddr, op, val, tp, uaddr2, (unsigned long)utime, val3);
  }
  
-@@ -4318,6 +4388,9 @@ SYSCALL_DEFINE6(futex_time32, u32 __user *, uaddr, int, op, u32, val,
+@@ -4318,6 +4388,9 @@ SYSCALL_DEFINE6(futex_time32, u32 __user
  		tp = &t;
  	}
  
@@ -161,6 +157,3 @@ index d15ec942f06f..e8866ace3ea0 100644
  	return do_futex(uaddr, op, val, tp, uaddr2, (unsigned long)utime, val3);
  }
  #endif /* CONFIG_COMPAT_32BIT_TIME */
--- 
-2.33.1
-

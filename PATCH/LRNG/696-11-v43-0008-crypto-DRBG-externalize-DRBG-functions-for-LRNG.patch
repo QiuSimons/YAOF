@@ -40,11 +40,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  include/crypto/drbg.h |  7 +++++++
  2 files changed, 17 insertions(+), 6 deletions(-)
 
-diff --git a/crypto/drbg.c b/crypto/drbg.c
-index ea85d4a0fe9e..74a9dca67698 100644
 --- a/crypto/drbg.c
 +++ b/crypto/drbg.c
-@@ -114,7 +114,7 @@
+@@ -113,7 +113,7 @@
   * the SHA256 / AES 256 over other ciphers. Thus, the favored
   * DRBGs are the latest entries in this array.
   */
@@ -53,7 +51,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  #ifdef CONFIG_CRYPTO_DRBG_CTR
  	{
  		.flags = DRBG_CTR | DRBG_STRENGTH128,
-@@ -191,6 +191,7 @@ static const struct drbg_core drbg_cores[] = {
+@@ -190,6 +190,7 @@ static const struct drbg_core drbg_cores
  	},
  #endif /* CONFIG_CRYPTO_DRBG_HMAC */
  };
@@ -61,7 +59,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  
  static int drbg_uninstantiate(struct drbg_state *drbg);
  
-@@ -206,7 +207,7 @@ static int drbg_uninstantiate(struct drbg_state *drbg);
+@@ -205,7 +206,7 @@ static int drbg_uninstantiate(struct drb
   * Return: normalized strength in *bytes* value or 32 as default
   *	   to counter programming errors
   */
@@ -70,7 +68,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  {
  	switch (flags & DRBG_STRENGTH_MASK) {
  	case DRBG_STRENGTH128:
-@@ -219,6 +220,7 @@ static inline unsigned short drbg_sec_strength(drbg_flag_t flags)
+@@ -218,6 +219,7 @@ static inline unsigned short drbg_sec_st
  		return 32;
  	}
  }
@@ -78,7 +76,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  
  /*
   * FIPS 140-2 continuous self test for the noise source
-@@ -1215,7 +1217,7 @@ static int drbg_seed(struct drbg_state *drbg, struct drbg_string *pers,
+@@ -1214,7 +1216,7 @@ out:
  }
  
  /* Free all substructures in a DRBG state without the DRBG state structure */
@@ -87,7 +85,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  {
  	if (!drbg)
  		return;
-@@ -1236,12 +1238,13 @@ static inline void drbg_dealloc_state(struct drbg_state *drbg)
+@@ -1235,12 +1237,13 @@ static inline void drbg_dealloc_state(st
  		drbg->fips_primed = false;
  	}
  }
@@ -102,7 +100,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  {
  	int ret = -ENOMEM;
  	unsigned int sb_size = 0;
-@@ -1322,6 +1325,7 @@ static inline int drbg_alloc_state(struct drbg_state *drbg)
+@@ -1321,6 +1324,7 @@ err:
  	drbg_dealloc_state(drbg);
  	return ret;
  }
@@ -110,7 +108,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  
  /*************************************************************************
   * DRBG interface functions
-@@ -1891,8 +1895,7 @@ static int drbg_kcapi_sym_ctr(struct drbg_state *drbg,
+@@ -1890,8 +1894,7 @@ out:
   *
   * return: flags
   */
@@ -120,7 +118,7 @@ index ea85d4a0fe9e..74a9dca67698 100644
  {
  	int i = 0;
  	size_t start = 0;
-@@ -1919,6 +1922,7 @@ static inline void drbg_convert_tfm_core(const char *cra_driver_name,
+@@ -1918,6 +1921,7 @@ static inline void drbg_convert_tfm_core
  		}
  	}
  }
@@ -128,8 +126,6 @@ index ea85d4a0fe9e..74a9dca67698 100644
  
  static int drbg_kcapi_init(struct crypto_tfm *tfm)
  {
-diff --git a/include/crypto/drbg.h b/include/crypto/drbg.h
-index c4165126937e..71d53e028e6d 100644
 --- a/include/crypto/drbg.h
 +++ b/include/crypto/drbg.h
 @@ -278,4 +278,11 @@ enum drbg_prefixes {
@@ -144,6 +140,3 @@ index c4165126937e..71d53e028e6d 100644
 +extern unsigned short drbg_sec_strength(drbg_flag_t flags);
 +
  #endif /* _DRBG_H */
--- 
-2.31.1
-

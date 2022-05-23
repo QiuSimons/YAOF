@@ -63,8 +63,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_es_irq.c
  create mode 100644 drivers/char/lrng/lrng_es_irq.h
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 655d873480b0..a9ae35d9f648 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -55,4 +55,166 @@ config LRNG_SEED_BUFFER_INIT_ADD_BITS
@@ -234,8 +232,6 @@ index 655d873480b0..a9ae35d9f648 100644
 +endmenu # "Entropy Source Configuration"
 +
  endif # LRNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6f4603f897cd..d321d6d21a44 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -6,3 +6,5 @@
@@ -244,9 +240,6 @@ index 6f4603f897cd..d321d6d21a44 100644
  				   lrng_interfaces.o lrng_es_aux.o
 +
 +obj-$(CONFIG_LRNG_IRQ)		+= lrng_es_irq.o
-diff --git a/drivers/char/lrng/lrng_es_irq.c b/drivers/char/lrng/lrng_es_irq.c
-new file mode 100644
-index 000000000000..82a73b0426fb
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.c
 @@ -0,0 +1,823 @@
@@ -1073,9 +1066,6 @@ index 000000000000..82a73b0426fb
 +		 lrng_pool_highres_timer() ? "true" : "false",
 +		 lrng_pcpu_continuous_compression ? "true" : "false");
 +}
-diff --git a/drivers/char/lrng/lrng_es_irq.h b/drivers/char/lrng/lrng_es_irq.h
-new file mode 100644
-index 000000000000..00b16b1aa45f
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.h
 @@ -0,0 +1,71 @@
@@ -1150,6 +1140,3 @@ index 000000000000..00b16b1aa45f
 +	*mask = ((1 << (*pre_ptr & (LRNG_DATA_SLOTS_PER_UINT - 1)) *
 +			LRNG_DATA_SLOTSIZE_BITS)) - 1;
 +}
--- 
-2.31.1
-

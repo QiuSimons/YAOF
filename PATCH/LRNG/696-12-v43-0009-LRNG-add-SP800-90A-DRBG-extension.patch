@@ -52,8 +52,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 209 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_drbg.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 531b34b9ae65..d06d0417b025 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -268,6 +268,16 @@ config LRNG_KCAPI_HASH
@@ -73,8 +71,6 @@ index 531b34b9ae65..d06d0417b025 100644
  endif # LRNG_DRNG_SWITCH
  
  endif # LRNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index cb9b03bdfd00..c00e15b6396e 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -13,3 +13,4 @@ obj-$(CONFIG_NUMA)		+= lrng_numa.o
@@ -82,9 +78,6 @@ index cb9b03bdfd00..c00e15b6396e 100644
  obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
  obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
 +obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
-diff --git a/drivers/char/lrng/lrng_drbg.c b/drivers/char/lrng/lrng_drbg.c
-new file mode 100644
-index 000000000000..6ca6b05eccf4
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drbg.c
 @@ -0,0 +1,198 @@
@@ -286,6 +279,3 @@ index 000000000000..6ca6b05eccf4
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Linux Random Number Generator - SP800-90A DRBG backend");
--- 
-2.31.1
-

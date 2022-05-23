@@ -16,8 +16,6 @@ Link: https://lore.kernel.org/r/20210923171111.300673-18-andrealmeid@collabora.c
  arch/x86/entry/syscalls/syscall_64.tbl | 1 +
  2 files changed, 2 insertions(+)
 
-diff --git a/arch/x86/entry/syscalls/syscall_32.tbl b/arch/x86/entry/syscalls/syscall_32.tbl
-index 0d0667a9fbd7..bfa3010cba02 100644
 --- a/arch/x86/entry/syscalls/syscall_32.tbl
 +++ b/arch/x86/entry/syscalls/syscall_32.tbl
 @@ -445,3 +445,4 @@
@@ -25,8 +23,6 @@ index 0d0667a9fbd7..bfa3010cba02 100644
  439	i386	faccessat2		sys_faccessat2
  440	i386	process_madvise		sys_process_madvise
 +449	i386	futex_waitv		sys_futex_waitv
-diff --git a/arch/x86/entry/syscalls/syscall_64.tbl b/arch/x86/entry/syscalls/syscall_64.tbl
-index 379819244b91..cc3e3392e75a 100644
 --- a/arch/x86/entry/syscalls/syscall_64.tbl
 +++ b/arch/x86/entry/syscalls/syscall_64.tbl
 @@ -362,6 +362,7 @@
@@ -37,6 +33,3 @@ index 379819244b91..cc3e3392e75a 100644
  
  #
  # Due to a historical design error, certain syscalls are numbered differently
--- 
-2.33.1
-

@@ -47,8 +47,6 @@ Link: https://lore.kernel.org/r/20210923171111.300673-17-andrealmeid@collabora.c
  kernel/sys_ni.c                   |   1 +
  5 files changed, 371 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
-index aea0ce9f3b74..ff0217cefd6c 100644
 --- a/include/linux/syscalls.h
 +++ b/include/linux/syscalls.h
 @@ -58,6 +58,7 @@ struct mq_attr;
@@ -59,7 +57,7 @@ index aea0ce9f3b74..ff0217cefd6c 100644
  struct getcpu_cache;
  struct old_linux_dirent;
  struct perf_event_attr;
-@@ -613,6 +614,11 @@ asmlinkage long sys_get_robust_list(int pid,
+@@ -613,6 +614,11 @@ asmlinkage long sys_get_robust_list(int
  asmlinkage long sys_set_robust_list(struct robust_list_head __user *head,
  				    size_t len);
  
@@ -71,11 +69,9 @@ index aea0ce9f3b74..ff0217cefd6c 100644
  /* kernel/hrtimer.c */
  asmlinkage long sys_nanosleep(struct __kernel_timespec __user *rqtp,
  			      struct __kernel_timespec __user *rmtp);
-diff --git a/include/uapi/asm-generic/unistd.h b/include/uapi/asm-generic/unistd.h
-index 2056318988f7..991f289757c7 100644
 --- a/include/uapi/asm-generic/unistd.h
 +++ b/include/uapi/asm-generic/unistd.h
-@@ -860,8 +860,11 @@ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+@@ -860,8 +860,11 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
  #define __NR_process_madvise 440
  __SYSCALL(__NR_process_madvise, sys_process_madvise)
  
@@ -88,8 +84,6 @@ index 2056318988f7..991f289757c7 100644
  
  /*
   * 32 bit systems traditionally used different
-diff --git a/include/uapi/linux/futex.h b/include/uapi/linux/futex.h
-index a89eb0accd5e..1666f5e4b837 100644
 --- a/include/uapi/linux/futex.h
 +++ b/include/uapi/linux/futex.h
 @@ -41,6 +41,32 @@
@@ -125,11 +119,9 @@ index a89eb0accd5e..1666f5e4b837 100644
  /*
   * Support for robust futexes: the kernel cleans up held futexes at
   * thread exit time.
-diff --git a/kernel/futex.c b/kernel/futex.c
-index 744fd178c7e6..d15ec942f06f 100644
 --- a/kernel/futex.c
 +++ b/kernel/futex.c
-@@ -227,6 +227,18 @@ static const struct futex_q futex_q_init = {
+@@ -227,6 +227,18 @@ static const struct futex_q futex_q_init
  	.bitset = FUTEX_BITSET_MATCH_ANY
  };
  
@@ -148,7 +140,7 @@ index 744fd178c7e6..d15ec942f06f 100644
  /*
   * Hash buckets are shared by all the futex_keys that hash to the same
   * location.  Each key may have multiple futex_q structures, one for each task
-@@ -3966,6 +3978,328 @@ COMPAT_SYSCALL_DEFINE3(get_robust_list, int, pid,
+@@ -3966,6 +3978,328 @@ err_unlock:
  }
  #endif /* CONFIG_COMPAT */
  
@@ -477,8 +469,6 @@ index 744fd178c7e6..d15ec942f06f 100644
  #ifdef CONFIG_COMPAT_32BIT_TIME
  SYSCALL_DEFINE6(futex_time32, u32 __user *, uaddr, int, op, u32, val,
  		struct old_timespec32 __user *, utime, u32 __user *, uaddr2,
-diff --git a/kernel/sys_ni.c b/kernel/sys_ni.c
-index f27ac94d5fa7..537308088bfb 100644
 --- a/kernel/sys_ni.c
 +++ b/kernel/sys_ni.c
 @@ -147,6 +147,7 @@ COND_SYSCALL(set_robust_list);
@@ -489,6 +479,3 @@ index f27ac94d5fa7..537308088bfb 100644
  
  /* kernel/hrtimer.c */
  
--- 
-2.33.1
-

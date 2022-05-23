@@ -17,11 +17,9 @@ Link: https://lore.kernel.org/r/20210422194705.125957049@linutronix.de
  kernel/futex.c | 16 ++--------------
  1 file changed, 2 insertions(+), 14 deletions(-)
 
-diff --git a/kernel/futex.c b/kernel/futex.c
-index 98a6e1b80bfe..e4a4633f2834 100644
 --- a/kernel/futex.c
 +++ b/kernel/futex.c
-@@ -3767,7 +3767,6 @@ SYSCALL_DEFINE6(futex, u32 __user *, uaddr, int, op, u32, val,
+@@ -3767,7 +3767,6 @@ SYSCALL_DEFINE6(futex, u32 __user *, uad
  {
  	struct timespec64 ts;
  	ktime_t t, *tp = NULL;
@@ -29,7 +27,7 @@ index 98a6e1b80bfe..e4a4633f2834 100644
  	int cmd = op & FUTEX_CMD_MASK;
  
  	if (utime && (cmd == FUTEX_WAIT || cmd == FUTEX_LOCK_PI ||
-@@ -3787,15 +3786,8 @@ SYSCALL_DEFINE6(futex, u32 __user *, uaddr, int, op, u32, val,
+@@ -3787,15 +3786,8 @@ SYSCALL_DEFINE6(futex, u32 __user *, uad
  			t = timens_ktime_to_host(CLOCK_MONOTONIC, t);
  		tp = &t;
  	}
@@ -46,7 +44,7 @@ index 98a6e1b80bfe..e4a4633f2834 100644
  }
  
  #ifdef CONFIG_COMPAT
-@@ -3963,7 +3955,6 @@ SYSCALL_DEFINE6(futex_time32, u32 __user *, uaddr, int, op, u32, val,
+@@ -3963,7 +3955,6 @@ SYSCALL_DEFINE6(futex_time32, u32 __user
  {
  	struct timespec64 ts;
  	ktime_t t, *tp = NULL;
@@ -54,7 +52,7 @@ index 98a6e1b80bfe..e4a4633f2834 100644
  	int cmd = op & FUTEX_CMD_MASK;
  
  	if (utime && (cmd == FUTEX_WAIT || cmd == FUTEX_LOCK_PI ||
-@@ -3981,11 +3972,8 @@ SYSCALL_DEFINE6(futex_time32, u32 __user *, uaddr, int, op, u32, val,
+@@ -3981,11 +3972,8 @@ SYSCALL_DEFINE6(futex_time32, u32 __user
  			t = timens_ktime_to_host(CLOCK_MONOTONIC, t);
  		tp = &t;
  	}
@@ -67,6 +65,3 @@ index 98a6e1b80bfe..e4a4633f2834 100644
  }
  #endif /* CONFIG_COMPAT_32BIT_TIME */
  
--- 
-2.33.1
-

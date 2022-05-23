@@ -41,8 +41,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 265 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_es_archrandom.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index a9ae35d9f648..d3abdfa28493 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -215,6 +215,44 @@ config LRNG_IRQ_ENTROPY_RATE
@@ -90,8 +88,6 @@ index a9ae35d9f648..d3abdfa28493 100644
  endmenu # "Entropy Source Configuration"
  
  endif # LRNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 1e722e0967e0..1e18e2c1016b 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -10,3 +10,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
@@ -99,9 +95,6 @@ index 1e722e0967e0..1e18e2c1016b 100644
  obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
  obj-$(CONFIG_NUMA)		+= lrng_numa.o
 +obj-$(CONFIG_LRNG_CPU)		+= lrng_es_archrandom.o
-diff --git a/drivers/char/lrng/lrng_es_archrandom.c b/drivers/char/lrng/lrng_es_archrandom.c
-new file mode 100644
-index 000000000000..6965f9b8ae50
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_archrandom.c
 @@ -0,0 +1,226 @@
@@ -331,6 +324,3 @@ index 000000000000..6965f9b8ae50
 +			"N/A" : lrng_drng_init->crypto_cb->lrng_hash_name(),
 +		 data_multiplier);
 +}
--- 
-2.31.1
-
