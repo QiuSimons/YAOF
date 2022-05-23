@@ -28,7 +28,7 @@ Change-Id: I1a184aad6d101c981ac7f2f275aa9417ff856910
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -854,9 +854,8 @@ struct tcp_skb_cb {
+@@ -856,9 +856,8 @@ struct tcp_skb_cb {
  	union {
  		struct {
  			/* There is space for up to 24 bytes */
@@ -84,7 +84,7 @@ Change-Id: I1a184aad6d101c981ac7f2f275aa9417ff856910
  
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1257,8 +1257,6 @@ static int __tcp_transmit_skb(struct soc
+@@ -1258,8 +1258,6 @@ static int __tcp_transmit_skb(struct soc
  	tp->tcp_wstamp_ns = max(tp->tcp_wstamp_ns, tp->tcp_clock_cache);
  	skb->skb_mstamp_ns = tp->tcp_wstamp_ns;
  	if (clone_it) {

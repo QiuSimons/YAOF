@@ -30,7 +30,7 @@ Change-Id: I0bc4a790f040fd4239620e1eedd5dc64666c6f05
 
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -2632,6 +2632,7 @@ static bool tcp_write_xmit(struct sock *
+@@ -2633,6 +2633,7 @@ static bool tcp_write_xmit(struct sock *
  			skb->skb_mstamp_ns = tp->tcp_wstamp_ns = tp->tcp_clock_cache;
  			list_move_tail(&skb->tcp_tsorted_anchor, &tp->tsorted_sent_queue);
  			tcp_init_tso_segs(skb, mss_now);

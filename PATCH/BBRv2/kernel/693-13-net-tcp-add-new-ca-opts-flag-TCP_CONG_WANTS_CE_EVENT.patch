@@ -22,7 +22,7 @@ Change-Id: I2255506985242f376d910c6fd37daabaf4744f24
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1023,7 +1023,11 @@ enum tcp_ca_ack_event_flags {
+@@ -1025,7 +1025,11 @@ enum tcp_ca_ack_event_flags {
  #define TCP_CONG_NON_RESTRICTED 0x1
  /* Requires ECN/ECT set on all packets */
  #define TCP_CONG_NEEDS_ECN	0x2
@@ -35,7 +35,7 @@ Change-Id: I2255506985242f376d910c6fd37daabaf4744f24
  
  union tcp_cc_info;
  
-@@ -1138,6 +1142,14 @@ static inline char *tcp_ca_get_name_by_k
+@@ -1141,6 +1145,14 @@ static inline char *tcp_ca_get_name_by_k
  }
  #endif
  

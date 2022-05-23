@@ -18,7 +18,7 @@ Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -869,6 +869,10 @@ struct tcp_skb_cb {
+@@ -871,6 +871,10 @@ struct tcp_skb_cb {
  			u32 first_tx_mstamp;
  			/* when we reached the "delivered" count */
  			u32 delivered_mstamp;
@@ -29,7 +29,7 @@ Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
  		} tx;   /* only used for outgoing skbs */
  		union {
  			struct inet_skb_parm	h4;
-@@ -1040,6 +1044,7 @@ struct rate_sample {
+@@ -1042,6 +1046,7 @@ struct rate_sample {
  	u64  prior_mstamp; /* starting timestamp for interval */
  	u32  prior_delivered;	/* tp->delivered at "prior_mstamp" */
  	u32  prior_delivered_ce;/* tp->delivered_ce at "prior_mstamp" */
@@ -66,11 +66,11 @@ Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
  }
  
  /* When an skb is sacked or acked, we fill in the rate sample with the (prior)
-@@ -92,6 +105,7 @@ void tcp_rate_skb_delivered(struct sock
+@@ -96,6 +109,7 @@ void tcp_rate_skb_delivered(struct sock
  		rs->prior_mstamp     = scb->tx.delivered_mstamp;
  		rs->is_app_limited   = scb->tx.is_app_limited;
  		rs->is_retrans	     = scb->sacked & TCPCB_RETRANS;
 +		rs->tx_in_flight     = scb->tx.in_flight;
+ 		rs->last_end_seq     = scb->end_seq;
  
  		/* Record send time of most recently ACKed packet: */
- 		tp->first_tx_mstamp  = tcp_skb_timestamp_us(skb);

@@ -22,7 +22,7 @@ Change-Id: I4fbd4a6e18a51ab06d50ab1c9ad820ce5bea89af
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1163,6 +1163,7 @@ static inline void tcp_ca_event(struct s
+@@ -1166,6 +1166,7 @@ static inline void tcp_ca_event(struct s
  }
  
  /* From tcp_rate.c */

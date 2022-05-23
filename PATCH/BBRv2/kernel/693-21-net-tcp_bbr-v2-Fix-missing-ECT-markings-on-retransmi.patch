@@ -44,7 +44,7 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
  /* Core TCP stack informs us that the given skb was just marked lost. */
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -377,7 +377,8 @@ static void tcp_ecn_send(struct sock *sk
+@@ -378,7 +378,8 @@ static void tcp_ecn_send(struct sock *sk
  				th->cwr = 1;
  				skb_shinfo(skb)->gso_type |= SKB_GSO_TCP_ECN;
  			}
