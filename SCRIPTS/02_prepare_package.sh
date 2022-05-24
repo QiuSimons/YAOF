@@ -122,17 +122,8 @@ svn export https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchi
 svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
 rm -rf ./package/kernel/linux/modules/video.mk
 wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/master/package/kernel/linux/modules/video.mk
-rm -rf ./target/linux/generic/config-5.10
-wget -P target/linux/generic/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/config-5.10
-echo '
-CONFIG_DEBUG_INFO_REDUCED=y
-' >>./target/linux/generic/config-5.10
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
-echo '
-CONFIG_LRNG=y
-CONFIG_LRNG_JENT=y
-' >>./target/linux/generic/config-5.10
 # ImmortalWrt Uboot TMP Fix
 #wget -qO- https://github.com/immortalwrt/immortalwrt/commit/433c93e.patch | patch -REp1
 wget -qO- https://github.com/coolsnowwolf/lede/commit/0104258.patch | patch -REtp1
@@ -313,7 +304,7 @@ svn export https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luc
 #svn export https://github.com/immortalwrt/luci/trunk/applications/luci-app-passwall package/new/luci-app-passwall
 svn export https://github.com/xiaorouji/openwrt-passwall/branches/luci/luci-app-passwall package/new/luci-app-passwall
 pushd package/new/luci-app-passwall
-#sed -i 's,iptables-legacy,iptables-nft,g' Makefile
+sed -i 's,iptables-legacy,iptables-nft,g' Makefile
 popd
 wget -P package/new/luci-app-passwall/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
 chmod -R 755 ./package/new/luci-app-passwall/move_2_services.sh
@@ -352,7 +343,7 @@ pushd package/new/luci-app-passwall2
 bash move_2_services.sh
 popd
 pushd package/new/luci-app-passwall2
-#sed -i 's,iptables-legacy,iptables-nft,g' Makefile
+sed -i 's,iptables-legacy,iptables-nft,g' Makefile
 popd
 # qBittorrent 下载
 svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-qbittorrent package/lean/luci-app-qbittorrent
@@ -477,7 +468,7 @@ rm -rf ./feeds/packages/net/zerotier/files/etc/init.d/zerotier
 #sed -i '/Default,one/a\\t$(STAGING_DIR_HOST)/bin/upx --lzma --best $(PKG_BUILD_DIR)/zerotier-one' feeds/packages/net/zerotier/Makefile
 # 翻译及部分功能优化
 svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/addition-trans-zh package/lean/lean-translate
-#sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/lean/lean-translate/Makefile
+sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/lean/lean-translate/Makefile
 
 ### 最后的收尾工作 ###
 # Lets Fuck
