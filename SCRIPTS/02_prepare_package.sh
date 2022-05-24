@@ -31,8 +31,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 
 ### 必要的 Patches ###
 # offload bug fix
-#wget -qO - https://github.com/openwrt/openwrt/commit/53fc6e9.patch | patch -p1
-#wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
+wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
 # TCP performance optimizations backport from linux/net-next
 #cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # UDP performance optimizations backport from linux/net-next
