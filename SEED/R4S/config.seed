@@ -35,14 +35,23 @@ CONFIG_PACKAGE_ddns-scripts_aliyun=y
 CONFIG_PACKAGE_bind-host=y
 
 ### 22.03 ###
-CONFIG_PACKAGE_firewall=y
-# CONFIG_PACKAGE_firewall4 is not set
-CONFIG_PACKAGE_ip6tables-legacy=y
-CONFIG_PACKAGE_ip6tables-mod-fullconenat=y
-CONFIG_PACKAGE_miniupnpd-iptables=y
-# CONFIG_PACKAGE_miniupnpd-nftables is not set
+# CONFIG_PACKAGE_firewall is not set
+CONFIG_PACKAGE_firewall4=y
 CONFIG_PACKAGE_kmod-ipt-offload=y
-# CONFIG_PACKAGE_kmod-nft-offload is not set
+CONFIG_DEFAULT_kmod-nft-offload=y
+# CONFIG_PACKAGE_arptables-legacy is not set
+CONFIG_PACKAGE_arptables-nft=y
+# CONFIG_PACKAGE_ebtables-legacy is not set
+CONFIG_PACKAGE_ebtables-nft=y
+# CONFIG_PACKAGE_ip6tables-legacy is not set
+CONFIG_PACKAGE_ip6tables-mod-fullconenat=y
+CONFIG_PACKAGE_ip6tables-nft=y
+# CONFIG_PACKAGE_iptables-legacy is not set
+CONFIG_PACKAGE_iptables-mod-fullconenat=y
+CONFIG_PACKAGE_iptables-nft=y
+CONFIG_PACKAGE_kmod-nft-fullcone=y
+# CONFIG_PACKAGE_miniupnpd-iptables is not set
+CONFIG_PACKAGE_miniupnpd-nftables=y
 
 ### LUCI ###
 CONFIG_LUCI_LANG_zh_Hans=y
