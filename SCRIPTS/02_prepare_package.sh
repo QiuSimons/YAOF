@@ -102,10 +102,11 @@ wget -qO- https://github.com/msylgj/R2S-R4S-OpenWrt/raw/master/PATCHES/001-fix-f
 patch -p1 <../PATCH/firewall/luci-app-firewall_add_fullcone.patch
 # FullCone PKG
 git clone --depth 1 https://github.com/fullcone-nat-nftables/nft-fullcone package/new/nft-fullcone
-svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/openwrt-fullconenat package/lean/openwrt-fullconenat
-pushd package/lean/openwrt-fullconenat
-patch -p2 <../../../../PATCH/firewall/fullcone6.patch
-popd
+#svn export https://github.com/coolsnowwolf/lede/trunk/package/network/services/fullconenat package/lean/openwrt-fullconenat
+svn export https://github.com/Lienol/openwrt/trunk/package/network/fullconenat package/lean/openwrt-fullconenat
+#pushd package/lean/openwrt-fullconenat
+#patch -p2 <../../../../PATCH/firewall/fullcone6.patch
+#popd
 
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
@@ -123,6 +124,12 @@ svn export https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchi
 svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
 rm -rf ./package/kernel/linux/modules/video.mk
 wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/master/package/kernel/linux/modules/video.mk
+sed -i '/GOV_ONDEMAND/d' target/linux/rockchip/armv8/config-5.10
+sed -i '/DEVFREQ_THERMAL/d' target/linux/rockchip/armv8/config-5.10
+echo '
+CONFIG_DEVFREQ_THERMAL=y
+CONFIG_CPU_FREQ_GOV_ONDEMAND=y
+' >>./target/linux/rockchip/armv8/config-5.10
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
 # ImmortalWrt Uboot TMP Fix
@@ -533,15 +540,11 @@ CONFIG_LRNG_CPU_ENTROPY_RATE=8
 
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
-#pushd target/linux/generic/hack-5.4
-#wget https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
-#popd
+wget -P target/linux/generic/hack-5.10/ https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 # Patch LuCI 以增添 Shortcut-FE 开关
-#patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
+patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
 # Shortcut-FE 相关组件
-#svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe package/lean/shortcut-fe
-#svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/fast-classifier package/lean/fast-classifier
-#wget -P package/base-files/files/etc/init.d/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/shortcut-fe
-
-
+svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe/fast-classifier package/lean/fast-classifier
+svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe/shortcut-fe package/lean/shortcut-fe
+svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/shortcut-fe/simulated-driver package/lean/simulated-driver
 #exit 0

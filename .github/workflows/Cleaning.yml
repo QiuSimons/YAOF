@@ -25,10 +25,13 @@ jobs:
     if: github.event.repository.owner.id == github.event.sender.id
     steps:
     - name: Cleanup Old Action Artifacts
-      uses: kolpav/purge-artifacts-action@master
+      uses: heidi-pay/gha-delete-artifacts@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        token: ${{ github.token }}
-        expire-in: 3d
+        days: 3
+        max-artifacts-to-delete: 100
+        dry-run: no
         
   Cleanup-Workflow-Logs:
     runs-on: ubuntu-20.04
