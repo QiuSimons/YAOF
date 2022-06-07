@@ -94,7 +94,6 @@ CONFIG_PACKAGE_zerotier=y
 CONFIG_PACKAGE_coremark=y
 CONFIG_PACKAGE_htop=y
 CONFIG_PACKAGE_subconverter=y
-CONFIG_PACKAGE_sagernet-core=y
 CONFIG_PACKAGE_kmod-shortcut-fe-cm=y
 
 ### SSRP ###
@@ -112,7 +111,9 @@ CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_ShadowsocksR_Libev_Server=y
 CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Simple_Obfs=y
 # CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Trojan is not set
 # CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_V2ray_Plugin is not set
+# CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE__INCLUDE_PDNSD is not set
 CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Xray=y
+# CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_SagerNet_Core is not set
 
 ### PASSWALL ###
 CONFIG_PACKAGE_luci-app-passwall=y
@@ -125,6 +126,7 @@ CONFIG_PACKAGE_luci-app-passwall_INCLUDE_NaiveProxy=y
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Libev_Client is not set
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Libev_Server is not set
 CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Rust_Client=y
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Rust_Server=y
 CONFIG_PACKAGE_luci-app-passwall_INCLUDE_ShadowsocksR_Libev_Client=y
 CONFIG_PACKAGE_luci-app-passwall_INCLUDE_ShadowsocksR_Libev_Server=y
 CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Simple_Obfs=y
@@ -132,7 +134,7 @@ CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_Plus is not set
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_V2ray is not set
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_V2ray_Plugin is not set
-CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Xray=y
+# CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Xray is not set
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Xray_Plugin is not set
 
 ### THEME ###
@@ -173,3 +175,7 @@ CONFIG_DOCKER_NET_OVERLAY=y
 CONFIG_DOCKER_NET_TFTP=y
 CONFIG_DOCKER_STO_BTRFS=y
 CONFIG_DOCKER_STO_EXT4=y
+
+### KMOD ##(opkg got Segmentation fault due to upstream problem)
+CONFIG_PACKAGE_kmod-mt76x2=y
+CONFIG_PACKAGE_kmod-fs-nfs-common=y

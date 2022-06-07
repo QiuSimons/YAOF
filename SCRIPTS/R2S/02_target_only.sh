@@ -3,7 +3,6 @@ clear
 
 # 使用专属优化
 sed -i 's,-mcpu=generic,-mcpu=cortex-a53+crypto,g' include/target.mk
-cp -f ../PATCH/mbedtls/100-Implements-AES-and-GCM-with-ARMv8-Crypto-Extensions.patch ./package/libs/mbedtls/patches/100-Implements-AES-and-GCM-with-ARMv8-Crypto-Extensions.patch
 
 #增加风扇调速（被动散热不香么？
 wget -P target/linux/rockchip/armv8/base-files/etc/init.d/ https://github.com/friendlyarm/friendlywrt/raw/master-v19.07.1/target/linux/rockchip-rk3328/base-files/etc/init.d/fa-rk3328-pwmfan

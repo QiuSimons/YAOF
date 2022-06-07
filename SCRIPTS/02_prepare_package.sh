@@ -3,7 +3,7 @@ clear
 
 ### 基础部分 ###
 # 使用 O3 级别的优化
-sed -i 's/Os/O3 -fno-tree-loop-vectorize -Wl,--gc-sections/g' include/target.mk
+sed -i 's/Os/O3 -Wl,--gc-sections/g' include/target.mk
 wget -qO - https://github.com/openwrt/openwrt/commit/8249a8c.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/66fa343.patch | patch -p1
 # 更新 Feeds
@@ -31,7 +31,7 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 
 ### 必要的 Patches ###
 # offload bug fix
-wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
+#wget -qO - https://github.com/openwrt/openwrt/pull/4849.patch | patch -p1
 # TCP performance optimizations backport from linux/net-next
 #cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # UDP performance optimizations backport from linux/net-next
@@ -60,6 +60,12 @@ wget -P target/linux/generic/hack-5.10/ https://github.com/immortalwrt/immortalw
 cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
 cp -rf ../PATCH/BBRv2/openwrt/package ./
 wget -qO - https://github.com/openwrt/openwrt/commit/7db9763.patch | patch -p1
+# SSL
+rm -rf ./package/libs/mbedtls
+svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/libs/mbedtls package/libs/mbedtls
+rm -rf ./package/libs/openssl
+svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/libs/openssl package/libs/openssl
+wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/openssl-engine.mk
 
 # PRJC
 #cp -f ../PATCH/PRJC/960-prjc_v5.10-lts-r3.patch ./target/linux/generic/hack-5.10/960-prjc_v5.10-lts-r3.patch
@@ -87,13 +93,18 @@ popd
 # FW4
 mkdir package/network/config/firewall4/patches
 wget 'https://git.openwrt.org/?p=project/firewall4.git;a=patch;h=38423fae' -O package/network/config/firewall4/patches/990-unconditionally-allow-ct-status-dnat.patch
-wget -P package/network/config/firewall4/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
-sed -i 's/-1,3 +1,5/-2,3 +2,5/g' package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
-mkdir package/libs/libnftnl/patches
-wget -P package/libs/libnftnl/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/libs/libnftnl/patches/999-01-libnftnl-add-fullcone-expression-support.patch
-sed -i '/PKG_LICENSE_FILES/a PKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
-mkdir package/network/utils/nftables/patches
-wget -P package/network/utils/nftables/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/network/utils/nftables/patches/999-01-nftables-add-fullcone-expression-support.patch
+#wget -P package/network/config/firewall4/patches/ https://github.com/wongsyrone/lede-1/raw/master/package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
+#sed -i 's/-1,3 +1,5/-2,3 +2,5/g' package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
+wget -P package/network/config/firewall4/patches/ https://github.com/immortalwrt/immortalwrt/raw/master/package/network/config/firewall4/patches/001-firewall4-add-support-for-fullcone-nat.patch
+#mkdir package/libs/libnftnl/patches
+#wget -P package/libs/libnftnl/patches/ https://github.com/immortalwrt/immortalwrt/raw/master/package/libs/libnftnl/patches/001-libnftnl-add-fullcone-expression-support.patch
+#sed -i '/PKG_LICENSE_FILES/a PKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
+rm -rf ./package/libs/libnftnl
+svn export https://github.com/wongsyrone/lede-1/trunk/package/libs/libnftnl package/libs/libnftnl
+#mkdir package/network/utils/nftables/patches
+#wget -P package/network/utils/nftables/patches/ https://github.com/immortalwrt/immortalwrt/raw/master/package/network/utils/nftables/patches/002-nftables-add-fullcone-expression-support.patch
+rm -rf ./package/network/utils/nftables
+svn export https://github.com/wongsyrone/lede-1/trunk/package/network/utils/nftables package/network/utils/nftables
 # FW3
 mkdir package/network/config/firewall/patches
 wget -P package/network/config/firewall/patches/ https://github.com/immortalwrt/immortalwrt/raw/openwrt-21.02/package/network/config/firewall/patches/fullconenat.patch
@@ -327,10 +338,12 @@ svn export https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy 
 svn export https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/new/tcping
 svn export https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-go package/new/trojan-go
 svn export https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/brook
-svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/trojan-plus package/new/trojan-plus
 svn export https://github.com/xiaorouji/openwrt-passwall/trunk/ssocks package/new/ssocks
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/hysteria package/new/hysteria
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/dns2tcp package/new/dns2tcp
+svn export https://github.com/xiaorouji/openwrt-passwall/trunk/microsocks package/new/microsocks
+svn export https://github.com/xiaorouji/openwrt-passwall/trunk/dns2socks package/new/dns2socks
+svn export https://github.com/xiaorouji/openwrt-passwall/trunk/ipt2socks package/new/ipt2socks
+svn export https://github.com/xiaorouji/openwrt-passwall/trunk/pdnsd-alt package/new/pdnsd
+svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/trojan-plus package/new/trojan-plus
 # Passwall 白名单
 echo '
 checkip.synology.com
@@ -373,31 +386,25 @@ svn export https://github.com/Lienol/openwrt-packages/trunk/net/smartdns feeds/p
 rm -rf ./feeds/luci/applications/luci-app-smartdns
 svn export https://github.com/immortalwrt/luci/branches/openwrt-18.06/applications/luci-app-smartdns feeds/luci/applications/luci-app-smartdns
 # ShadowsocksR Plus+ 依赖
-rm -rf ./feeds/packages/net/kcptun
 rm -rf ./feeds/packages/net/shadowsocks-libev
-rm -rf ./feeds/packages/net/xray-core
 svn export https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev package/lean/shadowsocks-libev
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/shadowsocksr-libev package/lean/shadowsocksr-libev
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/pdnsd-alt package/lean/pdnsd
-svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/srelay package/lean/srelay
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/microsocks package/lean/microsocks
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/dns2socks package/lean/dns2socks
 svn export https://github.com/coolsnowwolf/packages/trunk/net/redsocks2 package/lean/redsocks2
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/ipt2socks package/lean/ipt2socks
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/trojan package/lean/trojan
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/lean/tcping
+svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/srelay package/lean/srelay
+svn export https://github.com/fw876/helloworld/trunk/trojan package/lean/trojan
+svn export https://github.com/fw876/helloworld/trunk/tcping package/lean/tcping
+svn export https://github.com/fw876/helloworld/trunk/dns2tcp package/lean/dns2tcp
+svn export https://github.com/fw876/helloworld/trunk/shadowsocksr-libev package/lean/shadowsocksr-libev
 svn export https://github.com/fw876/helloworld/trunk/simple-obfs package/lean/simple-obfs
 svn export https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
 svn export https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-core
-#svn export https://github.com/1715173329/helloworld/branches/v2v5/sagernet-core package/lean/sagernet-core
-svn export https://github.com/zxlhhyccc/bf-package-master/trunk/ctcgfw/sagernet-core package/lean/sagernet-core
+svn export https://github.com/fw876/helloworld/trunk/hysteria package/lean/hysteria
+svn export https://github.com/fw876/helloworld/trunk/sagernet-core package/lean/sagernet-core
+rm -rf ./feeds/packages/net/xray-core
 svn export https://github.com/fw876/helloworld/trunk/xray-core package/lean/xray-core
 svn export https://github.com/fw876/helloworld/trunk/v2ray-plugin package/lean/v2ray-plugin
 svn export https://github.com/fw876/helloworld/trunk/xray-plugin package/lean/xray-plugin
-svn export https://github.com/xiaorouji/openwrt-passwall/trunk/shadowsocks-rust feeds/packages/net/shadowsocks-rust
-#svn export https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust feeds/packages/net/shadowsocks-rust
-#sed -i '/Build\/Compile/a\\t$(STAGING_DIR_HOST)/bin/upx --lzma --best $$(PKG_BUILD_DIR)/$(component)' feeds/packages/net/shadowsocks-rust/Makefile
-ln -sf ../../../feeds/packages/net/shadowsocks-rust ./package/feeds/packages/shadowsocks-rust
+svn export https://github.com/fw876/helloworld/trunk/shadowsocks-rust package/lean/shadowsocks-rust
+rm -rf ./feeds/packages/net/kcptun
 svn export https://github.com/immortalwrt/packages/trunk/net/kcptun feeds/packages/net/kcptun
 ln -sf ../../../feeds/packages/net/kcptun ./package/feeds/packages/kcptun
 # ShadowsocksR Plus+
@@ -536,6 +543,9 @@ CONFIG_LRNG_CPU_ENTROPY_RATE=8
 # CONFIG_IR_SIR is not set
 # CONFIG_RC_XBOX_DVD is not set
 # CONFIG_IR_TOY is not set
+
+CONFIG_NFSD=y
+
 ' >>./target/linux/generic/config-5.10
 
 ### Shortcut-FE 部分 ###

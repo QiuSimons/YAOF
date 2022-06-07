@@ -11,6 +11,7 @@ rm -f ./openwrt/include/toolchain-build.mk
 rm -f ./openwrt/include/kernel-defaults.mk
 rm -f ./openwrt/package/base-files/image-config.in
 rm -rf ./openwrt/target/linux/*
+rm -rf ./openwrt/package/kernel/linux/*
 cp -f ./openwrt_release/include/version.mk ./openwrt/include/version.mk
 cp -f ./openwrt_release/include/kernel.mk ./openwrt/include/kernel.mk
 cp -f ./openwrt_release/include/kernel-5.10 ./openwrt/include/kernel-5.10
@@ -21,6 +22,7 @@ cp -f ./openwrt_release/package/base-files/image-config.in ./openwrt/package/bas
 cp -f ./openwrt_release/version ./openwrt/version
 cp -f ./openwrt_release/version.date ./openwrt/version.date
 cp -rf ./openwrt_release/target/linux/* ./openwrt/target/linux/
+cp -rf ./openwrt_release/package/kernel/linux/* ./openwrt/package/kernel/linux/
 
 # 获取源代码
 #git clone -b main --depth 1 https://github.com/Lienol/openwrt.git openwrt-lienol
