@@ -1,5 +1,5 @@
---- linux-5.10/drivers/char/lrng/lrng_sha1.c.orig	2022-05-17 09:28:05.950190228 +0200
-+++ linux-5.10/drivers/char/lrng/lrng_sha1.c	2022-05-17 09:28:16.545205008 +0200
+--- a/drivers/char/lrng/lrng_sha1.c
++++ b/drivers/char/lrng/lrng_sha1.c
 @@ -10,7 +10,7 @@
  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
@@ -9,8 +9,8 @@
  #include <crypto/sha1_base.h>
  
  #include "lrng_sha.h"
---- linux-5.10/drivers/char/lrng/lrng_sha256.c.orig	2022-05-17 09:28:32.976226275 +0200
-+++ linux-5.10/drivers/char/lrng/lrng_sha256.c	2022-05-17 09:28:41.394236961 +0200
+--- a/drivers/char/lrng/lrng_sha256.c
++++ b/drivers/char/lrng/lrng_sha256.c
 @@ -10,7 +10,7 @@
  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
@@ -20,8 +20,8 @@
  
  #include "lrng_sha.h"
  
---- linux-5.10/drivers/char/lrng/lrng_definitions.h.orig	2022-05-17 09:37:43.122453512 +0200
-+++ linux-5.10/drivers/char/lrng/lrng_definitions.h	2022-05-17 09:37:52.303479125 +0200
+--- a/drivers/char/lrng/lrng_definitions.h
++++ b/drivers/char/lrng/lrng_definitions.h
 @@ -6,8 +6,7 @@
  #ifndef _LRNG_DEFINITIONS_H
  #define _LRNG_DEFINITIONS_H

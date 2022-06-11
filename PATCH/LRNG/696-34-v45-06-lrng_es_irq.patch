@@ -1,5 +1,5 @@
---- linux-5.15/drivers/char/lrng/lrng_es_irq.c.orig	2022-05-17 08:45:16.774078535 +0200
-+++ linux-5.15/drivers/char/lrng/lrng_es_irq.c	2022-05-17 08:47:01.124322409 +0200
+--- a/drivers/char/lrng/lrng_es_irq.c
++++ b/drivers/char/lrng/lrng_es_irq.c
 @@ -657,7 +657,7 @@ static void lrng_time_process(void)
  }
  

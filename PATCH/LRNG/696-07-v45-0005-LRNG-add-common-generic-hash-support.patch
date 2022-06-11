@@ -19,14 +19,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 161 insertions(+), 20 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_hash_kcapi.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 27652e2fd7be..98d541103ff5 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -532,26 +532,26 @@ config LRNG_DRNG_CHACHA20
  config LRNG_SWITCH
  	bool
-
+ 
 -# menuconfig LRNG_SWITCH_HASH
 -# 	bool "Support conditioning hash runtime switching"
 -# 	select LRNG_SWITCH
@@ -70,19 +68,14 @@ index 27652e2fd7be..98d541103ff5 100644
  # menuconfig LRNG_SWITCH_DRNG
  # 	bool "Support DRNG runtime switching"
  # 	select LRNG_SWITCH
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index f89224d82d73..b3326c9580eb 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -12,4 +12,5 @@ obj-$(CONFIG_SYSCTL)			+= lrng_proc.o
  obj-$(CONFIG_NUMA)			+= lrng_numa.o
-
+ 
  obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
 +obj-$(CONFIG_LRNG_HASH_KCAPI)		+= lrng_hash_kcapi.o
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
-diff --git a/drivers/char/lrng/lrng_hash_kcapi.c b/drivers/char/lrng/lrng_hash_kcapi.c
-new file mode 100644
-index 000000000000..13e62db9b6c8
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_hash_kcapi.c
 @@ -0,0 +1,140 @@
@@ -226,6 +219,3 @@ index 000000000000..13e62db9b6c8
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - Kernel crypto API hash backend");
---
-2.36.1
-

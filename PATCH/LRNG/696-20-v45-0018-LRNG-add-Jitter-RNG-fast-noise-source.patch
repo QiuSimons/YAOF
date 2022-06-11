@@ -20,14 +20,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 166 insertions(+), 29 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_jent.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 549f472d4c1b..797f6001f17b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -366,35 +366,35 @@ config LRNG_IRQ_ENTROPY_RATE
  	  interrupt entropy source will still deliver data but without
  	  being credited with entropy.
-
+ 
 -# comment "Jitter RNG Entropy Source"
 -#
 -# config LRNG_JENT
@@ -87,22 +85,17 @@ index 549f472d4c1b..797f6001f17b 100644
 +	  entropy.
 +
  comment "CPU Entropy Source"
-
+ 
  config LRNG_CPU
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 101c323ea1f2..96652f3aefd9 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -23,5 +23,6 @@ obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
+@@ -23,5 +23,6 @@ obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.
  obj-$(CONFIG_LRNG_KERNEL_RNG)		+= lrng_es_krng.o
  obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
  obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.o
 +obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
-
+ 
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
-diff --git a/drivers/char/lrng/lrng_es_jent.c b/drivers/char/lrng/lrng_es_jent.c
-new file mode 100644
-index 000000000000..dbb2fce591f0
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_jent.c
 @@ -0,0 +1,136 @@
@@ -242,6 +235,3 @@ index 000000000000..dbb2fce591f0
 +	.reset			= NULL,
 +	.switch_hash		= NULL,
 +};
---
-2.36.1
-

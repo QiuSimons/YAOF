@@ -58,14 +58,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_health.h
  create mode 100644 drivers/char/lrng/lrng_testing.h
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 634c698143a8..f8a0b47744f8 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -109,9 +109,9 @@ comment "Common Timer-based Entropy Source Configuration"
+@@ -109,9 +109,9 @@ comment "Common Timer-based Entropy Sour
  config LRNG_IRQ_DFLT_TIMER_ES
  	bool
-
+ 
 -# config LRNG_SCHED_DFLT_TIMER_ES
 -# 	bool
 -#
@@ -74,11 +72,11 @@ index 634c698143a8..f8a0b47744f8 100644
 +
  config LRNG_TIMER_COMMON
  	bool
-
+ 
 @@ -132,12 +132,12 @@ choice
  	  The interrupt entropy source is selected as a timer-based
  	  entropy source to provide entropy.
-
+ 
 -# 	config LRNG_SCHED_DFLT_TIMER_ES
 -# 	bool "Scheduler Entropy Source"
 -# 	depends on LRNG_SCHED
@@ -92,7 +90,7 @@ index 634c698143a8..f8a0b47744f8 100644
 +	  The scheduler entropy source is selected as timer-based
 +	  entropy source to provide entropy.
  endchoice
-
+ 
  choice
 @@ -433,58 +433,58 @@ config LRNG_IRQ_ENTROPY_RATE
  # 	  Note, this option is overwritten when the option
@@ -205,18 +203,13 @@ index 634c698143a8..f8a0b47744f8 100644
  # comment "Kernel RNG Entropy Source"
  #
  # config LRNG_KERNEL_RNG
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index a64075c8fee5..c14a056fea95 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -20,3 +20,4 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
-
+@@ -20,3 +20,4 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_
+ 
  obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
  obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
 +obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
-diff --git a/drivers/char/lrng/lrng_es_sched.c b/drivers/char/lrng/lrng_es_sched.c
-new file mode 100644
-index 000000000000..f7e85c381e22
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_sched.c
 @@ -0,0 +1,406 @@
@@ -626,9 +619,6 @@ index 000000000000..f7e85c381e22
 +	.reset			= lrng_sched_reset,
 +	.switch_hash		= NULL,
 +};
-diff --git a/drivers/char/lrng/lrng_health.h b/drivers/char/lrng/lrng_health.h
-new file mode 100644
-index 000000000000..4f9f5033fc30
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_health.h
 @@ -0,0 +1,42 @@
@@ -674,9 +664,6 @@ index 000000000000..4f9f5033fc30
 +#endif	/* CONFIG_LRNG_HEALTH_TESTS */
 +
 +#endif /* _LRNG_HEALTH_H */
-diff --git a/drivers/char/lrng/lrng_testing.h b/drivers/char/lrng/lrng_testing.h
-new file mode 100644
-index 000000000000..672a7fca4595
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_testing.h
 @@ -0,0 +1,85 @@
@@ -765,6 +752,3 @@ index 000000000000..672a7fca4595
 +#endif /*CONFIG_LRNG_SCHED_PERF */
 +
 +#endif /* _LRNG_TESTING_H */
---
-2.36.1
-

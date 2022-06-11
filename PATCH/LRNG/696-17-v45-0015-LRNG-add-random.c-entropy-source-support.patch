@@ -27,14 +27,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 150 insertions(+), 28 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_krng.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 04592e1f13d8..9f88fe02aea7 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -485,34 +485,34 @@ config LRNG_SCHED_ENTROPY_RATE
  	  scheduler entropy source will still deliver data but without
  	  being credited with entropy.
-
+ 
 -# comment "Kernel RNG Entropy Source"
 -#
 -# config LRNG_KERNEL_RNG
@@ -91,24 +89,19 @@ index 04592e1f13d8..9f88fe02aea7 100644
 +	  kernel in FIPS mode (with fips=1 kernel command line option).
 +	  This is due to the fact that random.c is not SP800-90B
 +	  compliant.
-
+ 
  endmenu # "Entropy Source Configuration"
-
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6dc38c1b70e9..811208f38005 100644
+ 
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
-
+@@ -20,6 +20,7 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_
+ 
  obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
  obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
 +obj-$(CONFIG_LRNG_KERNEL_RNG)		+= lrng_es_krng.o
  obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
-
+ 
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
-diff --git a/drivers/char/lrng/lrng_es_krng.c b/drivers/char/lrng/lrng_es_krng.c
-new file mode 100644
-index 000000000000..0ef88e6c8d56
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_krng.c
 @@ -0,0 +1,121 @@
@@ -233,6 +226,3 @@ index 000000000000..0ef88e6c8d56
 +	.reset			= NULL,
 +	.switch_hash		= NULL,
 +};
---
-2.36.1
-

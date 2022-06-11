@@ -33,21 +33,16 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 76 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_proc.c
 
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 60effabb1372..dafa6299972d 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -8,6 +8,7 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr.o \
+@@ -8,6 +8,7 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr
  obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha256.o
  obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
-
+ 
 +obj-$(CONFIG_SYSCTL)			+= lrng_proc.o
  obj-$(CONFIG_NUMA)			+= lrng_numa.o
-
+ 
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
-diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
-new file mode 100644
-index 000000000000..6e3e0699a840
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
 @@ -0,0 +1,71 @@
@@ -122,21 +117,16 @@ index 000000000000..6e3e0699a840
 +}
 +
 +module_init(lrng_proc_type_init);
-diff --git a/drivers/char/lrng/lrng_proc.h b/drivers/char/lrng/lrng_proc.h
-index e8097abe7fbd..c653274f1954 100644
 --- a/drivers/char/lrng/lrng_proc.h
 +++ b/drivers/char/lrng/lrng_proc.h
 @@ -6,6 +6,10 @@
  #ifndef _LRNG_PROC_H
  #define _LRNG_PROC_H
-
+ 
 +#ifdef CONFIG_SYSCTL
 +void lrng_pool_inc_numa_node(void);
 +#else
  static inline void lrng_pool_inc_numa_node(void) { }
 +#endif
-
+ 
  #endif /* _LRNG_PROC_H */
---
-2.36.1
-

@@ -17,18 +17,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  2 files changed, 171 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_drng_atomic.c
 
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 099d366500e5..fa0821917ca2 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -16,3 +16,4 @@ obj-$(CONFIG_LRNG_HASH_KCAPI)		+= lrng_hash_kcapi.o
+@@ -16,3 +16,4 @@ obj-$(CONFIG_LRNG_HASH_KCAPI)		+= lrng_h
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
  obj-$(CONFIG_LRNG_DRBG)			+= lrng_drng_drbg.o
  obj-$(CONFIG_LRNG_DRNG_KCAPI)		+= lrng_drng_kcapi.o
 +obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
-diff --git a/drivers/char/lrng/lrng_drng_atomic.c b/drivers/char/lrng/lrng_drng_atomic.c
-new file mode 100644
-index 000000000000..e3a8fece9935
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng_atomic.c
 @@ -0,0 +1,170 @@
@@ -202,6 +197,3 @@ index 000000000000..e3a8fece9935
 +	lrng_debug_report_seedlevel("lrng_get_random_bytes");
 +}
 +EXPORT_SYMBOL(lrng_get_random_bytes);
---
-2.36.1
-

@@ -16,14 +16,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 143 insertions(+), 13 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_interface_kcapi.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index ec45aee683de..3ddd8d08a39d 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -57,18 +57,18 @@ config LRNG_RANDOM_IF
  	select LRNG_DRNG_ATOMIC
  	select LRNG_SYSCTL
-
+ 
 -# menu "LRNG Interfaces"
 -#
 -# config LRNG_KCAPI_IF
@@ -57,21 +55,16 @@ index ec45aee683de..3ddd8d08a39d 100644
  #
 -# endmenu # "LRNG Interfaces"
 +endmenu # "LRNG Interfaces"
-
+ 
  menu "Entropy Source Configuration"
-
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6242262d577e..6a163038ffb4 100644
+ 
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -34,3 +34,4 @@ obj-$(CONFIG_LRNG_COMMON_DEV_IF)	+= lrng_interface_dev_common.o
+@@ -34,3 +34,4 @@ obj-$(CONFIG_LRNG_COMMON_DEV_IF)	+= lrng
  obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
  					   lrng_interface_random_kernel.o \
  					   lrng_interface_aux.o
 +obj-$(CONFIG_LRNG_KCAPI_IF)		+= lrng_interface_kcapi.o
-diff --git a/drivers/char/lrng/lrng_interface_kcapi.c b/drivers/char/lrng/lrng_interface_kcapi.c
-new file mode 100644
-index 000000000000..4cb511f8088e
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_kcapi.c
 @@ -0,0 +1,129 @@
@@ -204,6 +197,3 @@ index 000000000000..4cb511f8088e
 +MODULE_ALIAS_CRYPTO("lrng");
 +MODULE_ALIAS_CRYPTO("lrng_atomic");
 +MODULE_ALIAS_CRYPTO("stdrng");
---
-2.36.1
-

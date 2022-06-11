@@ -1,5 +1,5 @@
---- linux-5.15/crypto/jitterentropy.c.orig	2022-05-17 08:12:24.576212579 +0200
-+++ linux-5.15/crypto/jitterentropy.c	2022-05-17 08:12:51.897280373 +0200
+--- a/crypto/jitterentropy.c
++++ b/crypto/jitterentropy.c
 @@ -117,6 +117,7 @@ struct rand_data {
  #define JENT_EHEALTH		9 /* Health test failed during initialization */
  #define JENT_ERCT		10 /* RCT failed during initialization */

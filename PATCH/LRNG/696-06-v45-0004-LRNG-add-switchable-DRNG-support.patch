@@ -47,8 +47,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 276 insertions(+), 4 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_switch.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 1f93c64d430e..27652e2fd7be 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -528,10 +528,10 @@ config LRNG_DRNG_CHACHA20
@@ -66,19 +64,14 @@ index 1f93c64d430e..27652e2fd7be 100644
  # menuconfig LRNG_SWITCH_HASH
  # 	bool "Support conditioning hash runtime switching"
  # 	select LRNG_SWITCH
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index dafa6299972d..f89224d82d73 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -11,4 +11,5 @@ obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
  obj-$(CONFIG_SYSCTL)			+= lrng_proc.o
  obj-$(CONFIG_NUMA)			+= lrng_numa.o
-
+ 
 +obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
-diff --git a/drivers/char/lrng/lrng_switch.c b/drivers/char/lrng/lrng_switch.c
-new file mode 100644
-index 000000000000..5ffc0286a4a4
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_switch.c
 @@ -0,0 +1,271 @@
@@ -353,6 +346,3 @@ index 000000000000..5ffc0286a4a4
 +	return ret;
 +}
 +EXPORT_SYMBOL(lrng_set_hash_cb);
---
-2.36.1
-

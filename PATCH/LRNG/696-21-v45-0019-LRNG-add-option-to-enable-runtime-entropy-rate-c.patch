@@ -27,14 +27,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  drivers/char/lrng/Kconfig | 22 +++++++++++-----------
  1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 797f6001f17b..d7e87dc26850 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -92,17 +92,17 @@ config LRNG_RANDOM_IF
-
+ 
  menu "Entropy Source Configuration"
-
+ 
 -# config LRNG_RUNTIME_ES_CONFIG
 -# 	bool "Enable runtime configuration of entropy sources"
 -# 	help
@@ -57,9 +55,6 @@ index 797f6001f17b..d7e87dc26850 100644
 +	  a kernel command line option. When not providing any
 +	  option, the default specified during kernel compilation
 +	  is applied.
-
+ 
  comment "Common Timer-based Entropy Source Configuration"
-
---
-2.36.1
-
+ 

@@ -22,21 +22,16 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  2 files changed, 146 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_sysctl.c
 
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 0a61a2c9ec6e..52b4625a0760 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha256.o
+@@ -9,6 +9,7 @@ obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha25
  obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
-
+ 
  obj-$(CONFIG_SYSCTL)			+= lrng_proc.o
 +obj-$(CONFIG_LRNG_SYSCTL)		+= lrng_sysctl.o
  obj-$(CONFIG_NUMA)			+= lrng_numa.o
-
+ 
  obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
-diff --git a/drivers/char/lrng/lrng_sysctl.c b/drivers/char/lrng/lrng_sysctl.c
-new file mode 100644
-index 000000000000..0f657d01bf62
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_sysctl.c
 @@ -0,0 +1,145 @@
@@ -185,6 +180,3 @@ index 000000000000..0f657d01bf62
 +	return 0;
 +}
 +device_initcall(random_sysctls_init);
---
-2.36.1
-

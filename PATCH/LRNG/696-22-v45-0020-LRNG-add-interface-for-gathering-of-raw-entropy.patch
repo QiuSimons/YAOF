@@ -77,14 +77,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 1162 insertions(+), 260 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_testing.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index d7e87dc26850..6b5f6a88e956 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -615,266 +615,266 @@ choice
  		select LRNG_DRNG_KCAPI
  endchoice
-
+ 
 -# menuconfig LRNG_TESTING_MENU
 -# 	bool "LRNG testing interfaces"
 -# 	depends on DEBUG_FS
@@ -608,18 +606,13 @@ index d7e87dc26850..6b5f6a88e956 100644
  #
  # config LRNG_SELFTEST
  # 	bool "Enable power-on and on-demand self-tests"
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 96652f3aefd9..552ad7232d0d 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -26,3 +26,4 @@ obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.o
+@@ -26,3 +26,4 @@ obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.
  obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
-
+ 
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
 +obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
-diff --git a/drivers/char/lrng/lrng_testing.c b/drivers/char/lrng/lrng_testing.c
-new file mode 100644
-index 000000000000..101140085d81
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_testing.c
 @@ -0,0 +1,901 @@
@@ -1524,6 +1517,3 @@ index 000000000000..101140085d81
 +}
 +
 +module_init(lrng_raw_init);
---
-2.36.1
-

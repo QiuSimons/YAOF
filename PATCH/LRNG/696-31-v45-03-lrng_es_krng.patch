@@ -1,5 +1,5 @@
---- linux-5.15/drivers/char/lrng/lrng_es_krng.c.orig	2022-05-17 08:16:53.557890786 +0200
-+++ linux-5.15/drivers/char/lrng/lrng_es_krng.c	2022-05-17 08:15:49.516726478 +0200
+--- a/drivers/char/lrng/lrng_es_krng.c
++++ b/drivers/char/lrng/lrng_es_krng.c
 @@ -23,8 +23,9 @@ MODULE_PARM_DESC(krng_entropy, "Entropy
  
  static atomic_t lrng_krng_initial_rate = ATOMIC_INIT(0);

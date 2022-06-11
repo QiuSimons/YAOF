@@ -53,13 +53,11 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 424 insertions(+), 26 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_selftest.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 6b5f6a88e956..ec45aee683de 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -875,32 +875,32 @@ config LRNG_TEST_CPU_ES_COMPRESSION
  	  than what may be required.
-
+ 
  endif #LRNG_TESTING_MENU
 -#
 -# config LRNG_SELFTEST
@@ -113,21 +111,16 @@ index 6b5f6a88e956..ec45aee683de 100644
 +	  LRNG power-on self-test failure is detected.
 +
 +endif # LRNG_SELFTEST
-
+ 
  endif # LRNG
-
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 552ad7232d0d..0a61a2c9ec6e 100644
+ 
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -27,3 +27,4 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
-
+@@ -27,3 +27,4 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jen
+ 
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
  obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
 +obj-$(CONFIG_LRNG_SELFTEST)		+= lrng_selftest.o
-diff --git a/drivers/char/lrng/lrng_selftest.c b/drivers/char/lrng/lrng_selftest.c
-new file mode 100644
-index 000000000000..15f1e4a2a719
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_selftest.c
 @@ -0,0 +1,397 @@
@@ -528,6 +521,3 @@ index 000000000000..15f1e4a2a719
 +}
 +
 +module_init(lrng_selftest_init);
---
-2.36.1
-

@@ -16,14 +16,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 79 insertions(+), 10 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_interface_hwrand.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 860a2bbd2bf4..bfd6b3ea4f1b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -69,16 +69,16 @@ config LRNG_KCAPI_IF
  	  is intended to be higher than the existing RNG
  	  implementations.
-
+ 
 -# config LRNG_HWRAND_IF
 -# 	tristate "Interface with Hardware Random Number Generator Framework"
 -# 	depends on HW_RANDOM
@@ -44,21 +42,16 @@ index 860a2bbd2bf4..bfd6b3ea4f1b 100644
 +	  with the name "lrng" that is accessible via the framework.
 +	  For example it allows pulling data from the LRNG via the
 +	  /dev/hwrng file.
-
+ 
  config LRNG_DEV_IF
  	bool "Character device file interface"
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 9dd87363a97e..f61fc40f4620 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -36,3 +36,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
+@@ -36,3 +36,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_in
  					   lrng_interface_aux.o
  obj-$(CONFIG_LRNG_KCAPI_IF)		+= lrng_interface_kcapi.o
  obj-$(CONFIG_LRNG_DEV_IF)		+= lrng_interface_dev.o
 +obj-$(CONFIG_LRNG_HWRAND_IF)		+= lrng_interface_hwrand.o
-diff --git a/drivers/char/lrng/lrng_interface_hwrand.c b/drivers/char/lrng/lrng_interface_hwrand.c
-new file mode 100644
-index 000000000000..e841eea13348
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_hwrand.c
 @@ -0,0 +1,68 @@
@@ -130,6 +123,3 @@ index 000000000000..e841eea13348
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager HW-Random Interface");
---
-2.36.1
-

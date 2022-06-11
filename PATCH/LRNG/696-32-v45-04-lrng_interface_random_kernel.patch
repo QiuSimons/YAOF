@@ -1,5 +1,5 @@
---- linux-5.15/drivers/char/lrng/lrng_interface_random_kernel.c.orig	2022-05-17 08:52:23.829105033 +0200
-+++ linux-5.15/drivers/char/lrng/lrng_interface_random_kernel.c	2022-05-17 09:01:15.170423204 +0200
+--- a/drivers/char/lrng/lrng_interface_random_kernel.c
++++ b/drivers/char/lrng/lrng_interface_random_kernel.c
 @@ -7,21 +7,24 @@
  
  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -101,7 +101,7 @@
  #endif
  
 @@ -158,85 +168,65 @@ EXPORT_SYMBOL(add_interrupt_randomness);
-  * del_random_ready_callback() - Delete a previously registered readiness
+  * unregister_random_ready_notifier() - Delete a previously registered readiness
   * callback function.
   *
 - * @nb: callback definition that was registered initially
@@ -258,8 +258,8 @@
  }
  EXPORT_SYMBOL(get_random_bytes_arch);
  
---- linux-5.15/drivers/char/lrng/lrng_interface_random_kernel.h.orig	2022-05-17 09:02:26.645600517 +0200
-+++ linux-5.15/drivers/char/lrng/lrng_interface_random_kernel.h	2022-05-17 09:04:50.387957111 +0200
+--- a/drivers/char/lrng/lrng_interface_random_kernel.h
++++ b/drivers/char/lrng/lrng_interface_random_kernel.h
 @@ -8,10 +8,10 @@
  
  #ifdef CONFIG_LRNG_RANDOM_IF
@@ -273,8 +273,8 @@
  static inline void lrng_process_ready_list(void) { }
  static inline void invalidate_batched_entropy(void) { }
  #endif /* CONFIG_LRNG_RANDOM_IF */
---- linux-5.15/drivers/char/lrng/lrng_drng_mgr.c.orig	2022-05-17 09:05:16.040020758 +0200
-+++ linux-5.15/drivers/char/lrng/lrng_drng_mgr.c	2022-05-17 09:05:29.413053934 +0200
+--- a/drivers/char/lrng/lrng_drng_mgr.c
++++ b/drivers/char/lrng/lrng_drng_mgr.c
 @@ -251,7 +251,7 @@ static void lrng_drng_seed(struct lrng_d
  		 * directly from the entropy sources.
  		 */

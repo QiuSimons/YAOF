@@ -14,8 +14,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 45 insertions(+), 9 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_interface_dev.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 3ddd8d08a39d..860a2bbd2bf4 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -79,15 +79,15 @@ config LRNG_KCAPI_IF
@@ -41,20 +39,15 @@ index 3ddd8d08a39d..860a2bbd2bf4 100644
 +	  operations.
 +
  endmenu # "LRNG Interfaces"
-
+ 
  menu "Entropy Source Configuration"
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6a163038ffb4..9dd87363a97e 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -35,3 +35,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
+@@ -35,3 +35,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_in
  					   lrng_interface_random_kernel.o \
  					   lrng_interface_aux.o
  obj-$(CONFIG_LRNG_KCAPI_IF)		+= lrng_interface_kcapi.o
 +obj-$(CONFIG_LRNG_DEV_IF)		+= lrng_interface_dev.o
-diff --git a/drivers/char/lrng/lrng_interface_dev.c b/drivers/char/lrng/lrng_interface_dev.c
-new file mode 100644
-index 000000000000..e60060d402b3
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_dev.c
 @@ -0,0 +1,35 @@
@@ -93,6 +86,3 @@ index 000000000000..e60060d402b3
 +	return misc_register(&lrng_miscdev);
 +}
 +device_initcall(lrng_dev_if_mod_init);
---
-2.36.1
-

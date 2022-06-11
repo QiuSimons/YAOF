@@ -118,14 +118,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 484 insertions(+), 62 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_health.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index f8a0b47744f8..04592e1f13d8 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -197,68 +197,68 @@ config LRNG_COLLECTION_SIZE
  	default 4096 if LRNG_COLLECTION_SIZE_4096
  	default 8192 if LRNG_COLLECTION_SIZE_8192
-
+ 
 -# config LRNG_HEALTH_TESTS
 -# 	bool "Enable internal entropy source online health tests"
 -# 	depends on LRNG_TIMER_COMMON
@@ -250,22 +248,17 @@ index f8a0b47744f8..04592e1f13d8 100644
 +	int
 +	default 325 if !LRNG_APT_BROKEN
 +	default 32 if LRNG_APT_BROKEN
-
+ 
  comment "Interrupt Entropy Source"
-
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index c14a056fea95..6dc38c1b70e9 100644
+ 
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -21,3 +21,5 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
+@@ -21,3 +21,5 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_
  obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
  obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
  obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
 +
 +obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
-diff --git a/drivers/char/lrng/lrng_health.c b/drivers/char/lrng/lrng_health.c
-new file mode 100644
-index 000000000000..a60c8378eea5
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_health.c
 @@ -0,0 +1,420 @@
@@ -689,6 +682,3 @@ index 000000000000..a60c8378eea5
 +
 +	return lrng_health_pass;
 +}
---
-2.36.1
-
