@@ -8,6 +8,9 @@ CONFIG_TARGET_KERNEL_PARTSIZE=32
 CONFIG_TARGET_ROOTFS_PARTSIZE=822
 # CONFIG_COLLECT_KERNEL_DEBUG is not set
 CONFIG_PACKAGE_r8169-firmware=y
+CONFIG_PACKAGE_arm-trusted-firmware-rk3328=y
+CONFIG_PACKAGE_arm-trusted-firmware-rk3399=y
+CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
 
 ### AGGRESSIVE ###
 CONFIG_PACKAGE_node=y

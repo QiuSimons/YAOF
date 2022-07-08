@@ -1,0 +1,23 @@
+From 38423fae4ba0f116ae7b5853b1c459202fe2c9a4 Mon Sep 17 00:00:00 2001
+From: Stijn Tintel <stijn@linux-ipv6.be>
+Date: Tue, 22 Mar 2022 21:20:40 +0200
+Subject: [PATCH] test: unconditionally allow ct status dnat
+
+---
+ root/usr/share/firewall4/templates/ruleset.uc | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/root/usr/share/firewall4/templates/ruleset.uc b/root/usr/share/firewall4/templates/ruleset.uc
+index b402315..c7121aa 100644
+--- a/root/usr/share/firewall4/templates/ruleset.uc
++++ b/root/usr/share/firewall4/templates/ruleset.uc
+@@ -217,3 +217 @@
+-{%  if (zone.dflags.dnat): %}
+-		ct status dnat accept comment "!fw4: Accept port redirections"
+-{%  endif %}
++			ct status dnat accept comment "!fw4: Accept port redirections"
+@@ -238,3 +236 @@
+-{%  if (zone.dflags.dnat): %}
+-		ct status dnat accept comment "!fw4: Accept port forwards"
+-{%  endif %}
++			ct status dnat accept comment "!fw4: Accept port forwards"
