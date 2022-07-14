@@ -74,6 +74,7 @@ jobs:
       with:
         mixkey: ${{ env.TARGET_DEVICE_ARCH }}
         prefix: ${{ github.workspace }}/openwrt
+        clean: true
     - name: Make Download
       run: |
         cd openwrt
