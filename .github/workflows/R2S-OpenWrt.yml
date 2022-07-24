@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-20.04
+    timeout-minutes: 6000
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
