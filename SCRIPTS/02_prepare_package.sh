@@ -25,7 +25,8 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 
 
 ### 必要的 Patches ###
-
+# offload bugfix （this should be removed after upstream merged
+wget -qO - https://github.com/openwrt/openwrt/pull/10422.patch | patch -p1
 # introduce "le9" Linux kernel patches
 cp -f ../PATCH/backport/995-le9i.patch ./target/linux/generic/hack-5.10/995-le9i.patch
 cp -f ../PATCH/backport/290-remove-kconfig-CONFIG_I8K.patch ./target/linux/generic/hack-5.10/290-remove-kconfig-CONFIG_I8K.patch
@@ -104,7 +105,8 @@ svn export https://github.com/Lienol/openwrt/trunk/package/network/fullconenat p
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
 svn export https://github.com/coolsnowwolf/lede/trunk/target/linux/rockchip target/linux/rockchip
-wget -qO - https://github.com/coolsnowwolf/lede/commit/879d190.patch | patch -p1
+rm -rf ./target/linux/rockchip/image/armv8.mk
+wget -P target/linux/rockchip/image/ https://github.com/coolsnowwolf/lede/raw/3211a97/target/linux/rockchip/image/armv8.mk
 rm -rf ./target/linux/rockchip/Makefile
 wget -P target/linux/rockchip/ https://github.com/openwrt/openwrt/raw/openwrt-22.03/target/linux/rockchip/Makefile
 rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configuration-from-OF.patch
@@ -205,15 +207,15 @@ svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-auto
 # Boost 通用即插即用
 svn export https://github.com/QiuSimons/slim-wrt/branches/main/slimapps/application/luci-app-boostupnp package/new/luci-app-boostupnp
 rm -rf ./feeds/packages/net/miniupnpd
-svn export https://github.com/x-wrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
-#git clone -b main --depth 1 https://github.com/msylgj/miniupnpd.git feeds/packages/net/miniupnpd
+#svn export https://github.com/x-wrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
+git clone -b main --depth 1 https://github.com/msylgj/miniupnpd.git feeds/packages/net/miniupnpd
 pushd feeds/packages
 wget -qO - https://github.com/openwrt/packages/commit/785bbcb.patch | patch -p1
-wget -qO - https://github.com/x-wrt/packages/commit/40163cf.patch | patch -Rp1
+#wget -qO - https://github.com/x-wrt/packages/commit/40163cf.patch | patch -Rp1
 popd
 rm -rf ./feeds/luci/applications/luci-app-upnp
-svn export https://github.com/x-wrt/luci/trunk/applications/luci-app-upnp feeds/luci/applications/luci-app-upnp
-#git clone -b main --depth 1 https://github.com/msylgj/luci-app-upnp feeds/luci/applications/luci-app-upnp
+#svn export https://github.com/x-wrt/luci/trunk/applications/luci-app-upnp feeds/luci/applications/luci-app-upnp
+git clone -b main --depth 1 https://github.com/msylgj/luci-app-upnp feeds/luci/applications/luci-app-upnp
 #svn export https://github.com/kode54/luci/branches/upnp-nftables/applications/luci-app-upnp feeds/luci/applications/luci-app-upnp
 #svn export https://github.com/coolsnowwolf/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
 # ChinaDNS
