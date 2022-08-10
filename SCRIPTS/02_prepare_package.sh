@@ -160,6 +160,10 @@ git clone -b master --depth 1 https://github.com/BROBIRD/openwrt-r8168.git packa
 patch -p1 <../PATCH/r8168/r8168-fix_LAN_led-for_r4s-from_TL.patch
 # R8152驱动
 svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/r8152 package/new/r8152
+# r8125驱动
+svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/r8125 package/new/r8125
+# igb-intel驱动
+svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/igb-intel package/new/igb-intel
 #sed -i 's,kmod-usb-net-rtl8152,kmod-usb-net-rtl8152-vendor,g' target/linux/rockchip/image/armv8.mk
 # UPX 可执行软件压缩
 sed -i '/patchelf pkgconf/i\tools-y += ucl upx' ./tools/Makefile
