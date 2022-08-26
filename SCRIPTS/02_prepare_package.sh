@@ -138,8 +138,11 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 # AutoCore
 svn export -r 219750 https://github.com/immortalwrt/immortalwrt/branches/master/package/emortal/autocore package/lean/autocore
 sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package/lean/autocore/files/generic/luci-mod-status-autocore.json
+sed -i '/"$threads"/d' package/lean/autocore/files/x86/autocore
 rm -rf ./feeds/packages/utils/coremark
 svn export https://github.com/immortalwrt/packages/trunk/utils/coremark feeds/packages/utils/coremark
+# luci-app-irqbalance
+svn export https://github.com/QiuSimons/OpenWrt-Add/trunk/luci-app-irqbalance package/new/luci-app-irqbalance
 # 更换 Nodejs 版本
 rm -rf ./feeds/packages/lang/node
 svn export https://github.com/nxhack/openwrt-node-packages/trunk/node feeds/packages/lang/node
