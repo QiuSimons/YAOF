@@ -9,21 +9,6 @@ sed -i 's,-mcpu=generic,-mcpu=cortex-a72.cortex-a53+crypto,g' include/target.mk
 wget -P target/linux/rockchip/armv8/base-files/etc/init.d/ https://github.com/friendlyarm/friendlywrt/raw/master-v19.07.1/target/linux/rockchip-rk3399/base-files/etc/init.d/fa-rk3399-pwmfan
 wget -P target/linux/rockchip/armv8/base-files/usr/bin/ https://github.com/friendlyarm/friendlywrt/raw/master-v19.07.1/target/linux/rockchip-rk3399/base-files/usr/bin/start-rk3399-pwm-fan.sh
 
-# CacULE
-#sed -i '/CONFIG_NR_CPUS/d' ./target/linux/rockchip/armv8/config-5.4
-#echo '
-#CONFIG_NR_CPUS=6
-#' >>./target/linux/rockchip/armv8/config-5.4
-
-# UKSM
-#echo '
-#CONFIG_KSM=y
-#CONFIG_UKSM=y
-#' >>./target/linux/rockchip/armv8/config-5.4
-
-# IRQ 调优
-sed -i '/set_interface_core 20 "eth1"/a\\tset_interface_core 2 "ff3c0000.i2c"' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
-
 #Vermagic
 latest_version="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][0-9]/p' | sed -n 1p | sed 's/v//g' | sed 's/.tar.gz//g')"
 wget https://downloads.openwrt.org/releases/${latest_version}/targets/rockchip/armv8/packages/Packages.gz
