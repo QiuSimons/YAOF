@@ -31,7 +31,7 @@ Change-Id: I37221506f5166877c2b110753d39bb0757985e68
 
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3737,6 +3737,7 @@ static int tcp_ack(struct sock *sk, cons
+@@ -3746,6 +3746,7 @@ static int tcp_ack(struct sock *sk, cons
  
  	prior_fack = tcp_is_sack(tp) ? tcp_highest_sack_seq(tp) : tp->snd_una;
  	rs.prior_in_flight = tcp_packets_in_flight(tp);
