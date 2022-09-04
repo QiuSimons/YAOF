@@ -27,7 +27,7 @@ Change-Id: I3a964e04cee83e11649a54507043d2dfe769a3b3
  struct tcp_congestion_ops {
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3835,6 +3835,7 @@ static int tcp_ack(struct sock *sk, cons
+@@ -3844,6 +3844,7 @@ static int tcp_ack(struct sock *sk, cons
  	delivered = tcp_newly_delivered(sk, delivered, flag);
  	lost = tp->lost - lost;			/* freshly marked lost */
  	rs.is_ack_delayed = !!(flag & FLAG_ACK_MAYBE_DELAYED);
