@@ -125,6 +125,11 @@ echo '
 # CONFIG_PHY_ROCKCHIP_SNPS_PCIE3 is not set
 ' >>./target/linux/rockchip/armv8/config-5.10
 
+# Dnsmasq
+git clone -b mine --depth 1 https://git.openwrt.org/openwrt/staging/ldir.git
+rm -rf ./package/network/services/dnsmasq
+cp -rf ./ldir/package/network/services/dnsmasq ./package/network/services/
+
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
 # R4S超频到 2.2/1.8 GHz
