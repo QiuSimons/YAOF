@@ -1,0 +1,58 @@
+From 80343eeaf3ad0e9b0ce83eb087414e66a32f0ae6 Mon Sep 17 00:00:00 2001
+From: Yu Zhao <yuzhao@google.com>
+Date: Wed, 24 Feb 2021 12:03:08 -0800
+Subject: [PATCH] UPSTREAM: mm/swap: don't SetPageWorkingset unconditionally during swapin
+
+We are capable of SetPageWorkingset based on refault distances after
+commit aae466b0052e ("mm/swap: implement workingset detection for
+anonymous LRU").  This is done by workingset_refault(), which is right
+above the unconditional SetPageWorkingset deleted by this patch.
+
+The unconditional SetPageWorkingset miscategorizes pages that are read
+ahead or never belonged to the working set (e.g., tmpfs pages accessed
+only once by fd).  When those pages are swapped in (after they were
+swapped out) for the first time, they skew PSI (when using async swap).
+When this happens again, depending on their refault distances, they might
+skew workingset_restore_anon counter in addition to PSI because their
+shadows indicate they were part of the working set.
+
+Historically, SetPageWorkingset was added as part of the PSI series, and
+Johannes said:
+ "It was meant to mark incoming pages under IO with SetPageWorkingset
+  when waiting for them constituted a memory stall.
+
+  On the page cache side, because we HAVE workingset detection, this was
+  specific to recently evicted pages that had been active in their
+  previous life. On the anon side, the aging algorithm had no
+  distinction between workingset and sporadically used pages. Given the
+  choice between a) no swapin stalls are pressure and b) all swapin
+  stalls are pressure, I went with the latter in order to detect swap
+  storms. The false positive case - high rate of swapin without severe
+  memory pressure - was relatively unlikely, because we tried to avoid
+  swapping until everything was completely on fire in the first place."
+
+Link: https://lkml.kernel.org/r/20201209012400.1771150-1-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20201214231253.62313-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+(cherry picked from commit cad8320b4b395702e49578580c70026c8271ea88)
+Bug: 227651406
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Change-Id: Ifa9c5fa2e875e6ccee6c3f7e2d2983278d54c220
+---
+
+--- a/mm/swap_state.c
++++ b/mm/swap_state.c
+@@ -537,7 +537,6 @@ struct page *__read_swap_cache_async(swp
+ 		workingset_refault(page, shadow);
+ 
+ 	/* Caller will initiate read into locked page */
+-	SetPageWorkingset(page);
+ 	lru_cache_add(page);
+ 	*new_page_allocated = true;
+ 	return page;

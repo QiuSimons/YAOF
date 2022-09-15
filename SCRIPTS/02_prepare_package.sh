@@ -25,9 +25,14 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 
 
 ### 必要的 Patches ###
-# introduce "le9" Linux kernel patches
-cp -f ../PATCH/backport/995-le9i.patch ./target/linux/generic/hack-5.10/995-le9i.patch
 cp -f ../PATCH/backport/290-remove-kconfig-CONFIG_I8K.patch ./target/linux/generic/hack-5.10/290-remove-kconfig-CONFIG_I8K.patch
+# introduce "MG-LRU" Linux kernel patches
+cp -rf ../PATCH/backport/MG-LRU/* ./target/linux/generic/pending-5.10/
+echo '
+CONFIG_LRU_GEN=y
+CONFIG_LRU_GEN_ENABLED=y
+# CONFIG_LRU_GEN_STATS is not set
+' >>./target/linux/generic/config-5.10
 # ZSTD
 cp -rf ../PATCH/backport/ZSTD/* ./target/linux/generic/hack-5.10/
 # Futex
