@@ -1,0 +1,135 @@
+From b4f3b6ac71435bcf4cf22d2160792779eb121c64 Mon Sep 17 00:00:00 2001
+From: Yu Zhao <yuzhao@google.com>
+Date: Thu, 29 Apr 2021 23:01:07 -0700
+Subject: [PATCH] UPSTREAM: include/linux/page-flags-layout.h: cleanups
+
+Tidy things up and delete comments stating the obvious with typos or
+making no sense.
+
+Link: https://lkml.kernel.org/r/20210303071609.797782-2-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+(cherry picked from commit 1587db62d8c0dbd943752f657b452213e1c4d8d4)
+Bug: 227651406
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Change-Id: I1d57992dd4c68d89c1b9180f280e09d5d08482b6
+---
+
+--- a/include/linux/page-flags-layout.h
++++ b/include/linux/page-flags-layout.h
+@@ -21,16 +21,17 @@
+ #elif MAX_NR_ZONES <= 8
+ #define ZONES_SHIFT 3
+ #else
+-#error ZONES_SHIFT -- too many zones configured adjust calculation
++#error ZONES_SHIFT "Too many zones configured"
+ #endif
+ 
++#define ZONES_WIDTH		ZONES_SHIFT
++
+ #ifdef CONFIG_SPARSEMEM
+ #include <asm/sparsemem.h>
+-
+-/* SECTION_SHIFT	#bits space required to store a section # */
+ #define SECTIONS_SHIFT	(MAX_PHYSMEM_BITS - SECTION_SIZE_BITS)
+-
+-#endif /* CONFIG_SPARSEMEM */
++#else
++#define SECTIONS_SHIFT	0
++#endif
+ 
+ #ifndef BUILD_VDSO32_64
+ /*
+@@ -54,17 +55,28 @@
+ #define SECTIONS_WIDTH		0
+ #endif
+ 
+-#define ZONES_WIDTH		ZONES_SHIFT
+-
+-#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
++#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
+ #define NODES_WIDTH		NODES_SHIFT
+-#else
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#elif defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #error "Vmemmap: No space for nodes field in page flags"
+-#endif
++#else
+ #define NODES_WIDTH		0
+ #endif
+ 
++/*
++ * Note that this #define MUST have a value so that it can be tested with
++ * the IS_ENABLED() macro.
++ */
++#if NODES_SHIFT != 0 && NODES_WIDTH == 0
++#define NODE_NOT_IN_PAGE_FLAGS	1
++#endif
++
++#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
++#define KASAN_TAG_WIDTH 8
++#else
++#define KASAN_TAG_WIDTH 0
++#endif
++
+ #ifdef CONFIG_NUMA_BALANCING
+ #define LAST__PID_SHIFT 8
+ #define LAST__PID_MASK  ((1 << LAST__PID_SHIFT)-1)
+@@ -77,36 +89,20 @@
+ #define LAST_CPUPID_SHIFT 0
+ #endif
+ 
+-#ifdef CONFIG_KASAN_SW_TAGS
+-#define KASAN_TAG_WIDTH 8
+-#else
+-#define KASAN_TAG_WIDTH 0
+-#endif
+-
+-#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_WIDTH+LAST_CPUPID_SHIFT+KASAN_TAG_WIDTH \
++#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_WIDTH + KASAN_TAG_WIDTH + LAST_CPUPID_SHIFT \
+ 	<= BITS_PER_LONG - NR_PAGEFLAGS
+ #define LAST_CPUPID_WIDTH LAST_CPUPID_SHIFT
+ #else
+ #define LAST_CPUPID_WIDTH 0
+ #endif
+ 
+-#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH+LAST_CPUPID_WIDTH+KASAN_TAG_WIDTH \
+-	> BITS_PER_LONG - NR_PAGEFLAGS
+-#error "Not enough bits in page flags"
+-#endif
+-
+-/*
+- * We are going to use the flags for the page to node mapping if its in
+- * there.  This includes the case where there is no node, so it is implicit.
+- * Note that this #define MUST have a value so that it can be tested with
+- * the IS_ENABLED() macro.
+- */
+-#if !(NODES_WIDTH > 0 || NODES_SHIFT == 0)
+-#define NODE_NOT_IN_PAGE_FLAGS 1
++#if LAST_CPUPID_SHIFT != 0 && LAST_CPUPID_WIDTH == 0
++#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
+ #endif
+ 
+-#if defined(CONFIG_NUMA_BALANCING) && LAST_CPUPID_WIDTH == 0
+-#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
++#if ZONES_WIDTH + SECTIONS_WIDTH + NODES_WIDTH + KASAN_TAG_WIDTH + LAST_CPUPID_WIDTH \
++	> BITS_PER_LONG - NR_PAGEFLAGS
++#error "Not enough bits in page flags"
+ #endif
+ 
+ #endif
+--- a/mm/mm_init.c
++++ b/mm/mm_init.c
+@@ -19,10 +19,6 @@
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+ int __meminitdata mminit_loglevel;
+ 
+-#ifndef SECTIONS_SHIFT
+-#define SECTIONS_SHIFT	0
+-#endif
+-
+ /* The zonelists are simply reported, validation is manual. */
+ void __init mminit_verify_zonelist(void)
+ {

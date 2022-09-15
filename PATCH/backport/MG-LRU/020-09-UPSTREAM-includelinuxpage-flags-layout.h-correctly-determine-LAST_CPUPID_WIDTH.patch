@@ -1,0 +1,35 @@
+From 2b286703d9a30e2c3b6d81acd2f62c5ce47e9d95 Mon Sep 17 00:00:00 2001
+From: Yu Zhao <yuzhao@google.com>
+Date: Thu, 29 Apr 2021 23:01:04 -0700
+Subject: [PATCH] UPSTREAM: include/linux/page-flags-layout.h: correctly determine LAST_CPUPID_WIDTH
+
+The naming convention used in include/linux/page-flags-layout.h:
+  *_SHIFT: the number of bits trying to allocate
+  *_WIDTH: the number of bits successfully allocated
+
+So when it comes to LAST_CPUPID_WIDTH, we need to check whether all
+previous *_WIDTH and LAST_CPUPID_SHIFT can fit into page flags. This
+means we need to use NODES_WIDTH, not NODES_SHIFT.
+
+Link: https://lkml.kernel.org/r/20210303071609.797782-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+(cherry picked from commit f73c6c8805ed0762d99122d5332fcf42b0c8fbb8)
+Bug: 227651406
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Change-Id: I6d7c58cf5d10e302adc818ac7e1fd727208d23c8
+---
+
+--- a/include/linux/page-flags-layout.h
++++ b/include/linux/page-flags-layout.h
+@@ -83,7 +83,7 @@
+ #define KASAN_TAG_WIDTH 0
+ #endif
+ 
+-#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT+LAST_CPUPID_SHIFT+KASAN_TAG_WIDTH \
++#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_WIDTH+LAST_CPUPID_SHIFT+KASAN_TAG_WIDTH \
+ 	<= BITS_PER_LONG - NR_PAGEFLAGS
+ #define LAST_CPUPID_WIDTH LAST_CPUPID_SHIFT
+ #else
