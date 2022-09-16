@@ -87,10 +87,10 @@ CONFIG_PACKAGE_luci-app-sqm=y
 CONFIG_PACKAGE_luci-app-vlmcsd=y
 CONFIG_PACKAGE_luci-app-unblockneteasemusic=y
 CONFIG_PACKAGE_luci-app-upnp=y
-CONFIG_PACKAGE_luci-app-usb-printer=y
+#CONFIG_PACKAGE_luci-app-usb-printer=y
 CONFIG_PACKAGE_luci-app-services-wolplus=y
 CONFIG_PACKAGE_luci-app-wrtbwmon=y
-CONFIG_PACKAGE_luci-app-xlnetacc=y
+#CONFIG_PACKAGE_luci-app-xlnetacc=y
 CONFIG_PACKAGE_luci-app-zerotier=y
 #CONFIG_PACKAGE_luci-app-irqbalance=y
 CONFIG_PACKAGE_zerotier=y
@@ -174,17 +174,17 @@ CONFIG_PACKAGE_kmod-drm-panfrost=y
 CONFIG_PACKAGE_kmod-multimedia-input=y
 
 ### DOCKER ###
-CONFIG_PACKAGE_luci-app-dockerman=y
-CONFIG_PACKAGE_luci-app-diskman=y
-CONFIG_PACKAGE_block-mount=y
-CONFIG_DOCKER_CGROUP_OPTIONS=y
-CONFIG_DOCKER_OPTIONAL_FEATURES=y
-CONFIG_DOCKER_NET_ENCRYPT=y
-CONFIG_DOCKER_NET_MACVLAN=y
-CONFIG_DOCKER_NET_OVERLAY=y
-CONFIG_DOCKER_NET_TFTP=y
-CONFIG_DOCKER_STO_BTRFS=y
-CONFIG_DOCKER_STO_EXT4=y
+#CONFIG_PACKAGE_luci-app-dockerman=y
+#CONFIG_PACKAGE_luci-app-diskman=y
+#CONFIG_PACKAGE_block-mount=y
+#CONFIG_DOCKER_CGROUP_OPTIONS=y
+#CONFIG_DOCKER_OPTIONAL_FEATURES=y
+#CONFIG_DOCKER_NET_ENCRYPT=y
+#CONFIG_DOCKER_NET_MACVLAN=y
+#CONFIG_DOCKER_NET_OVERLAY=y
+#CONFIG_DOCKER_NET_TFTP=y
+#CONFIG_DOCKER_STO_BTRFS=y
+#CONFIG_DOCKER_STO_EXT4=y
 
 ### KMOD ##(opkg got Segmentation fault due to upstream problem)
 CONFIG_PACKAGE_kmod-mt76x2=y
