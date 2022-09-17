@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// Copyright (c) 2022 AmadeusGhost <amadeus@jmu.edu.cn>
+
+/dts-v1/;
+
+/ {
+	model = "HINLINK OPC-H68K Board";
+	compatible = "hinlink,opc-h68k", "rockchip,rk3568";
+};
