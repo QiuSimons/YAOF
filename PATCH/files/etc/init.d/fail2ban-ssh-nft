@@ -1,0 +1,43 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=95
+STOP=01
+EXTRA_COMMANDS="main cron"
+
+main() {
+  (logread; logread -f) | while read -r A; do
+    case "$A" in
+    *"dropbear"*"Exit before auth"*)
+      local IP=$(expr "$A" : '.*Exit before auth from <\([0-9.]*\):[0-9]*>.*')
+      ip route get $IP | grep via > /dev/null || continue
+      nft add table fail2ban
+      nft 'add chain fail2ban input { type filter hook input priority 0; }'
+      nft add rule fail2ban input ip saddr "$IP" drop comment \"$(date +%s) ssh\"
+    ;;
+    esac
+  done
+}
+
+cron() {
+  local NOW=$(date +%s)
+  nft -n -a list table fail2ban | grep drop | while read -r A; do
+    local N=$(expr "$A" : '.*\handle \([0-9]*\).*')
+    local D=$(expr "$A" : '.*comment "\([0-9]*\).*')
+    [ -n "$D" ] || continue
+    local EXP=$(($D+10*24*60*60)) # 10 days
+    [ $EXP -lt $NOW ] || continue
+    echo $N
+  done | sort -n -r | while read -r N; do
+    nft delete rule fail2ban input handle "$N"
+  done
+}
+
+start_service() {
+  procd_open_instance
+  procd_set_param command /etc/init.d/fail2ban-ssh main
+  procd_set_param respawn
+  procd_set_param stdout 1
+  procd_set_param stderr 1
+  procd_close_instance
+}
