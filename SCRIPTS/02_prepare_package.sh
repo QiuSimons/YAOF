@@ -107,7 +107,8 @@ svn export https://github.com/Lienol/openwrt/trunk/package/network/fullconenat p
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
-svn export -r 5010 https://github.com/coolsnowwolf/lede/trunk/target/linux/rockchip target/linux/rockchip
+svn export https://github.com/coolsnowwolf/lede/trunk/target/linux/rockchip target/linux/rockchip
+#svn export -r 5010 https://github.com/coolsnowwolf/lede/trunk/target/linux/rockchip target/linux/rockchip
 #rm -rf ./target/linux/rockchip/image/armv8.mk
 #wget -P target/linux/rockchip/image/ https://github.com/coolsnowwolf/lede/raw/3211a97/target/linux/rockchip/image/armv8.mk
 rm -rf ./target/linux/rockchip/Makefile
@@ -115,11 +116,15 @@ wget -P target/linux/rockchip/ https://github.com/openwrt/openwrt/raw/openwrt-22
 rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configuration-from-OF.patch
 rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
 
+cp -rf ../PATCH/dts/* ./target/linux/rockchip/files-5.10/arch/arm64/boot/dts/rockchip/
+
 rm -rf ./package/boot/uboot-rockchip
-svn export -r 5010 https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchip package/boot/uboot-rockchip
+svn export https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchip package/boot/uboot-rockchip
+#svn export -r 5010 https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchip package/boot/uboot-rockchip
 sed -i '/r2c-rk3328:arm-trusted/d' package/boot/uboot-rockchip/Makefile
 
-svn export -r 5010 https://github.com/coolsnowwolf/lede/trunk/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
+svn export https://github.com/coolsnowwolf/lede/trunk/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
+#svn export -r 5010 https://github.com/coolsnowwolf/lede/trunk/package/boot/arm-trusted-firmware-rockchip-vendor package/boot/arm-trusted-firmware-rockchip-vendor
 
 rm -rf ./package/kernel/linux/modules/video.mk
 wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/master/package/kernel/linux/modules/video.mk
