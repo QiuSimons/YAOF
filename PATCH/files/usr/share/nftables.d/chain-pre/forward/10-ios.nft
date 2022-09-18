@@ -1,0 +1,2 @@
+tcp sport 5223 ct state related,established counter accept
+tcp dport 5223 ct state related,established counter accept
