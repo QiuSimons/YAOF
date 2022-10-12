@@ -189,3 +189,4 @@ CONFIG_DOCKER_STO_EXT4=y
 ### KMOD ##(opkg got Segmentation fault due to upstream problem)
 CONFIG_PACKAGE_kmod-mt76x2=y
 CONFIG_PACKAGE_kmod-fs-nfs-common=y
+CONFIG_PACKAGE_kmod-sctp=y
