@@ -116,8 +116,13 @@ wget -P target/linux/rockchip/ https://github.com/openwrt/openwrt/raw/openwrt-22
 rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configuration-from-OF.patch
 rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
 
-mkdir -p target/linux/rockchip/files-5.10/arch/arm64/boot/dts/rockchip
-cp -rf ../PATCH/dts/* ./target/linux/rockchip/files-5.10/arch/arm64/boot/dts/rockchip/
+rm -rf ./package/firmware/linux-firmware/intel.mk
+wget -P package/firmware/linux-firmware/ https://github.com/coolsnowwolf/lede/raw/master/package/firmware/linux-firmware/intel.mk
+rm -rf ./package/firmware/linux-firmware/Makefile
+wget -P package/firmware/linux-firmware/ https://github.com/coolsnowwolf/lede/raw/master/package/firmware/linux-firmware/Makefile
+
+mkdir -p target/linux/rockchip/files-5.10
+cp -rf ../PATCH/files-5.10 ./target/linux/rockchip/
 
 rm -rf ./package/boot/uboot-rockchip
 svn export https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchip package/boot/uboot-rockchip
@@ -399,7 +404,7 @@ svn export https://github.com/immortalwrt/luci/branches/openwrt-18.06/applicatio
 # ShadowsocksR Plus+ 依赖
 rm -rf ./feeds/packages/net/shadowsocks-libev
 svn export https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev package/lean/shadowsocks-libev
-svn export https://github.com/coolsnowwolf/packages/trunk/net/redsocks2 package/lean/redsocks2
+svn export https://github.com/fw876/helloworld/trunk/redsocks2 package/lean/redsocks2
 svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/srelay package/lean/srelay
 svn export https://github.com/fw876/helloworld/trunk/trojan package/lean/trojan
 svn export https://github.com/fw876/helloworld/trunk/tcping package/lean/tcping
