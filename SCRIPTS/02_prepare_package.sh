@@ -33,6 +33,8 @@ CONFIG_LRU_GEN=y
 CONFIG_LRU_GEN_ENABLED=y
 # CONFIG_LRU_GEN_STATS is not set
 ' >>./target/linux/generic/config-5.10
+# TCP optimizations
+cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # ZSTD
 cp -rf ../PATCH/backport/ZSTD/* ./target/linux/generic/hack-5.10/
 # Futex
