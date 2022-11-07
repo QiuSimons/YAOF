@@ -145,9 +145,10 @@ echo '
 ' >>./target/linux/rockchip/armv8/config-5.10
 
 # Dnsmasq
-git clone -b mine --depth 1 https://git.openwrt.org/openwrt/staging/ldir.git
+#git clone -b mine --depth 1 https://git.openwrt.org/openwrt/staging/ldir.git
 rm -rf ./package/network/services/dnsmasq
-cp -rf ./ldir/package/network/services/dnsmasq ./package/network/services/
+#cp -rf ./ldir/package/network/services/dnsmasq ./package/network/services/
+svn export https://github.com/openwrt/openwrt/trunk/package/network/services/dnsmasq package/network/services/dnsmasq
 
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
