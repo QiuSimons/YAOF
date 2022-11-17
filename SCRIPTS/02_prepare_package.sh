@@ -198,7 +198,8 @@ svn export https://github.com/immortalwrt/immortalwrt/branches/master/package/ke
 svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/r8125 package/new/r8125
 # igb-intel驱动
 svn export https://github.com/coolsnowwolf/lede/trunk/package/lean/igb-intel package/new/igb-intel
-#sed -i 's,kmod-usb-net-rtl8152,kmod-usb-net-rtl8152-vendor,g' target/linux/rockchip/image/armv8.mk
+# igc-backport
+cp -rf ../PATCH/igc-files-5.10 ./target/linux/x86/files-5.10
 # UPX 可执行软件压缩
 sed -i '/patchelf pkgconf/i\tools-y += ucl upx' ./tools/Makefile
 sed -i '\/autoconf\/compile :=/i\$(curdir)/upx/compile := $(curdir)/ucl/compile' ./tools/Makefile
