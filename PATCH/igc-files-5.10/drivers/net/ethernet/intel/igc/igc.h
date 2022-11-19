@@ -219,6 +219,8 @@ struct igc_adapter {
 	ktime_t ptp_reset_start; /* Reset time in clock mono */
 
 	char fw_version[32];
+	
+	bool pps_sys_wrap_on;
 };
 
 void igc_up(struct igc_adapter *adapter);
