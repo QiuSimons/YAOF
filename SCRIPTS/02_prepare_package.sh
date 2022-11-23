@@ -2,8 +2,8 @@
 clear
 
 ### 基础部分 ###
-# 使用 O3 级别的优化
-sed -i 's/Os/O3 -Wl,--gc-sections/g' include/target.mk
+# 使用 O2 级别的优化
+sed -i 's/Os/O2 -Wl,--gc-sections/g' include/target.mk
 wget -qO - https://github.com/openwrt/openwrt/commit/8249a8c.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/66fa343.patch | patch -p1
 # 更新 Feeds
