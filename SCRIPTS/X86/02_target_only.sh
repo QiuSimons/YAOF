@@ -1,12 +1,25 @@
 #!/bin/bash
 
-sed -i 's/O3 -Wl,--gc-sections/O3 -Wl,--gc-sections -mtune=goldmont-plus/g' include/target.mk
+sed -i 's/O3 -Wl,--gc-sections/O2 -Wl,--gc-sections -mtune=goldmont-plus/g' include/target.mk
 
 rm -rf ./package/kernel/linux/modules/video.mk
 rm -rf ./target/linux/x86/64/config-5.10
 wget -P package/kernel/linux/modules/ https://github.com/coolsnowwolf/lede/raw/master/package/kernel/linux/modules/video.mk
 sed -i 's,CONFIG_DRM_I915_CAPTURE_ERROR ,CONFIG_DRM_I915_CAPTURE_ERROR=n ,g' package/kernel/linux/modules/video.mk
 wget -P target/linux/x86/64/ https://github.com/coolsnowwolf/lede/raw/master/target/linux/x86/64/config-5.10
+
+echo '# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+
+grep "Default string" /tmp/sysinfo/model >> /dev/null
+if [ $? -ne 0 ];then
+    echo should be fine
+else
+    echo "Compatible PC" > /tmp/sysinfo/model
+fi
+
+exit 0
+'> ./package/base-files/files/etc/rc.local
 
 # UKSM
 #echo '
