@@ -63,7 +63,7 @@ CONFIG_LUCI_LANG_zh_Hans=y
 CONFIG_LUCI_LANG_en=y
 # CONFIG_LUCI_CSSTIDY is not set
 # CONFIG_LUCI_JSMIN is not set
-CONFIG_PACKAGE_luci=y
+CONFIG_PACKAGE_luci-nginx=y
 CONFIG_PACKAGE_luci-compat=y
 
 ### APPLICATION ###
