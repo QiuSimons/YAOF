@@ -1,9 +1,0 @@
-
-config dnsfilter
-	option cron_mode '1'
-	option time_update '6'
-	option flash '0'
-	option enable '1'
-	list url 'https://cdn.jsdelivr.net/gh/AdguardTeam/AdGuardSDNSFilter@gh-pages/Filters/filter.txt'
-	list url 'https://cdn.jsdelivr.net/gh/easylist/easylistchina@master/easylistchina.txt'
-

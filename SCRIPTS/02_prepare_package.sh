@@ -237,6 +237,7 @@ svn export https://github.com/immortalwrt/luci/trunk/applications/luci-app-arpbi
 ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/luci-app-arpbind
 # 定时重启
 svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-autoreboot package/lean/luci-app-autoreboot
+sed -i '/LUCI_DEPENDS/d' package/lean/luci-app-autoreboot/Makefile
 # Boost 通用即插即用
 svn export https://github.com/QiuSimons/slim-wrt/branches/main/slimapps/application/luci-app-boostupnp package/new/luci-app-boostupnp
 rm -rf ./feeds/packages/net/miniupnpd
