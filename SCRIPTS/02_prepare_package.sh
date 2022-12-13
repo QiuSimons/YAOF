@@ -472,6 +472,8 @@ ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
 git clone -b js --depth 1 https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
 # ucode
 #svn export https://github.com/openwrt/openwrt/trunk/package/utils/ucode package/utils/ucode
+# uwsgi
+sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
 # USB 打印机
 svn export https://github.com/coolsnowwolf/luci/trunk/applications/luci-app-usb-printer package/lean/luci-app-usb-printer
 # UU加速器
