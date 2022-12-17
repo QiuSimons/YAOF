@@ -204,8 +204,8 @@ cp -rf ../PATCH/igc-files-5.10 ./target/linux/x86/files-5.10
 # UPX 可执行软件压缩
 sed -i '/patchelf pkgconf/i\tools-y += ucl upx' ./tools/Makefile
 sed -i '\/autoconf\/compile :=/i\$(curdir)/upx/compile := $(curdir)/ucl/compile' ./tools/Makefile
-svn export https://github.com/coolsnowwolf/lede/trunk/tools/ucl tools/ucl
-svn export https://github.com/coolsnowwolf/lede/trunk/tools/upx tools/upx
+svn export https://github.com/Lienol/openwrt/trunk/tools/ucl tools/ucl
+svn export https://github.com/Lienol/openwrt/trunk/tools/upx tools/upx
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # 更换 golang 版本
@@ -502,7 +502,7 @@ git clone -b master --depth 1 https://github.com/brvphoenix/luci-app-wrtbwmon.gi
 # 迅雷快鸟宽带加速
 git clone --depth 1 https://github.com/kiddin9/luci-app-xlnetacc.git package/lean/luci-app-xlnetacc
 # Zerotier
-svn export https://github.com/immortalwrt/luci/trunk/applications/luci-app-zerotier feeds/luci/applications/luci-app-zerotier
+svn export https://github.com/immortalwrt/luci/branches/master/applications/luci-app-zerotier feeds/luci/applications/luci-app-zerotier
 #svn export https://github.com/wongsyrone/lede-1/trunk/package/external/luci-app-zerotier feeds/luci/applications/luci-app-zerotier
 #svn export https://github.com/immortalwrt/luci/trunk/applications/luci-app-zerotier feeds/luci/applications/luci-app-zerotier
 wget -P feeds/luci/applications/luci-app-zerotier/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
