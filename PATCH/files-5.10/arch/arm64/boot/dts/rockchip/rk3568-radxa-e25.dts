@@ -4,6 +4,6 @@
 /dts-v1/;
 
 / {
-	model = "Radxa ROCK Pi E25";
-	compatible = "radxa,rockpi-e25", "rockchip,rk3568";
+	model = "Radxa E25";
+	compatible = "radxa,e25", "rockchip,rk3568";
 };
