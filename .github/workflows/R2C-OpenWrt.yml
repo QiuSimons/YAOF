@@ -48,6 +48,11 @@ jobs:
         /bin/bash 02_prepare_package.sh
         /bin/bash 02_target_only.sh
         /bin/bash 04_remove_upx.sh
+    - name: QTMDFW4
+      run: |
+        cd openwrt
+        cp -rf ../SEED/R2C/config.seed .config
+        /bin/bash 07_fw3.sh
     - name: Convert Translation
       run: |
         cd openwrt
@@ -59,8 +64,6 @@ jobs:
     - name: Make Config
       run: |
         cd openwrt
-        cp -rf ../SEED/R2C/config.seed .config
-        #echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config
         make defconfig
     - name: Get Architecture
       working-directory: ${{ github.workspace }}/openwrt
