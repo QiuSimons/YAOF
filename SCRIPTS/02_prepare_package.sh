@@ -249,6 +249,10 @@ wget -qO- https://github.com/openwrt/packages/commit/d811cb4.patch | patch -p1
 wget -qO- https://github.com/openwrt/packages/commit/9a2da85.patch | patch -p1
 wget -qO- https://github.com/openwrt/packages/commit/71dc090.patch | patch -p1
 popd
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/201-change-default-chain-rule-to-accept.patch
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0004-miniupnpd-format-xml-to-make-some-app-happy.patch
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0005-miniupnpd-stun-ignore-external-port-changed.patch
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0006-miniupnpd-fix-stun-POSTROUTING-filter-for-openwrt.patch
 #sed -i '/firewall4.include/d' feeds/packages/net/miniupnpd/Makefile
 rm -rf ./feeds/luci/applications/luci-app-upnp
 #git clone -b main --depth 1 https://github.com/msylgj/luci-app-upnp feeds/luci/applications/luci-app-upnp
