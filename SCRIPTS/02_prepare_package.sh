@@ -26,14 +26,9 @@ echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysc
 sed -i "s/client_max_body_size 128M/client_max_body_size 2048M/g" feeds/packages/net/nginx-util/files/uci.conf.template
 
 ### 必要的 Patches ###
-cp -f ../PATCH/backport/290-remove-kconfig-CONFIG_I8K.patch ./target/linux/generic/hack-5.10/290-remove-kconfig-CONFIG_I8K.patch
 # introduce "MG-LRU" Linux kernel patches
 cp -rf ../PATCH/backport/MG-LRU/* ./target/linux/generic/pending-5.10/
-echo '
-CONFIG_LRU_GEN=y
-CONFIG_LRU_GEN_ENABLED=y
-# CONFIG_LRU_GEN_STATS is not set
-' >>./target/linux/generic/config-5.10
+cp -rf ../PATCH/backport/MG-LRU/* ./target/linux/generic/pending-5.10/
 # TCP optimizations
 cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # Patch arm64 型号名称
@@ -82,7 +77,9 @@ cp -rf ../Lienol/package/network/utils/fullconenat ./package/new/fullconenat
 rm -rf ./target/linux/rockchip
 cp -rf ../lede/target/linux/rockchip ./target/linux/rockchip
 rm -rf ./target/linux/rockchip/Makefile
-wget -P target/linux/rockchip/ https://github.com/openwrt/openwrt/raw/openwrt-22.03/target/linux/rockchip/Makefile
+cp -rf ../openwrt_release/target/linux/rockchip/Makefile ./target/linux/rockchip/Makefile
+rm -rf ./target/linux/rockchip/armv8/config-5.10
+cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.10 ./target/linux/rockchip/armv8/config-5.10
 rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configuration-from-OF.patch
 rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
 cp -rf ../PATCH/rockchip-5.10/* ./target/linux/rockchip/patches-5.10/
@@ -228,7 +225,6 @@ popd
 sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
 rm -rf ./feeds/luci/collections/luci-lib-docker
 cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
-sed -i 's,# CONFIG_BLK_CGROUP_IOCOST is not set,CONFIG_BLK_CGROUP_IOCOST=y,g' target/linux/generic/config-5.10
 # DiskMan
 mkdir -p package/new/luci-app-diskman && \
 wget https://raw.githubusercontent.com/lisaac/luci-app-diskman/master/applications/luci-app-diskman/Makefile -O package/new/luci-app-diskman/Makefile
@@ -419,54 +415,7 @@ sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 # 生成默认配置及缓存
 rm -rf .config
 
-echo '
-CONFIG_RESERVE_ACTIVEFILE_TO_PREVENT_DISK_THRASHING=y
-CONFIG_RESERVE_ACTIVEFILE_KBYTES=65536
-CONFIG_RESERVE_INACTIVEFILE_TO_PREVENT_DISK_THRASHING=y
-CONFIG_RESERVE_INACTIVEFILE_KBYTES=65536
 
-CONFIG_RANDOM_DEFAULT_IMPL=y
-CONFIG_LRNG=y
-CONFIG_LRNG_SHA256=y
-# CONFIG_LRNG_AIS2031_NTG1_SEEDING_STRATEGY is not set
-# CONFIG_LRNG_KCAPI_IF is not set
-# CONFIG_LRNG_HWRAND_IF is not set
-# CONFIG_LRNG_DEV_IF is not set
-# CONFIG_LRNG_RUNTIME_ES_CONFIG is not set
-CONFIG_LRNG_RCT_CUTOFF=31
-CONFIG_LRNG_APT_CUTOFF=325
-# CONFIG_LRNG_JENT is not set
-CONFIG_LRNG_CPU=y
-CONFIG_LRNG_CPU_FULL_ENT_MULTIPLIER=1
-CONFIG_LRNG_CPU_ENTROPY_RATE=8
-# CONFIG_LRNG_SCHED is not set
-# CONFIG_LRNG_KERNEL_RNG is not set
-CONFIG_LRNG_DRNG_CHACHA20=y
-# CONFIG_LRNG_SWITCH_HASH is not set
-# CONFIG_LRNG_SWITCH_DRNG is not set
-CONFIG_LRNG_DFLT_DRNG_CHACHA20=y
-# CONFIG_LRNG_DFLT_DRNG_DRBG is not set
-# CONFIG_LRNG_DFLT_DRNG_KCAPI is not set
-# CONFIG_LRNG_TESTING_MENU is not set
-# CONFIG_LRNG_SELFTEST is not set
-
-# CONFIG_IR_SANYO_DECODER is not set
-# CONFIG_IR_SHARP_DECODER is not set
-# CONFIG_IR_MCE_KBD_DECODER is not set
-# CONFIG_IR_XMP_DECODER is not set
-# CONFIG_IR_IMON_DECODER is not set
-# CONFIG_IR_RCMM_DECODER is not set
-# CONFIG_IR_SPI is not set
-# CONFIG_IR_GPIO_TX is not set
-# CONFIG_IR_PWM_TX is not set
-# CONFIG_IR_SERIAL is not set
-# CONFIG_IR_SIR is not set
-# CONFIG_RC_XBOX_DVD is not set
-# CONFIG_IR_TOY is not set
-
-CONFIG_NFSD=y
-
-' >>./target/linux/generic/config-5.10
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
 wget -P target/linux/generic/hack-5.10/ https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch

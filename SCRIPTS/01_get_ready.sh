@@ -24,8 +24,6 @@ cp -f ./openwrt_release/version.date ./openwrt/version.date
 cp -rf ./openwrt_release/target/linux/* ./openwrt/target/linux/
 cp -rf ./openwrt_release/package/kernel/linux/* ./openwrt/package/kernel/linux/
 
-rm -rf ./openwrt_release
-
 # 获取源代码
 git clone -b master --depth 1 https://github.com/immortalwrt/immortalwrt.git immortalwrt
 git clone -b master --depth 1 https://github.com/immortalwrt/packages.git immortalwrt_pkg
