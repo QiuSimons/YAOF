@@ -1,0 +1,325 @@
+From dac167428616c559ab6d4178a26ec92e65974368 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 16:09:02 +0200
+Subject: [PATCH v45 07/26] LRNG - add SP800-90A DRBG extension
+
+Using the LRNG switchable DRNG support, the SP800-90A DRBG extension is
+implemented.
+
+The DRBG uses the kernel crypto API DRBG implementation. In addition, it
+uses the kernel crypto API SHASH support to provide the hashing
+operation.
+
+The DRBG supports the choice of either a CTR DRBG using AES-256, HMAC
+DRBG with SHA-512 core or Hash DRBG with SHA-512 core. The used core can
+be selected with the module parameter lrng_drbg_type. The default is the
+CTR DRBG.
+
+When compiling the DRBG extension statically, the DRBG is loaded at
+late_initcall stage which implies that with the start of user space, the
+user space interfaces of getrandom(2), /dev/random and /dev/urandom
+provide random data produced by an SP800-90A DRBG.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Kconfig          |  76 ++++++------
+ drivers/char/lrng/Makefile         |   1 +
+ drivers/char/lrng/lrng_drng_drbg.c | 179 +++++++++++++++++++++++++++++
+ 3 files changed, 218 insertions(+), 38 deletions(-)
+ create mode 100644 drivers/char/lrng/lrng_drng_drbg.c
+
+--- a/drivers/char/lrng/Kconfig
++++ b/drivers/char/lrng/Kconfig
+@@ -519,11 +519,11 @@ config LRNG_RANDOM_IF
+ config LRNG_DRNG_CHACHA20
+ 	tristate
+ 
+-# config LRNG_DRBG
+-# 	tristate
+-# 	depends on CRYPTO
+-# 	select CRYPTO_DRBG_MENU
+-#
++config LRNG_DRBG
++	tristate
++	depends on CRYPTO
++	select CRYPTO_DRBG_MENU
++
+ # config LRNG_DRNG_KCAPI
+ # 	tristate
+ # 	depends on CRYPTO
+@@ -552,33 +552,33 @@ config LRNG_HASH_KCAPI
+ 
+ endif # LRNG_SWITCH_HASH
+ 
+-# menuconfig LRNG_SWITCH_DRNG
+-# 	bool "Support DRNG runtime switching"
+-# 	select LRNG_SWITCH
+-# 	help
+-# 	  The LRNG uses a default DRNG With this configuration
+-# 	  option other DRNGs or message digests can be selected and
+-# 	  loaded at runtime.
+-#
+-# if LRNG_SWITCH_DRNG
+-#
+-# config LRNG_SWITCH_DRNG_CHACHA20
+-# 	tristate "ChaCha20-based DRNG support for LRNG"
+-# 	depends on !LRNG_DFLT_DRNG_CHACHA20
+-# 	select LRNG_DRNG_CHACHA20
+-# 	help
+-# 	  Enable the ChaCha20-based DRNG. This DRNG implementation
+-# 	  does not depend on the kernel crypto API presence.
+-#
+-# config LRNG_SWITCH_DRBG
+-# 	tristate "SP800-90A support for the LRNG"
+-# 	depends on !LRNG_DFLT_DRNG_DRBG
+-# 	select LRNG_DRBG
+-# 	help
+-# 	  Enable the SP800-90A DRBG support for the LRNG. Once the
+-# 	  module is loaded, output from /dev/random, /dev/urandom,
+-# 	  getrandom(2), or get_random_bytes_full is provided by a DRBG.
+-#
++menuconfig LRNG_SWITCH_DRNG
++	bool "Support DRNG runtime switching"
++	select LRNG_SWITCH
++	help
++	  The LRNG uses a default DRNG With this configuration
++	  option other DRNGs or message digests can be selected and
++	  loaded at runtime.
++
++if LRNG_SWITCH_DRNG
++
++config LRNG_SWITCH_DRNG_CHACHA20
++	tristate "ChaCha20-based DRNG support for LRNG"
++	depends on !LRNG_DFLT_DRNG_CHACHA20
++	select LRNG_DRNG_CHACHA20
++	help
++	  Enable the ChaCha20-based DRNG. This DRNG implementation
++	  does not depend on the kernel crypto API presence.
++
++config LRNG_SWITCH_DRBG
++	tristate "SP800-90A support for the LRNG"
++	depends on !LRNG_DFLT_DRNG_DRBG
++	select LRNG_DRBG
++	help
++	  Enable the SP800-90A DRBG support for the LRNG. Once the
++	  module is loaded, output from /dev/random, /dev/urandom,
++	  getrandom(2), or get_random_bytes_full is provided by a DRBG.
++
+ # config LRNG_SWITCH_DRNG_KCAPI
+ # 	tristate "Kernel Crypto API support for the LRNG"
+ # 	depends on !LRNG_DFLT_DRNG_KCAPI
+@@ -590,8 +590,8 @@ endif # LRNG_SWITCH_HASH
+ # 	  LRNG. Once the module is loaded, output from /dev/random,
+ # 	  /dev/urandom, getrandom(2), or get_random_bytes is
+ # 	  provided by the selected kernel crypto API RNG.
+-#
+-# endif # LRNG_SWITCH_DRNG
++
++endif # LRNG_SWITCH_DRNG
+ 
+ choice
+ 	prompt "LRNG Default DRNG"
+@@ -606,10 +606,10 @@ choice
+ 		bool "ChaCha20-based DRNG"
+ 		select LRNG_DRNG_CHACHA20
+ 
+-# 	config LRNG_DFLT_DRNG_DRBG
+-# 		bool "SP800-90A DRBG"
+-# 		select LRNG_DRBG
+-#
++	config LRNG_DFLT_DRNG_DRBG
++		bool "SP800-90A DRBG"
++		select LRNG_DRBG
++
+ # 	config LRNG_DFLT_DRNG_KCAPI
+ # 		bool "Kernel Crypto API DRNG"
+ # 		select LRNG_DRNG_KCAPI
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -14,3 +14,4 @@ obj-$(CONFIG_NUMA)			+= lrng_numa.o
+ obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
+ obj-$(CONFIG_LRNG_HASH_KCAPI)		+= lrng_hash_kcapi.o
+ obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
++obj-$(CONFIG_LRNG_DRBG)			+= lrng_drng_drbg.o
+--- /dev/null
++++ b/drivers/char/lrng/lrng_drng_drbg.c
+@@ -0,0 +1,179 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * Backend for the LRNG providing the cryptographic primitives using the
++ * kernel crypto API and its DRBG.
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <crypto/drbg.h>
++#include <linux/lrng.h>
++#include <linux/init.h>
++#include <linux/module.h>
++
++#include "lrng_drng_drbg.h"
++
++/*
++ * Define a DRBG plus a hash / MAC used to extract data from the entropy pool.
++ * For LRNG_HASH_NAME you can use a hash or a MAC (HMAC or CMAC) of your choice
++ * (Note, you should use the suggested selections below -- using SHA-1 or MD5
++ * is not wise). The idea is that the used cipher primitive can be selected to
++ * be the same as used for the DRBG. I.e. the LRNG only uses one cipher
++ * primitive using the same cipher implementation with the options offered in
++ * the following. This means, if the CTR DRBG is selected and AES-NI is present,
++ * both the CTR DRBG and the selected cmac(aes) use AES-NI.
++ *
++ * The security strengths of the DRBGs are all 256 bits according to
++ * SP800-57 section 5.6.1.
++ *
++ * This definition is allowed to be changed.
++ */
++#ifdef CONFIG_CRYPTO_DRBG_CTR
++static unsigned int lrng_drbg_type = 0;
++#elif defined CONFIG_CRYPTO_DRBG_HMAC
++static unsigned int lrng_drbg_type = 1;
++#elif defined CONFIG_CRYPTO_DRBG_HASH
++static unsigned int lrng_drbg_type = 2;
++#else
++#error "Unknown DRBG in use"
++#endif
++
++/* The parameter must be r/o in sysfs as otherwise races appear. */
++module_param(lrng_drbg_type, uint, 0444);
++MODULE_PARM_DESC(lrng_drbg_type, "DRBG type used for LRNG (0->CTR_DRBG, 1->HMAC_DRBG, 2->Hash_DRBG)");
++
++struct lrng_drbg {
++	const char *hash_name;
++	const char *drbg_core;
++};
++
++static const struct lrng_drbg lrng_drbg_types[] = {
++	{	/* CTR_DRBG with AES-256 using derivation function */
++		.drbg_core = "drbg_nopr_ctr_aes256",
++	}, {	/* HMAC_DRBG with SHA-512 */
++		.drbg_core = "drbg_nopr_hmac_sha512",
++	}, {	/* Hash_DRBG with SHA-512 using derivation function */
++		.drbg_core = "drbg_nopr_sha512"
++	}
++};
++
++static int lrng_drbg_drng_seed_helper(void *drng, const u8 *inbuf, u32 inbuflen)
++{
++	struct drbg_state *drbg = (struct drbg_state *)drng;
++	LIST_HEAD(seedlist);
++	struct drbg_string data;
++	int ret;
++
++	drbg_string_fill(&data, inbuf, inbuflen);
++	list_add_tail(&data.list, &seedlist);
++	ret = drbg->d_ops->update(drbg, &seedlist, drbg->seeded);
++
++	if (ret >= 0)
++		drbg->seeded = true;
++
++	return ret;
++}
++
++static int lrng_drbg_drng_generate_helper(void *drng, u8 *outbuf, u32 outbuflen)
++{
++	struct drbg_state *drbg = (struct drbg_state *)drng;
++
++	return drbg->d_ops->generate(drbg, outbuf, outbuflen, NULL);
++}
++
++static void *lrng_drbg_drng_alloc(u32 sec_strength)
++{
++	struct drbg_state *drbg;
++	int coreref = -1;
++	bool pr = false;
++	int ret;
++
++	drbg_convert_tfm_core(lrng_drbg_types[lrng_drbg_type].drbg_core,
++			      &coreref, &pr);
++	if (coreref < 0)
++		return ERR_PTR(-EFAULT);
++
++	drbg = kzalloc(sizeof(struct drbg_state), GFP_KERNEL);
++	if (!drbg)
++		return ERR_PTR(-ENOMEM);
++
++	drbg->core = &drbg_cores[coreref];
++	drbg->seeded = false;
++	ret = drbg_alloc_state(drbg);
++	if (ret)
++		goto err;
++
++	if (sec_strength > drbg_sec_strength(drbg->core->flags)) {
++		pr_err("Security strength of DRBG (%u bits) lower than requested by LRNG (%u bits)\n",
++			drbg_sec_strength(drbg->core->flags) * 8,
++			sec_strength * 8);
++		goto dealloc;
++	}
++
++	if (sec_strength < drbg_sec_strength(drbg->core->flags))
++		pr_warn("Security strength of DRBG (%u bits) higher than requested by LRNG (%u bits)\n",
++			drbg_sec_strength(drbg->core->flags) * 8,
++			sec_strength * 8);
++
++	pr_info("DRBG with %s core allocated\n", drbg->core->backend_cra_name);
++
++	return drbg;
++
++dealloc:
++	if (drbg->d_ops)
++		drbg->d_ops->crypto_fini(drbg);
++	drbg_dealloc_state(drbg);
++err:
++	kfree(drbg);
++	return ERR_PTR(-EINVAL);
++}
++
++static void lrng_drbg_drng_dealloc(void *drng)
++{
++	struct drbg_state *drbg = (struct drbg_state *)drng;
++
++	if (drbg && drbg->d_ops)
++		drbg->d_ops->crypto_fini(drbg);
++	drbg_dealloc_state(drbg);
++	kfree_sensitive(drbg);
++	pr_info("DRBG deallocated\n");
++}
++
++static const char *lrng_drbg_name(void)
++{
++	return lrng_drbg_types[lrng_drbg_type].drbg_core;
++}
++
++const struct lrng_drng_cb lrng_drbg_cb = {
++	.drng_name	= lrng_drbg_name,
++	.drng_alloc	= lrng_drbg_drng_alloc,
++	.drng_dealloc	= lrng_drbg_drng_dealloc,
++	.drng_seed	= lrng_drbg_drng_seed_helper,
++	.drng_generate	= lrng_drbg_drng_generate_helper,
++};
++
++#ifndef CONFIG_LRNG_DFLT_DRNG_DRBG
++static int __init lrng_drbg_init(void)
++{
++	if (lrng_drbg_type >= ARRAY_SIZE(lrng_drbg_types)) {
++		pr_err("lrng_drbg_type parameter too large (given %u - max: %lu)",
++		       lrng_drbg_type,
++		       (unsigned long)ARRAY_SIZE(lrng_drbg_types) - 1);
++		return -EAGAIN;
++	}
++	return lrng_set_drng_cb(&lrng_drbg_cb);
++}
++
++static void __exit lrng_drbg_exit(void)
++{
++	lrng_set_drng_cb(NULL);
++}
++
++late_initcall(lrng_drbg_init);
++module_exit(lrng_drbg_exit);
++MODULE_LICENSE("Dual BSD/GPL");
++MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
++MODULE_DESCRIPTION("Entropy Source and DRNG Manager - SP800-90A DRBG backend");
++#endif /* CONFIG_LRNG_DFLT_DRNG_DRBG */

@@ -1,0 +1,80 @@
+From e64c9f8a53af273722115f75cb86f0f0f03a10af Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 17:47:58 +0200
+Subject: [PATCH v45 17/26] crypto: move Jitter RNG header include dir
+
+To support the LRNG operation which uses the Jitter RNG separately
+from the kernel crypto API, the header file must be accessible to
+the LRNG code.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ crypto/jitterentropy-kcapi.c                        | 3 +--
+ crypto/jitterentropy.c                              | 2 +-
+ {crypto => include/crypto/internal}/jitterentropy.h | 0
+ 3 files changed, 2 insertions(+), 3 deletions(-)
+ rename {crypto => include/crypto/internal}/jitterentropy.h (100%)
+
+--- a/crypto/jitterentropy-kcapi.c
++++ b/crypto/jitterentropy-kcapi.c
+@@ -43,8 +43,7 @@
+ #include <linux/fips.h>
+ #include <linux/time.h>
+ #include <crypto/internal/rng.h>
+-
+-#include "jitterentropy.h"
++#include <crypto/internal/jitterentropy.h>
+ 
+ /***************************************************************************
+  * Helper function
+--- a/crypto/jitterentropy.c
++++ b/crypto/jitterentropy.c
+@@ -118,7 +118,7 @@ struct rand_data {
+ #define JENT_ERCT		10 /* RCT failed during initialization */
+ 
+ #include <linux/fips.h>
+-#include "jitterentropy.h"
++#include <crypto/internal/jitterentropy.h>
+ 
+ /***************************************************************************
+  * Adaptive Proportion Test
+--- a/crypto/jitterentropy.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
+-
+-extern void *jent_zalloc(unsigned int len);
+-extern void jent_zfree(void *ptr);
+-extern int jent_fips_enabled(void);
+-extern void jent_panic(char *s);
+-extern void jent_memcpy(void *dest, const void *src, unsigned int n);
+-extern void jent_get_nstime(__u64 *out);
+-
+-struct rand_data;
+-extern int jent_entropy_init(void);
+-extern int jent_read_entropy(struct rand_data *ec, unsigned char *data,
+-			     unsigned int len);
+-
+-extern struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
+-						      unsigned int flags);
+-extern void jent_entropy_collector_free(struct rand_data *entropy_collector);
+--- /dev/null
++++ b/include/crypto/internal/jitterentropy.h
+@@ -0,0 +1,17 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++extern void *jent_zalloc(unsigned int len);
++extern void jent_zfree(void *ptr);
++extern int jent_fips_enabled(void);
++extern void jent_panic(char *s);
++extern void jent_memcpy(void *dest, const void *src, unsigned int n);
++extern void jent_get_nstime(__u64 *out);
++
++struct rand_data;
++extern int jent_entropy_init(void);
++extern int jent_read_entropy(struct rand_data *ec, unsigned char *data,
++			     unsigned int len);
++
++extern struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
++						      unsigned int flags);
++extern void jent_entropy_collector_free(struct rand_data *entropy_collector);

@@ -1,0 +1,54 @@
+--- a/drivers/char/lrng/lrng_es_krng.c
++++ b/drivers/char/lrng/lrng_es_krng.c
+@@ -23,8 +23,9 @@ MODULE_PARM_DESC(krng_entropy, "Entropy
+ 
+ static atomic_t lrng_krng_initial_rate = ATOMIC_INIT(0);
+ 
+-static struct notifier_block lrng_krng_ready = {
+-	.notifier_call = NULL,
++static struct random_ready_callback lrng_krng_ready = {
++	.owner = THIS_MODULE,
++	.func = NULL,
+ };
+ 
+ static u32 lrng_krng_fips_entropylevel(u32 entropylevel)
+@@ -32,8 +33,7 @@ static u32 lrng_krng_fips_entropylevel(u
+ 	return fips_enabled ? 0 : entropylevel;
+ }
+ 
+-static int lrng_krng_adjust_entropy(struct notifier_block *nb,
+-				    unsigned long action, void *data)
++static void lrng_krng_adjust_entropy(struct random_ready_callback *rdy)
+ {
+ 	u32 entropylevel;
+ 
+@@ -45,17 +45,16 @@ static int lrng_krng_adjust_entropy(stru
+ 	lrng_drng_force_reseed();
+ 	if (entropylevel)
+ 		lrng_es_add_entropy();
+-	return 0;
+ }
+ 
+ static u32 lrng_krng_entropylevel(u32 requested_bits)
+ {
+-	if (lrng_krng_ready.notifier_call == NULL) {
++	if (lrng_krng_ready.func == NULL) {
+ 		int err;
+ 
+-		lrng_krng_ready.notifier_call = lrng_krng_adjust_entropy;
++		lrng_krng_ready.func = lrng_krng_adjust_entropy;
+ 
+-		err = register_random_ready_notifier(&lrng_krng_ready);
++		err = add_random_ready_callback(&lrng_krng_ready);
+ 		switch (err) {
+ 		case 0:
+ 			atomic_set(&lrng_krng_initial_rate, krng_entropy);
+@@ -68,7 +67,7 @@ static u32 lrng_krng_entropylevel(u32 re
+ 				 lrng_krng_fips_entropylevel(krng_entropy));
+ 			break;
+ 		default:
+-			lrng_krng_ready.notifier_call = NULL;
++			lrng_krng_ready.func = NULL;
+ 			return 0;
+ 		}
+ 	}
