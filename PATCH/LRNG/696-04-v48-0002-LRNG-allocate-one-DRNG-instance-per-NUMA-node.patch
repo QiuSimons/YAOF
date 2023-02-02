@@ -1,0 +1,207 @@
+From bafaaceef2f6ebb160e2e142ee4d601d16a9c0d6 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 15:40:46 +0200
+Subject: [PATCH v48 02/26] LRNG - allocate one DRNG instance per NUMA node
+
+In order to improve NUMA-locality when serving getrandom(2) requests,
+allocate one DRNG instance per node.
+
+The DRNG instance that is present right from the start of the kernel is
+reused as the first per-NUMA-node DRNG. For all remaining online NUMA
+nodes a new DRNG instance is allocated.
+
+During boot time, the multiple DRNG instances are seeded sequentially.
+With this, the first DRNG instance (referenced as the initial DRNG
+in the code) is completely seeded with 256 bits of entropy before the
+next DRNG instance is completely seeded.
+
+When random numbers are requested, the NUMA-node-local DRNG is checked
+whether it has been already fully seeded. If this is not the case, the
+initial DRNG is used to serve the request.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Makefile    |   2 +
+ drivers/char/lrng/lrng_numa.c | 124 ++++++++++++++++++++++++++++++++++
+ drivers/char/lrng/lrng_numa.h |   4 ++
+ drivers/char/lrng/lrng_proc.h |  11 +++
+ 4 files changed, 141 insertions(+)
+ create mode 100644 drivers/char/lrng/lrng_numa.c
+ create mode 100644 drivers/char/lrng/lrng_proc.h
+
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 809e1911d370..60effabb1372 100644
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -8,4 +8,6 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr.o \
+ obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha256.o
+ obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
+ 
++obj-$(CONFIG_NUMA)			+= lrng_numa.o
++
+ obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
+diff --git a/drivers/char/lrng/lrng_numa.c b/drivers/char/lrng/lrng_numa.c
+new file mode 100644
+index 000000000000..d74dd8df2843
+--- /dev/null
++++ b/drivers/char/lrng/lrng_numa.c
+@@ -0,0 +1,124 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG NUMA support
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/lrng.h>
++#include <linux/slab.h>
++
++#include "lrng_drng_mgr.h"
++#include "lrng_es_irq.h"
++#include "lrng_es_mgr.h"
++#include "lrng_numa.h"
++#include "lrng_proc.h"
++
++static struct lrng_drng **lrng_drng __read_mostly = NULL;
++
++struct lrng_drng **lrng_drng_instances(void)
++{
++	/* counterpart to cmpxchg_release in _lrng_drngs_numa_alloc */
++	return READ_ONCE(lrng_drng);
++}
++
++/* Allocate the data structures for the per-NUMA node DRNGs */
++static void _lrng_drngs_numa_alloc(struct work_struct *work)
++{
++	struct lrng_drng **drngs;
++	struct lrng_drng *lrng_drng_init = lrng_drng_init_instance();
++	u32 node;
++	bool init_drng_used = false;
++
++	mutex_lock(&lrng_crypto_cb_update);
++
++	/* per-NUMA-node DRNGs are already present */
++	if (lrng_drng)
++		goto unlock;
++
++	/* Make sure the initial DRNG is initialized and its drng_cb is set */
++	if (lrng_drng_initalize())
++		goto err;
++
++	drngs = kcalloc(nr_node_ids, sizeof(void *), GFP_KERNEL|__GFP_NOFAIL);
++	for_each_online_node(node) {
++		struct lrng_drng *drng;
++
++		if (!init_drng_used) {
++			drngs[node] = lrng_drng_init;
++			init_drng_used = true;
++			continue;
++		}
++
++		drng = kmalloc_node(sizeof(struct lrng_drng),
++				    GFP_KERNEL|__GFP_NOFAIL, node);
++		memset(drng, 0, sizeof(lrng_drng));
++
++		if (lrng_drng_alloc_common(drng, lrng_drng_init->drng_cb)) {
++			kfree(drng);
++			goto err;
++		}
++
++		drng->hash_cb = lrng_drng_init->hash_cb;
++		drng->hash = lrng_drng_init->hash_cb->hash_alloc();
++		if (IS_ERR(drng->hash)) {
++			lrng_drng_init->drng_cb->drng_dealloc(drng->drng);
++			kfree(drng);
++			goto err;
++		}
++
++		mutex_init(&drng->lock);
++		rwlock_init(&drng->hash_lock);
++
++		/*
++		 * No reseeding of NUMA DRNGs from previous DRNGs as this
++		 * would complicate the code. Let it simply reseed.
++		 */
++		drngs[node] = drng;
++
++		lrng_pool_inc_numa_node();
++		pr_info("DRNG and entropy pool read hash for NUMA node %d allocated\n",
++			node);
++	}
++
++	/* counterpart to READ_ONCE in lrng_drng_instances */
++	if (!cmpxchg_release(&lrng_drng, NULL, drngs)) {
++		lrng_pool_all_numa_nodes_seeded(false);
++		goto unlock;
++	}
++
++err:
++	for_each_online_node(node) {
++		struct lrng_drng *drng = drngs[node];
++
++		if (drng == lrng_drng_init)
++			continue;
++
++		if (drng) {
++			drng->hash_cb->hash_dealloc(drng->hash);
++			drng->drng_cb->drng_dealloc(drng->drng);
++			kfree(drng);
++		}
++	}
++	kfree(drngs);
++
++unlock:
++	mutex_unlock(&lrng_crypto_cb_update);
++}
++
++static DECLARE_WORK(lrng_drngs_numa_alloc_work, _lrng_drngs_numa_alloc);
++
++static void lrng_drngs_numa_alloc(void)
++{
++	schedule_work(&lrng_drngs_numa_alloc_work);
++}
++
++static int __init lrng_numa_init(void)
++{
++	lrng_drngs_numa_alloc();
++	return 0;
++}
++
++late_initcall(lrng_numa_init);
+diff --git a/drivers/char/lrng/lrng_numa.h b/drivers/char/lrng/lrng_numa.h
+index bfbb9a489031..dc8dff9816ee 100644
+--- a/drivers/char/lrng/lrng_numa.h
++++ b/drivers/char/lrng/lrng_numa.h
+@@ -6,6 +6,10 @@
+ #ifndef _LRNG_NUMA_H
+ #define _LRNG_NUMA_H
+ 
++#ifdef CONFIG_NUMA
++struct lrng_drng **lrng_drng_instances(void);
++#else	/* CONFIG_NUMA */
+ static inline struct lrng_drng **lrng_drng_instances(void) { return NULL; }
++#endif /* CONFIG_NUMA */
+ 
+ #endif /* _LRNG_NUMA_H */
+diff --git a/drivers/char/lrng/lrng_proc.h b/drivers/char/lrng/lrng_proc.h
+new file mode 100644
+index 000000000000..e8097abe7fbd
+--- /dev/null
++++ b/drivers/char/lrng/lrng_proc.h
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
++/*
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#ifndef _LRNG_PROC_H
++#define _LRNG_PROC_H
++
++static inline void lrng_pool_inc_numa_node(void) { }
++
++#endif /* _LRNG_PROC_H */
+-- 
+2.39.0
+
