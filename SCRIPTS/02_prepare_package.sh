@@ -414,7 +414,7 @@ wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-A
 sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 # 生成默认配置及缓存
 rm -rf .config
-
+cat ../SEED/extra.cfg >> ./target/linux/generic/config-5.10
 
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
