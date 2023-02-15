@@ -371,6 +371,9 @@ ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
 git clone -b js --depth 1 https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
 # uwsgi
 sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
+sed -i 's,socket-timeout = 120,socket-timeout = 600,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
+sed -i 's,buffer-size = 10000,buffer-size = 131072,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
+sed -i 's,logger = luci,#logger = luci,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
 # USB 打印机
 cp -rf ../lede_luci/applications/luci-app-usb-printer ./package/new/luci-app-usb-printer
 # UU加速器
