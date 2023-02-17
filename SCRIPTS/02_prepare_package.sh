@@ -104,6 +104,7 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 # Dnsmasq
 rm -rf ./package/network/services/dnsmasq
 cp -rf ../openwrt_ma/package/network/services/dnsmasq ./package/network/services/dnsmasq
+cp -rf ../openwrt_luci_ma/modules/luci-mod-network/htdocs/luci-static/resources/view/network/dhcp.js ./feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/
 
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
