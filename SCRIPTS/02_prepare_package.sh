@@ -151,7 +151,7 @@ patch -p1 <../PATCH/r8168/r8168-fix_LAN_led-for_r4s-from_TL.patch
 # R8152驱动
 cp -rf ../immortalwrt/package/kernel/r8152 ./package/new/r8152
 # r8125驱动
-cp -rf ../lede/package/lean/r8125 ./package/new/r8125
+git clone https://github.com/sbwml/package_kernel_r8125 package/new/r8125
 # igc-backport
 cp -rf ../PATCH/igc-files-5.10 ./target/linux/x86/files-5.10
 # UPX 可执行软件压缩
