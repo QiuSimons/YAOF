@@ -17,8 +17,8 @@ sed -i 's,-SNAPSHOT,,g' package/base-files/image-config.in
 # 维多利亚的秘密
 rm -rf ./scripts/download.pl
 rm -rf ./include/download.mk
-wget -P scripts/ https://github.com/immortalwrt/immortalwrt/raw/master/scripts/download.pl
-wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/download.mk
+cp -rf ../immortalwrt/scripts/download.pl ./scripts/download.pl
+cp -rf ../immortalwrt/include/download.mk ./include/download.mk
 sed -i '/unshift/d' scripts/download.pl
 sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
@@ -31,11 +31,10 @@ sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_
 ### 必要的 Patches ###
 # introduce "MG-LRU" Linux kernel patches
 cp -rf ../PATCH/backport/MG-LRU/* ./target/linux/generic/pending-5.10/
-cp -rf ../PATCH/backport/MG-LRU/* ./target/linux/generic/pending-5.10/
 # TCP optimizations
 cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 # Patch arm64 型号名称
-wget -P target/linux/generic/hack-5.10/ https://github.com/immortalwrt/immortalwrt/raw/master/target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
+cp -rf ../immortalwrt/target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch ./target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
 # BBRv2
 cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
 cp -rf ../PATCH/BBRv2/openwrt/package ./
@@ -53,13 +52,11 @@ wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
 
 ### Fullcone-NAT 部分 ###
 # Patch Kernel 以解决 FullCone 冲突
-pushd target/linux/generic/hack-5.10
-wget https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.10/952-net-conntrack-events-support-multiple-registrant.patch
-popd
+cp -rf ../lede/target/linux/generic/hack-5.10/952-net-conntrack-events-support-multiple-registrant.patch ./target/linux/generic/hack-5.10/952-net-conntrack-events-support-multiple-registrant.patch
 # Patch FireWall 以增添 FullCone 功能
 # FW4
 rm -rf ./package/network/config/firewall4
-cp -rf ../immortalwrt/package/network/config/firewall4  ./package/network/config/firewall4
+cp -rf ../immortalwrt/package/network/config/firewall4 ./package/network/config/firewall4
 cp -f ../PATCH/firewall/990-unconditionally-allow-ct-status-dnat.patch ./package/network/config/firewall4/patches/990-unconditionally-allow-ct-status-dnat.patch
 rm -rf ./package/libs/libnftnl
 cp -rf ../immortalwrt/package/libs/libnftnl ./package/libs/libnftnl
@@ -67,8 +64,8 @@ rm -rf ./package/network/utils/nftables
 cp -rf ../immortalwrt/package/network/utils/nftables ./package/network/utils/nftables
 # FW3
 mkdir -p package/network/config/firewall/patches
-wget -P package/network/config/firewall/patches/ https://github.com/immortalwrt/immortalwrt/raw/openwrt-21.02/package/network/config/firewall/patches/100-fullconenat.patch
-wget -qO- https://github.com/msylgj/R2S-R4S-OpenWrt/raw/master/PATCHES/001-fix-firewall3-flock.patch | patch -p1
+cp -rf ../immortalwrt_21/package/network/config/firewall/patches/100-fullconenat.patch ./package/network/config/firewall/patches/100-fullconenat.patch
+cp -rf ../immortalwrt_21/package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch ./package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch
 # Patch LuCI 以增添 FullCone 开关
 patch -p1 <../PATCH/firewall/luci-app-firewall_add_fullcone.patch
 # FullCone PKG
@@ -87,9 +84,9 @@ rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configurat
 rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
 cp -rf ../PATCH/rockchip-5.10/* ./target/linux/rockchip/patches-5.10/
 rm -rf ./package/firmware/linux-firmware/intel.mk
-wget -P package/firmware/linux-firmware/ https://github.com/coolsnowwolf/lede/raw/master/package/firmware/linux-firmware/intel.mk
+cp -rf ../lede/package/firmware/linux-firmware/intel.mk ./package/firmware/linux-firmware/intel.mk
 rm -rf ./package/firmware/linux-firmware/Makefile
-wget -P package/firmware/linux-firmware/ https://github.com/coolsnowwolf/lede/raw/master/package/firmware/linux-firmware/Makefile
+cp -rf ../lede/package/firmware/linux-firmware/Makefile ./package/firmware/linux-firmware/Makefile
 mkdir -p target/linux/rockchip/files-5.10
 cp -rf ../PATCH/files-5.10 ./target/linux/rockchip/
 # enable tso for nanopi-r4s
@@ -98,7 +95,7 @@ rm -rf ./package/boot/uboot-rockchip
 cp -rf ../lede/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
 cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
 rm -rf ./package/kernel/linux/modules/video.mk
-wget -P package/kernel/linux/modules/ https://github.com/immortalwrt/immortalwrt/raw/master/package/kernel/linux/modules/video.mk
+cp -rf ../immortalwrt/package/kernel/linux/modules/video.mk ./package/kernel/linux/modules/video.mk
 # Disable Mitigations
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/mmc.bootscript
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/nanopi-r2s.bootscript
@@ -180,8 +177,7 @@ git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config
 cp -rf ../immortalwrt_luci/applications/luci-app-arpbind ./feeds/luci/applications/luci-app-arpbind
 ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/luci-app-arpbind
 # 定时重启
-cp -rf ../lede_luci/applications/luci-app-autoreboot ./package/new/luci-app-autoreboot
-sed -i '/LUCI_DEPENDS/d' package/new/luci-app-autoreboot/Makefile
+cp -rf ../immortalwrt_luci/applications/luci-app-autoreboot ./package/feeds/luci/luci-app-autoreboot
 # Boost 通用即插即用
 rm -rf ./feeds/packages/net/miniupnpd
 cp -rf ../openwrt_pkg_ma/net/miniupnpd ./feeds/packages/net/miniupnpd
