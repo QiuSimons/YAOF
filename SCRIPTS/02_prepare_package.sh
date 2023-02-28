@@ -65,7 +65,7 @@ cp -rf ../immortalwrt/package/network/utils/nftables ./package/network/utils/nft
 # FW3
 mkdir -p package/network/config/firewall/patches
 cp -rf ../immortalwrt_21/package/network/config/firewall/patches/100-fullconenat.patch ./package/network/config/firewall/patches/100-fullconenat.patch
-cp -rf ../immortalwrt_21/package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch ./package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch
+#cp -rf ../immortalwrt_21/package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch ./package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch
 # Patch LuCI 以增添 FullCone 开关
 patch -p1 <../PATCH/firewall/luci-app-firewall_add_fullcone.patch
 # FullCone PKG
