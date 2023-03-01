@@ -177,7 +177,7 @@ git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config
 cp -rf ../immortalwrt_luci/applications/luci-app-arpbind ./feeds/luci/applications/luci-app-arpbind
 ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/luci-app-arpbind
 # 定时重启
-cp -rf ../immortalwrt_luci/applications/luci-app-autoreboot ./package/feeds/luci/luci-app-autoreboot
+cp -rf ../immortalwrt_luci/applications/luci-app-autoreboot ./package/new/luci-app-autoreboot
 # Boost 通用即插即用
 rm -rf ./feeds/packages/net/miniupnpd
 cp -rf ../openwrt_pkg_ma/net/miniupnpd ./feeds/packages/net/miniupnpd
@@ -398,7 +398,7 @@ git clone -b master --depth 1 https://github.com/brvphoenix/luci-app-wrtbwmon.gi
 git clone --depth 1 https://github.com/kiddin9/luci-app-xlnetacc.git package/lean/luci-app-xlnetacc
 # Zerotier
 cp -rf ../immortalwrt_luci/applications/luci-app-zerotier ./feeds/luci/applications/luci-app-zerotier
-wget -P feeds/luci/applications/luci-app-zerotier/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
+cp -rf ../OpenWrt-Add/move_2_services.sh ./feeds/luci/applications/luci-app-zerotier/move_2_services.sh
 chmod -R 755 ./feeds/luci/applications/luci-app-zerotier/move_2_services.sh
 pushd feeds/luci/applications/luci-app-zerotier
 bash move_2_services.sh
@@ -417,7 +417,7 @@ sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/ne
 ### 最后的收尾工作 ###
 # Lets Fuck
 mkdir -p package/base-files/files/usr/bin
-wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/fuck
+cp -rf ../OpenWrt-Add/fuck ./package/base-files/files/usr/bin/fuck
 #wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/ss2v2ray
 # 最大连接数
 sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
@@ -427,7 +427,7 @@ cat ../SEED/extra.cfg >> ./target/linux/generic/config-5.10
 
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
-wget -P target/linux/generic/hack-5.10/ https://github.com/coolsnowwolf/lede/raw/master/target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
+cp -rf ../lede/target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch ./target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 # Patch LuCI 以增添 Shortcut-FE 开关
 patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
 # Shortcut-FE 相关组件
