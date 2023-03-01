@@ -177,7 +177,8 @@ git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config
 cp -rf ../immortalwrt_luci/applications/luci-app-arpbind ./feeds/luci/applications/luci-app-arpbind
 ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/luci-app-arpbind
 # 定时重启
-cp -rf ../immortalwrt_luci/applications/luci-app-autoreboot ./package/new/luci-app-autoreboot
+cp -rf ../immortalwrt_luci/applications/luci-app-autoreboot ./feeds/luci/applications/luci-app-autoreboot
+ln -sf ../../../feeds/luci/applications/luci-app-autoreboot ./package/feeds/luci/luci-app-autoreboot
 # Boost 通用即插即用
 rm -rf ./feeds/packages/net/miniupnpd
 cp -rf ../openwrt_pkg_ma/net/miniupnpd ./feeds/packages/net/miniupnpd
