@@ -406,7 +406,9 @@ popd
 ln -sf ../../../feeds/luci/applications/luci-app-zerotier ./package/feeds/luci/luci-app-zerotier
 rm -rf ./feeds/packages/net/zerotier
 cp -rf ../immortalwrt_pkg/net/zerotier ./feeds/packages/net/zerotier
-#jq
+# watchcat
+echo > ./feeds/packages/utils/watchcat/files/watchcat.config
+# jq
 sed -i 's,9625784cf2e4fd9842f1d407681ce4878b5b0dcddbcd31c6135114a30c71e6a8,skip,g' feeds/packages/utils/jq/Makefile
 # 翻译及部分功能优化
 cp -rf ../OpenWrt-Add/addition-trans-zh ./package/new/addition-trans-zh
