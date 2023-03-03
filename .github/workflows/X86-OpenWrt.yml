@@ -87,7 +87,7 @@ jobs:
       run: |
         cd openwrt
         #echo | make kernel_oldconfig -j$(($(nproc) + 1)) 
-        make -j$(($(nproc) + 1)) || make -j$(($(nproc) + 1)) V=s
+        make -j$(($(nproc) + 1)) V=s || make -i -j$(($(nproc) + 1))
         echo $?
     - name: If Error
       if: steps.compileopenwrt.outcome == 'failure'
