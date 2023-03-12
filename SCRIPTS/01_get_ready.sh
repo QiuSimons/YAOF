@@ -43,10 +43,12 @@ git clone -b packages --depth 1 https://github.com/xiaorouji/openwrt-passwall pa
 git clone -b luci --depth 1 https://github.com/xiaorouji/openwrt-passwall passwall_luci
 git clone -b main --depth 1 https://github.com/jjm2473/openwrt-third openwrt-third
 git clone -b master --depth 1 https://github.com/lisaac/luci-app-dockerman dockerman
+git clone -b master --depth 1 https://github.com/lisaac/luci-app-diskman diskman
 git clone -b master --depth 1 https://github.com/lisaac/luci-lib-docker docker_lib
 git clone -b master --depth 1 https://github.com/QiuSimons/openwrt-mos mosdns
 git clone -b master --depth 1 https://github.com/fw876/helloworld ssrp
 git clone -b master --depth 1 https://github.com/zxlhhyccc/bf-package-master zxlhhyccc
+git clone -b main --depth 1 https://github.com/linkease/openwrt-app-actions linkease
 #git clone -b linksys-ea6350v3-mastertrack --depth 1 https://github.com/NoTengoBattery/openwrt NoTengoBattery
 
 exit 0

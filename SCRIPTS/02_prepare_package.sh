@@ -122,6 +122,9 @@ sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package
 sed -i '/"$threads"/d' package/new/autocore/files/x86/autocore
 rm -rf ./feeds/packages/utils/coremark
 cp -rf ../immortalwrt_pkg/utils/coremark ./feeds/packages/utils/coremark
+# Airconnect
+cp -rf ../OpenWrt-Add/airconnect ./package/new/airconnect
+cp -rf ../OpenWrt-Add/luci-app-airconnect ./package/new/luci-app-airconnect
 # luci-app-irqbalance
 cp -rf ../OpenWrt-Add/luci-app-irqbalance ./package/new/luci-app-irqbalance
 # 更换 Nodejs 版本
@@ -229,8 +232,7 @@ sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
 rm -rf ./feeds/luci/collections/luci-lib-docker
 cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
 # DiskMan
-mkdir -p package/new/luci-app-diskman && \
-wget https://raw.githubusercontent.com/lisaac/luci-app-diskman/master/applications/luci-app-diskman/Makefile -O package/new/luci-app-diskman/Makefile
+cp -rf ../diskman/applications/luci-app-diskman ./package/new/luci-app-diskman
 mkdir -p package/new/parted && \
 wget https://raw.githubusercontent.com/lisaac/luci-app-diskman/master/Parted.Makefile -O package/new/parted/Makefile
 # Dnsfilter
