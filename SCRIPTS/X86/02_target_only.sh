@@ -4,6 +4,7 @@ sed -i 's/O2 -Wl,--gc-sections/O2 -Wl,--gc-sections -mtune=goldmont-plus/g' incl
 
 rm -rf ./package/kernel/linux/modules/video.mk
 cp -rf ../lede/package/kernel/linux/modules/video.mk ./package/kernel/linux/modules/video.mk
+sed -i '/nouveau\.ko/d' package/kernel/linux/modules/video.mk
 sed -i 's,CONFIG_DRM_I915_CAPTURE_ERROR ,CONFIG_DRM_I915_CAPTURE_ERROR=n ,g' package/kernel/linux/modules/video.mk
 
 echo '# Put your custom commands here that should be executed once
