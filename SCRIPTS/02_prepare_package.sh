@@ -354,6 +354,7 @@ cp -rf ../ssrp/redsocks2 ./package/new/redsocks2
 cp -rf ../ssrp/trojan ./package/new/trojan
 cp -rf ../ssrp/tcping ./package/new/tcping
 cp -rf ../ssrp/dns2tcp ./package/new/dns2tcp
+cp -rf ../ssrp/gn ./package/new/gn
 cp -rf ../ssrp/shadowsocksr-libev ./package/new/shadowsocksr-libev
 cp -rf ../ssrp/simple-obfs ./package/new/simple-obfs
 cp -rf ../ssrp/naiveproxy ./package/new/naiveproxy
