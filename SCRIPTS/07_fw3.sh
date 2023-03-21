@@ -14,6 +14,13 @@ sed -i '/nft/d' ./.config
 echo '
 CONFIG_PACKAGE_firewall=y
 # CONFIG_PACKAGE_firewall4 is not set
+# CONFIG_PACKAGE_ip6tables-nft is not set
+CONFIG_PACKAGE_ip6tables-zz-legacy=y
+CONFIG_PACKAGE_xtables-legacy=y
+# CONFIG_PACKAGE_xtables-nft is not set
+CONFIG_PACKAGE_kmod-nft-offload=n
+CONFIG_PACKAGE_kmod-ipt-offload=y
+CONFIG_PACKAGE_dnsmasq_full_nftset=n
 ' >>./.config
 rm -rf ./feeds/luci/applications/luci-app-zerotier
 cp -rf ../lede_luci/applications/luci-app-zerotier ./feeds/luci/applications/luci-app-zerotier
