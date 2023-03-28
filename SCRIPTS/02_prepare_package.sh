@@ -3,9 +3,7 @@ clear
 
 ### 基础部分 ###
 # 使用 O2 级别的优化
-sed -i 's/Os/O2 -Wl,--gc-sections/g' include/target.mk
-wget -qO - https://github.com/openwrt/openwrt/commit/8249a8c.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/66fa343.patch | patch -p1
+sed -i 's/Os/O2/g' include/target.mk
 # 更新 Feeds
 ./scripts/feeds update -a
 ./scripts/feeds install -a
@@ -47,7 +45,6 @@ rm -rf ./package/libs/mbedtls
 cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
 rm -rf ./package/libs/openssl
 cp -rf ../immortalwrt_21/package/libs/openssl ./package/libs/openssl
-#wget -P include/ https://github.com/immortalwrt/immortalwrt/raw/master/include/openssl-engine.mk
 # fstool
 wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
 
@@ -68,13 +65,11 @@ cp -rf ../immortalwrt/package/network/utils/nftables ./package/network/utils/nft
 mkdir -p package/network/config/firewall/patches
 cp -rf ../immortalwrt_21/package/network/config/firewall/patches/100-fullconenat.patch ./package/network/config/firewall/patches/100-fullconenat.patch
 cp -rf ../lede/package/network/config/firewall/patches/101-bcm-fullconenat.patch ./package/network/config/firewall/patches/101-bcm-fullconenat.patch
-#cp -rf ../immortalwrt_21/package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch ./package/network/config/firewall/patches/001-firewall3-fix-locking-issue.patch
 # iptables
 cp -rf ../lede/package/network/utils/iptables/patches/900-bcm-fullconenat.patch ./package/network/utils/iptables/patches/900-bcm-fullconenat.patch
 # network
 wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
 # Patch LuCI 以增添 FullCone 开关
-#patch -p1 <../PATCH/firewall/luci-app-firewall_add_fullcone.patch
 pushd feeds/luci
 wget -qO- https://github.com/openwrt/luci/commit/471182b2.patch | patch -p1
 popd
@@ -101,8 +96,6 @@ mkdir -p target/linux/rockchip/files-5.10
 cp -rf ../PATCH/files-5.10 ./target/linux/rockchip/
 sed -i 's,+LINUX_6_1:kmod-drm-display-helper,,g' target/linux/rockchip/modules.mk
 sed -i '/drm_dp_aux_bus\.ko/d' target/linux/rockchip/modules.mk
-# enable tso for nanopi-r4s
-sed -i '/set_interface_core 20 "eth1"/a \\tethtool -K eth1 tso on sg on tx on' target/linux/rockchip/armv8/base-files/etc/hotplug.d/net/40-net-smp-affinity
 rm -rf ./package/boot/uboot-rockchip
 cp -rf ../lede/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
 cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
@@ -124,25 +117,20 @@ cp -rf ../openwrt_luci_ma/modules/luci-mod-network/htdocs/luci-static/resources/
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # dae ready
-cp -rf ../openwrt_ma/config/Config-kernel.in ./config/Config-kernel.in
-#sed -i '/HOST_LOADLIBES/d' include/kernel-build.mk
-#sed -i '/HOST_LOADLIBES/d' include/kernel.mk
-#sed -i 's,KBUILD_HOSTLDLIBS,KBUILD_HOSTLDFLAGS,g' include/kernel.mk
-#sed -i '/HOST_LOADLIBES/d' package/kernel/bpf-headers/Makefile
-wget -qO - https://github.com/openwrt/openwrt/commit/21733cb6.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/aa95787e.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/29d7d6a8.patch | patch -p1
+cp -rf ../immortalwrt/config/Config-kernel.in ./config/Config-kernel.in
 rm -rf ./tools/dwarves
 cp -rf ../openwrt_ma/tools/dwarves ./tools/dwarves
+wget -qO - https://github.com/openwrt/openwrt/commit/aa95787e.patch | patch -p1
+wget -qO - https://github.com/openwrt/openwrt/commit/29d7d6a8.patch | patch -p1
 rm -rf ./tools/elfutils
 cp -rf ../openwrt_ma/tools/elfutils ./tools/elfutils
-cp -rf ../openwrt_ma/target/linux/generic/backport-5.10/200-v5.18-tools-resolve_btfids-Build-with-host-flags.patch ./target/linux/generic/backport-5.10/200-v5.18-tools-resolve_btfids-Build-with-host-flags.patch
+rm -rf ./package/libs/elfutils
+cp -rf ../openwrt_ma/package/libs/elfutils ./package/libs/elfutils
+wget -qO - https://github.com/openwrt/openwrt/commit/b839f3d5.patch | patch -p1
 rm -rf ./feeds/packages/net/frr
 cp -rf ../openwrt_pkg_ma/net/frr feeds/packages/net/frr
-#rm -rf ./package/kernel/mac80211
-#cp -rf ../openwrt_ma/package/kernel/mac80211 ./package/kernel/mac80211
-#sed -i '/ +kmod-qrtr-mhi/d' package/kernel/mac80211/ath.mk
-#sed -i '/ +kmod-qrtr-smd/d' package/kernel/mac80211/ath.mk
+cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
+ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
 # i915
 wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
 cp -rf ../lede/target/linux/x86/64/config-5.10 ./target/linux/x86/64/config-5.10
@@ -290,8 +278,8 @@ cp -rf ../lede_luci/applications/luci-app-ipsec-server ./package/new/luci-app-ip
 # IPv6 兼容助手
 cp -rf ../lede/package/lean/ipv6-helper ./package/new/ipv6-helper
 # 京东签到 By Jerrykuku
-git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
-git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
+#git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
+#git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
 # MentoHUST
 git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
 git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
@@ -448,8 +436,6 @@ rm -rf ./feeds/packages/net/zerotier
 cp -rf ../immortalwrt_pkg/net/zerotier ./feeds/packages/net/zerotier
 # watchcat
 echo > ./feeds/packages/utils/watchcat/files/watchcat.config
-# jq
-sed -i 's,9625784cf2e4fd9842f1d407681ce4878b5b0dcddbcd31c6135114a30c71e6a8,skip,g' feeds/packages/utils/jq/Makefile
 # 翻译及部分功能优化
 cp -rf ../OpenWrt-Add/addition-trans-zh ./package/new/addition-trans-zh
 sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/new/addition-trans-zh/Makefile
@@ -458,7 +444,6 @@ sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/ne
 # Lets Fuck
 mkdir -p package/base-files/files/usr/bin
 cp -rf ../OpenWrt-Add/fuck ./package/base-files/files/usr/bin/fuck
-#wget -P package/base-files/files/usr/bin/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/ss2v2ray
 # 生成默认配置及缓存
 rm -rf .config
 cat ../SEED/extra.cfg >> ./target/linux/generic/config-5.10
