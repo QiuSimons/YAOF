@@ -214,7 +214,6 @@ wget -qO- https://github.com/openwrt/packages/commit/785bbcb.patch | patch -p1
 wget -qO- https://github.com/openwrt/packages/commit/d811cb4.patch | patch -p1
 wget -qO- https://github.com/openwrt/packages/commit/9a2da85.patch | patch -p1
 wget -qO- https://github.com/openwrt/packages/commit/71dc090.patch | patch -p1
-wget -qO- https://github.com/coolsnowwolf/packages/commit/b46003e0.patch | patch -p1
 popd
 wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/201-change-default-chain-rule-to-accept.patch
 wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0004-miniupnpd-format-xml-to-make-some-app-happy.patch
