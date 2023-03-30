@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ *
+ */
 
 /dts-v1/;
 
 / {
-+	model = "FriendlyElec NanoPi R5C";
-+	compatible = "friendlyelec,nanopi-r5c", "rockchip,rk3568";
+	model = "FriendlyElec NanoPi R5C";
+	compatible = "friendlyarm,nanopi-r5c","rockchip,rk3568";
 };
