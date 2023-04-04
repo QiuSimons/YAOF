@@ -1,4 +1,4 @@
-name: R2C-OpenWrt
+name: R2S-OpenWrt
 
 on:
 #  schedule:
@@ -59,7 +59,7 @@ jobs:
     - name: QTMDFW4
       run: |
         cd openwrt
-        cp -rf ../SEED/R2C/config.seed .config
+        cp -rf ../SEED/R2S/config.seed .config
         /bin/bash 07_fw3.sh
     - name: Convert Translation
       run: |
@@ -116,9 +116,9 @@ jobs:
         gzip -d *.gz && exit 0
         gzip --best *.img
         ls -Ahl
-        sha256sum openwrt*r2c* | tee R2C-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}.sha256sum
-        zip R2C-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-ext4.zip *r2c*ext4*
-        zip R2C-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-sfs.zip *r2c*squashfs*
+        sha256sum openwrt*r2s* | tee R2S-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}.sha256sum
+        zip R2S-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-ext4.zip *r2s*ext4*
+        zip R2S-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-sfs.zip *r2s*squashfs*
         ls -Ahl
     - name: Upload artifact
       uses: actions/upload-artifact@main
