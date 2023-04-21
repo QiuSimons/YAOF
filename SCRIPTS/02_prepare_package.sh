@@ -121,6 +121,7 @@ cp -rf ../openwrt_luci_ma/modules/luci-mod-network/htdocs/luci-static/resources/
 cp -rf ../immortalwrt/config/Config-kernel.in ./config/Config-kernel.in
 rm -rf ./tools/dwarves
 cp -rf ../openwrt_ma/tools/dwarves ./tools/dwarves
+wget https://raw.githubusercontent.com/openwrt/openwrt/7179b068/tools/dwarves/Makefile -O tools/dwarves/Makefile
 wget -qO - https://github.com/openwrt/openwrt/commit/aa95787e.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/29d7d6a8.patch | patch -p1
 rm -rf ./tools/elfutils
