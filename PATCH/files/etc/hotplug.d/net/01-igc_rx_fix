@@ -16,8 +16,8 @@ do
 
     # 判断网卡型号是否为igc
     if [[ $DRIVER == "igc" ]]; then
-      # 调整rx缓存为512
-      ethtool -G $NIC rx 512
+      # 调整rx缓存
+      ethtool -G $NIC rx 1024
     fi
   fi
 done
