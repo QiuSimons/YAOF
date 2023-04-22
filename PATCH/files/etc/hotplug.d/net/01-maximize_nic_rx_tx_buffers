@@ -1,0 +1,22 @@
+#!/bin/sh
+[ "$ACTION" = add ] || exit
+
+# 遍历所有网口
+for NIC in $(ls /sys/class/net/)
+do
+  # 检查网口是否支持ethtool命令
+  if command -v ethtool &> /dev/null && ethtool $NIC &> /dev/null; then
+    # 获取rx和tx缓存最大值
+    RX_MAX=$(ethtool -g $NIC 2>/dev/null | awk '/^RX:/ {print $2}' | awk 'NR==1')
+    TX_MAX=$(ethtool -g $NIC 2>/dev/null | awk '/^TX:/ {print $2}' | awk 'NR==1')
+
+    # 如果无法获取rx和tx缓存最大值，则跳过该网卡
+    if [ -z "$RX_MAX" ] || [ -z "$TX_MAX" ]; then
+      continue
+    fi
+
+    # 调整rx和tx缓存为驱动支持的最大值
+    ethtool -G $NIC rx $RX_MAX
+    ethtool -G $NIC tx $TX_MAX
+  fi
+done
