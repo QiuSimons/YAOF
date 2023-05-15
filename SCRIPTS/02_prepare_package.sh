@@ -34,7 +34,7 @@ cp -rf ../PATCH/backport/MG-LRU/* ./target/linux/generic/pending-5.10/
 cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
 wget -P target/linux/generic/pending-5.10/ https://github.com/openwrt/openwrt/raw/v22.03.3/target/linux/generic/pending-5.10/613-netfilter_optional_tcp_window_check.patch
 # Patch arm64 型号名称
-cp -rf ../immortalwrt/target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch ./target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
+cp -rf ../immortalwrt/target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch ./target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
 # BBRv2
 cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
 cp -rf ../PATCH/BBRv2/openwrt/package ./
