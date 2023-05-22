@@ -28,19 +28,18 @@ sed -ri "/luci-webui.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_t
 sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
 
 ### 必要的 Patches ###
-# introduce "MG-LRU" Linux kernel patches
-cp -rf ../PATCH/backport/MG-LRU/* ./target/linux/generic/pending-5.10/
 # TCP optimizations
-cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.10/
-wget -P target/linux/generic/pending-5.10/ https://github.com/openwrt/openwrt/raw/v22.03.3/target/linux/generic/pending-5.10/613-netfilter_optional_tcp_window_check.patch
+cp -rf ../PATCH/backport/net/* ./target/linux/generic/backport-5.15/
+# x86_csum
+cp -rf ../PATCH/backport/x86_csum/* ./target/linux/generic/backport-5.15/
 # Patch arm64 型号名称
-cp -rf ../immortalwrt/target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch ./target/linux/generic/hack-5.10/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
+cp -rf ../immortalwrt/target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch ./target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
 # BBRv2
-cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.10/
+cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.15/
 cp -rf ../PATCH/BBRv2/openwrt/package ./
 wget -qO - https://github.com/openwrt/openwrt/commit/7db9763.patch | patch -p1
 # LRNG
-cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.10/
+cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
 # SSL
 rm -rf ./package/libs/mbedtls
 cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
@@ -51,8 +50,8 @@ wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
 
 ### Fullcone-NAT 部分 ###
 # Patch Kernel 以解决 FullCone 冲突
-cp -rf ../lede/target/linux/generic/hack-5.10/952-net-conntrack-events-support-multiple-registrant.patch ./target/linux/generic/hack-5.10/952-net-conntrack-events-support-multiple-registrant.patch
-cp -rf ../lede/target/linux/generic/hack-5.10/982-add-bcm-fullconenat-support.patch ./target/linux/generic/hack-5.10/982-add-bcm-fullconenat-support.patch
+cp -rf ../lede/target/linux/generic/hack-5.15/952-add-net-conntrack-events-support-multiple-registrant.patch ./target/linux/generic/hack-5.15/952-add-net-conntrack-events-support-multiple-registrant.patch
+cp -rf ../lede/target/linux/generic/hack-5.15/982-add-bcm-fullconenat-support.patch ./target/linux/generic/hack-5.15/982-add-bcm-fullconenat-support.patch
 # Patch FireWall 以增添 FullCone 功能
 # FW4
 rm -rf ./package/network/config/firewall4
@@ -82,27 +81,23 @@ cp -rf ../Lienol/package/network/utils/fullconenat ./package/new/fullconenat
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
 cp -rf ../lede/target/linux/rockchip ./target/linux/rockchip
-rm -rf ./target/linux/rockchip/Makefile
-cp -rf ../openwrt_release/target/linux/rockchip/Makefile ./target/linux/rockchip/Makefile
-rm -rf ./target/linux/rockchip/armv8/config-5.10
-cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.10 ./target/linux/rockchip/armv8/config-5.10
-rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configuration-from-OF.patch
-rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
-cp -rf ../PATCH/rockchip-5.10/* ./target/linux/rockchip/patches-5.10/
+#rm -rf ./target/linux/rockchip/Makefile
+#cp -rf ../openwrt_release/target/linux/rockchip/Makefile ./target/linux/rockchip/Makefile
+#rm -rf ./target/linux/rockchip/armv8/config-5.10
+#cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.10 ./target/linux/rockchip/armv8/config-5.10
+rm -rf ./target/linux/rockchip/patches-5.15/002-net-usb-r8152-add-LED-configuration-from-OF.patch
+rm -rf ./target/linux/rockchip/patches-5.15/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
+cp -rf ../PATCH/rockchip-5.15/* ./target/linux/rockchip/patches-5.15/
+rm -rf ./package/boot/uboot-rockchip
+cp -rf ../lede/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
+cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
+#intel-firmware
 rm -rf ./package/firmware/linux-firmware/intel.mk
 cp -rf ../lede/package/firmware/linux-firmware/intel.mk ./package/firmware/linux-firmware/intel.mk
 rm -rf ./package/firmware/linux-firmware/Makefile
 cp -rf ../lede/package/firmware/linux-firmware/Makefile ./package/firmware/linux-firmware/Makefile
-mkdir -p target/linux/rockchip/files-5.10
-cp -rf ../PATCH/files-5.10 ./target/linux/rockchip/
-sed -i 's,+LINUX_6_1:kmod-drm-display-helper,,g' target/linux/rockchip/modules.mk
-sed -i '/drm_dp_aux_bus\.ko/d' target/linux/rockchip/modules.mk
-rm -rf ./package/boot/uboot-rockchip
-cp -rf ../lede/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
-cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
-rm -rf ./package/kernel/linux/modules/video.mk
-cp -rf ../immortalwrt/package/kernel/linux/modules/video.mk ./package/kernel/linux/modules/video.mk
-sed -i '/nouveau\.ko/d' package/kernel/linux/modules/video.mk
+wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
+cp -rf ../lede/target/linux/x86/64/config-5.15 ./target/linux/x86/64/config-5.15
 # Disable Mitigations
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/mmc.bootscript
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/nanopi-r2s.bootscript
@@ -110,46 +105,21 @@ sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/nanop
 sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-efi.cfg
 sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-iso.cfg
 sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cfg
-# Dnsmasq
-rm -rf ./package/network/services/dnsmasq
-cp -rf ../openwrt_ma/package/network/services/dnsmasq ./package/network/services/dnsmasq
-cp -rf ../openwrt_luci_ma/modules/luci-mod-network/htdocs/luci-static/resources/view/network/dhcp.js ./feeds/luci/modules/luci-mod-network/htdocs/luci-static/resources/view/network/
 
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # dae ready
-cp -rf ../immortalwrt/config/Config-kernel.in ./config/Config-kernel.in
-rm -rf ./tools/dwarves
-cp -rf ../openwrt_ma/tools/dwarves ./tools/dwarves
-wget https://raw.githubusercontent.com/openwrt/openwrt/7179b068/tools/dwarves/Makefile -O tools/dwarves/Makefile
-wget -qO - https://github.com/openwrt/openwrt/commit/aa95787e.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/29d7d6a8.patch | patch -p1
-rm -rf ./tools/elfutils
-cp -rf ../openwrt_ma/tools/elfutils ./tools/elfutils
-rm -rf ./package/libs/elfutils
-cp -rf ../openwrt_ma/package/libs/elfutils ./package/libs/elfutils
-wget -qO - https://github.com/openwrt/openwrt/commit/b839f3d5.patch | patch -p1
-rm -rf ./feeds/packages/net/frr
-cp -rf ../openwrt_pkg_ma/net/frr feeds/packages/net/frr
 cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
 # mount cgroupv2
 pushd feeds/packages
 wget -qO - https://github.com/openwrt/packages/commit/7a64a5f4.patch | patch -p1
 popd
-# i915
-wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
-cp -rf ../lede/target/linux/x86/64/config-5.10 ./target/linux/x86/64/config-5.10
-# Haproxy
-rm -rf ./feeds/packages/net/haproxy
-cp -rf ../openwrt_pkg_ma/net/haproxy feeds/packages/net/haproxy
-pushd feeds/packages
-wget -qO - https://github.com/openwrt/packages/commit/a09cbcd.patch | patch -p1
-popd
 # AutoCore
-cp -rf ../OpenWrt-Add/autocore ./package/new/autocore
-sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package/new/autocore/files/generic/luci-mod-status-autocore.json
-sed -i '/"$threads"/d' package/new/autocore/files/x86/autocore
+cp -rf ../immortalwrt/package/emortal/autocore ./package/new/autocore
+sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package/new/autocore/files/luci-mod-status-autocore.json
+sed -i '/"$threads"/d' package/new/autocore/files/autocore
+cp -rf ../immortalwrt_luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js ./feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
 rm -rf ./feeds/packages/utils/coremark
 cp -rf ../immortalwrt_pkg/utils/coremark ./feeds/packages/utils/coremark
 # Airconnect
@@ -184,8 +154,8 @@ patch -p1 <../PATCH/r8168/r8168-fix_LAN_led-for_r4s-from_TL.patch
 cp -rf ../immortalwrt/package/kernel/r8152 ./package/new/r8152
 # r8125驱动
 git clone https://github.com/sbwml/package_kernel_r8125 package/new/r8125
-# igc-backport
-cp -rf ../PATCH/igc-files-5.10 ./target/linux/x86/files-5.10
+# igc-fix
+cp -rf ../lede/target/linux/x86/patches-5.15/996-intel-igc-i225-i226-disable-eee.patch ./target/linux/x86/patches-5.15/996-intel-igc-i225-i226-disable-eee.patch
 # UPX 可执行软件压缩
 sed -i '/patchelf pkgconf/i\tools-y += ucl upx' ./tools/Makefile
 sed -i '\/autoconf\/compile :=/i\$(curdir)/upx/compile := $(curdir)/ucl/compile' ./tools/Makefile
@@ -252,11 +222,8 @@ ln -sf ../../../feeds/packages/net/ddns-scripts_dnspod ./package/feeds/packages/
 rm -rf ./feeds/luci/applications/luci-app-dockerman
 cp -rf ../dockerman/applications/luci-app-dockerman ./feeds/luci/applications/luci-app-dockerman
 sed -i '/auto_start/d' feeds/luci/applications/luci-app-dockerman/root/etc/uci-defaults/luci-app-dockerman
-pushd feeds/luci
-wget -qO- https://github.com/openwrt/luci/commit/0c1fc7f.patch | patch -p1
-popd
 pushd feeds/packages
-wget -qO- https://github.com/openwrt/packages/commit/d9d5109.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/commit/e2e5ee69 | patch -p1
 popd
 sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
 rm -rf ./feeds/luci/collections/luci-lib-docker
@@ -280,7 +247,7 @@ cp -rf ../lede_luci/applications/luci-app-frps ./package/new/luci-app-frps
 cp -rf ../lede_luci/applications/luci-app-frpc ./package/new/luci-app-frpc
 cp -rf ../lede_pkg/net/frp ./package/new/frp
 # IPSec
-cp -rf ../lede_luci/applications/luci-app-ipsec-server ./package/new/luci-app-ipsec-server
+#cp -rf ../lede_luci/applications/luci-app-ipsec-server ./package/new/luci-app-ipsec-server
 # IPv6 兼容助手
 cp -rf ../lede/package/lean/ipv6-helper ./package/new/ipv6-helper
 # 京东签到 By Jerrykuku
@@ -452,11 +419,13 @@ mkdir -p package/base-files/files/usr/bin
 cp -rf ../OpenWrt-Add/fuck ./package/base-files/files/usr/bin/fuck
 # 生成默认配置及缓存
 rm -rf .config
-cat ../SEED/extra.cfg >> ./target/linux/generic/config-5.10
+cat ../SEED/extra.cfg >> ./target/linux/generic/config-5.15
+sed -i 's,CONFIG_WERROR=y,# CONFIG_WERROR is not set,g' target/linux/generic/config-5.15
 
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
-cp -rf ../lede/target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch ./target/linux/generic/hack-5.10/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
+cp -rf ../lede/target/linux/generic/hack-5.15/953-net-patch-linux-kernel-to-support-shortcut-fe.patch ./target/linux/generic/hack-5.15/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
+cp -rf ../lede/target/linux/generic/pending-5.15/613-netfilter_optional_tcp_window_check.patch ./target/linux/generic/pending-5.15/613-netfilter_optional_tcp_window_check.patch
 # Patch LuCI 以增添 Shortcut-FE 开关
 patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
 # Shortcut-FE 相关组件

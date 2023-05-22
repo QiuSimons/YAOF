@@ -1,0 +1,41 @@
+From 807adc9c4ad432fe81b5ca60e47f70c6f90c61e7 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 15 Nov 2021 11:02:31 -0800
+Subject: [PATCH 06/24] tcp: remove dead code in __tcp_v6_send_check()
+
+For some reason, I forgot to change __tcp_v6_send_check() at
+the same time I removed (ip_summed == CHECKSUM_PARTIAL) check
+in __tcp_v4_send_check()
+
+Fixes: 98be9b12096f ("tcp: remove dead code after CHECKSUM_PARTIAL adoption")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ include/net/ip6_checksum.h | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/include/net/ip6_checksum.h b/include/net/ip6_checksum.h
+index b3f4eaa88672..ea681910b7a3 100644
+--- a/include/net/ip6_checksum.h
++++ b/include/net/ip6_checksum.h
+@@ -65,15 +65,9 @@ static inline void __tcp_v6_send_check(struct sk_buff *skb,
+ {
+ 	struct tcphdr *th = tcp_hdr(skb);
+ 
+-	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+-		th->check = ~tcp_v6_check(skb->len, saddr, daddr, 0);
+-		skb->csum_start = skb_transport_header(skb) - skb->head;
+-		skb->csum_offset = offsetof(struct tcphdr, check);
+-	} else {
+-		th->check = tcp_v6_check(skb->len, saddr, daddr,
+-					 csum_partial(th, th->doff << 2,
+-						      skb->csum));
+-	}
++	th->check = ~tcp_v6_check(skb->len, saddr, daddr, 0);
++	skb->csum_start = skb_transport_header(skb) - skb->head;
++	skb->csum_offset = offsetof(struct tcphdr, check);
+ }
+ 
+ static inline void tcp_v6_gso_csum_prep(struct sk_buff *skb)
+-- 
+2.33.1
+

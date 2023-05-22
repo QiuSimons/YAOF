@@ -1,8 +1,0 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
-
-/dts-v1/;
-
-/ {
-	model = "EZPRO Mrkaio M68S PLUS";
-	compatible = "ezpro,mrkaio-m68s-plus", "rockchip,rk3568";
-};

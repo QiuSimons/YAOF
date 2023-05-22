@@ -14,6 +14,8 @@ sed -i '/nft/d' ./.config
 echo '
 CONFIG_PACKAGE_firewall=y
 # CONFIG_PACKAGE_firewall4 is not set
+# CONFIG_PACKAGE_iptables-nft is not set
+CONFIG_PACKAGE_iptables-zz-legacy=y
 # CONFIG_PACKAGE_ip6tables-nft is not set
 CONFIG_PACKAGE_ip6tables-zz-legacy=y
 CONFIG_PACKAGE_xtables-legacy=y

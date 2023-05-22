@@ -1,0 +1,45 @@
+From 2e54f05b1e5918d3409032211c41b4ad2cbf1953 Mon Sep 17 00:00:00 2001
+From: Neal Cardwell <ncardwell@google.com>
+Date: Tue, 7 May 2019 22:37:19 -0400
+Subject: [PATCH 12/21] net-tcp_bbr: v2: set tx.in_flight for skbs in repair
+ write queue
+
+Syzkaller was able to use TCP_REPAIR to reproduce the new warning
+added in tcp_fragment():
+
+  WARNING: CPU: 0 PID: 118174 at net/ipv4/tcp_output.c:1487
+    tcp_fragment+0xdcc/0x10a0 net/ipv4/tcp_output.c:1487()
+  inconsistent: tx.in_flight: 0 old_factor: 53
+
+The warning happens because skbs inserted into the tcp_rtx_queue
+during the repair process go through a sort of "fake send" process,
+and that process was seting pcount but not tx.in_flight, and thus the
+warnings (where old_factor is the old pcount).
+
+The fix of setting tx.in_flight in the TCP_REPAIR code path seems
+simple enough, and indeed makes the repro code from syzkaller stop
+producing warnings. Running through kokonut tests, and will send out
+for review when all tests pass.
+
+Effort: net-tcp_bbr
+Origin-9xx-SHA1: 330f825a08a6fe92cef74d799cc468864c479f63
+Change-Id: I0bc4a790f040fd4239620e1eedd5dc64666c6f05
+---
+ net/ipv4/tcp_output.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index fbaf6ed39b19..a909be0a9b8c 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -2636,6 +2636,7 @@ static bool tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
+ 			skb->skb_mstamp_ns = tp->tcp_wstamp_ns = tp->tcp_clock_cache;
+ 			list_move_tail(&skb->tcp_tsorted_anchor, &tp->tsorted_sent_queue);
+ 			tcp_init_tso_segs(skb, mss_now);
++			tcp_set_tx_in_flight(sk, skb);
+ 			goto repair; /* Skip network transmission */
+ 		}
+ 
+-- 
+2.33.0
+

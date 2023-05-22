@@ -1,0 +1,77 @@
+From d97bc46a9d0a65cb72a226ef79f5c815d6b2659c Mon Sep 17 00:00:00 2001
+From: Yuchung Cheng <ycheng@google.com>
+Date: Tue, 27 Mar 2018 18:01:46 -0700
+Subject: [PATCH 03/21] net-tcp_rate: account for CE marks in rate sample
+
+This patch counts number of packets delivered have CE mark in the
+rate sample, using similar approach of delivery accounting.
+
+Effort: net-tcp_rate
+Origin-9xx-SHA1: 710644db434c3da335a7c8b72207a671ccbb5cf8
+Change-Id: I0968fb33fe19b5c774e8c3afd2685558a6ec8710
+---
+ include/net/tcp.h   | 6 +++++-
+ net/ipv4/tcp_rate.c | 6 ++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/tcp.h b/include/net/tcp.h
+index c397e4a8ce6c..2b274fb8f2ae 100644
+--- a/include/net/tcp.h
++++ b/include/net/tcp.h
+@@ -874,9 +874,11 @@ struct tcp_skb_cb {
+ 	__u32		ack_seq;	/* Sequence number ACK'd	*/
+ 	union {
+ 		struct {
++#define TCPCB_DELIVERED_CE_MASK ((1U<<20) - 1)
+ 			/* There is space for up to 24 bytes */
+ 			__u32 is_app_limited:1, /* cwnd not fully used? */
+-			      unused:31;
++			      delivered_ce:20,
++			      unused:11;
+ 			/* pkts S/ACKed so far upon tx of skb, incl retrans: */
+ 			__u32 delivered;
+ 			/* start of send pipeline phase */
+@@ -1028,7 +1030,9 @@ struct ack_sample {
+ struct rate_sample {
+ 	u64  prior_mstamp; /* starting timestamp for interval */
+ 	u32  prior_delivered;	/* tp->delivered at "prior_mstamp" */
++	u32  prior_delivered_ce;/* tp->delivered_ce at "prior_mstamp" */
+ 	s32  delivered;		/* number of packets delivered over interval */
++	s32  delivered_ce;	/* number of packets delivered w/ CE marks*/
+ 	long interval_us;	/* time for tp->delivered to incr "delivered" */
+ 	u32 snd_interval_us;	/* snd interval for delivered packets */
+ 	u32 rcv_interval_us;	/* rcv interval for delivered packets */
+diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
+index 0de693565963..fbab921670cc 100644
+--- a/net/ipv4/tcp_rate.c
++++ b/net/ipv4/tcp_rate.c
+@@ -65,6 +65,7 @@ void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb)
+ 	TCP_SKB_CB(skb)->tx.first_tx_mstamp	= tp->first_tx_mstamp;
+ 	TCP_SKB_CB(skb)->tx.delivered_mstamp	= tp->delivered_mstamp;
+ 	TCP_SKB_CB(skb)->tx.delivered		= tp->delivered;
++	TCP_SKB_CB(skb)->tx.delivered_ce	= tp->delivered_ce;
+ 	TCP_SKB_CB(skb)->tx.is_app_limited	= tp->app_limited ? 1 : 0;
+ }
+ 
+@@ -86,6 +87,7 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
+ 
+ 	if (!rs->prior_delivered ||
+ 	    after(scb->tx.delivered, rs->prior_delivered)) {
++		rs->prior_delivered_ce  = scb->tx.delivered_ce;
+ 		rs->prior_delivered  = scb->tx.delivered;
+ 		rs->prior_mstamp     = scb->tx.delivered_mstamp;
+ 		rs->is_app_limited   = scb->tx.is_app_limited;
+@@ -138,6 +140,10 @@ void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
+ 	}
+ 	rs->delivered   = tp->delivered - rs->prior_delivered;
+ 
++	rs->delivered_ce = tp->delivered_ce - rs->prior_delivered_ce;
++	/* delivered_ce occupies less than 32 bits in the skb control block */
++	rs->delivered_ce &= TCPCB_DELIVERED_CE_MASK;
++
+ 	/* Model sending data and receiving ACKs as separate pipeline phases
+ 	 * for a window. Usually the ACK phase is longer, but with ACK
+ 	 * compression the send phase can be longer. To be safe we use the
+-- 
+2.33.0
+

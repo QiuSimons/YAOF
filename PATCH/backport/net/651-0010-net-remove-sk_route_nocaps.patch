@@ -1,0 +1,127 @@
+From 080db5b1861c401803d91f4114891d294fc290e4 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 15 Nov 2021 11:02:35 -0800
+Subject: [PATCH 10/24] net: remove sk_route_nocaps
+
+Instead of using a full netdev_features_t, we can use a single bit,
+as sk_route_nocaps is only used to remove NETIF_F_GSO_MASK from
+sk->sk_route_cap.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ include/net/sock.h    | 11 +++++------
+ net/core/sock.c       |  3 ++-
+ net/ipv4/tcp_ipv4.c   |  4 ++--
+ net/ipv4/tcp_output.c |  2 +-
+ net/ipv6/ip6_output.c |  2 +-
+ 5 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/include/net/sock.h b/include/net/sock.h
+index e59a17ecc6bd..6c0ad2a8247f 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -284,7 +284,7 @@ struct bpf_local_storage;
+   *	@sk_no_check_tx: %SO_NO_CHECK setting, set checksum in TX packets
+   *	@sk_no_check_rx: allow zero checksum in RX packets
+   *	@sk_route_caps: route capabilities (e.g. %NETIF_F_TSO)
+-  *	@sk_route_nocaps: forbidden route capabilities (e.g NETIF_F_GSO_MASK)
++  *	@sk_gso_disabled: if set, NETIF_F_GSO_MASK is forbidden.
+   *	@sk_gso_type: GSO type (e.g. %SKB_GSO_TCPV4)
+   *	@sk_gso_max_size: Maximum GSO segment size to build
+   *	@sk_gso_max_segs: Maximum number of GSO segments
+@@ -460,7 +460,6 @@ struct sock {
+ 	unsigned long		sk_max_pacing_rate;
+ 	struct page_frag	sk_frag;
+ 	netdev_features_t	sk_route_caps;
+-	netdev_features_t	sk_route_nocaps;
+ 	int			sk_gso_type;
+ 	unsigned int		sk_gso_max_size;
+ 	gfp_t			sk_allocation;
+@@ -470,7 +469,7 @@ struct sock {
+ 	 * Because of non atomicity rules, all
+ 	 * changes are protected by socket lock.
+ 	 */
+-	u8			sk_padding : 1,
++	u8			sk_gso_disabled : 1,
+ 				sk_kern_sock : 1,
+ 				sk_no_check_tx : 1,
+ 				sk_no_check_rx : 1,
+@@ -2105,10 +2104,10 @@ static inline bool sk_can_gso(const struct sock *sk)
+ 
+ void sk_setup_caps(struct sock *sk, struct dst_entry *dst);
+ 
+-static inline void sk_nocaps_add(struct sock *sk, netdev_features_t flags)
++static inline void sk_gso_disable(struct sock *sk)
+ {
+-	sk->sk_route_nocaps |= flags;
+-	sk->sk_route_caps &= ~flags;
++	sk->sk_gso_disabled = 1;
++	sk->sk_route_caps &= ~NETIF_F_GSO_MASK;
+ }
+ 
+ static inline int skb_do_copy_data_nocache(struct sock *sk, struct sk_buff *skb,
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 913e920fbaf6..74aedc22ab90 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -2167,7 +2167,8 @@ void sk_setup_caps(struct sock *sk, struct dst_entry *dst)
+ 		sk->sk_route_caps |= NETIF_F_GSO;
+ 	if (sk->sk_route_caps & NETIF_F_GSO)
+ 		sk->sk_route_caps |= NETIF_F_GSO_SOFTWARE;
+-	sk->sk_route_caps &= ~sk->sk_route_nocaps;
++	if (unlikely(sk->sk_gso_disabled))
++		sk->sk_route_caps &= ~NETIF_F_GSO_MASK;
+ 	if (sk_can_gso(sk)) {
+ 		if (dst->header_len && !xfrm_dst_offload_ok(dst)) {
+ 			sk->sk_route_caps &= ~NETIF_F_GSO_MASK;
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index aa75add4c13f..7ff78e26fa72 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -1179,7 +1179,7 @@ int tcp_md5_do_add(struct sock *sk, const union tcp_md5_addr *addr,
+ 		if (!md5sig)
+ 			return -ENOMEM;
+ 
+-		sk_nocaps_add(sk, NETIF_F_GSO_MASK);
++		sk_gso_disable(sk);
+ 		INIT_HLIST_HEAD(&md5sig->head);
+ 		rcu_assign_pointer(tp->md5sig_info, md5sig);
+ 	}
+@@ -1617,7 +1617,7 @@ struct sock *tcp_v4_syn_recv_sock(const struct sock *sk, struct sk_buff *skb,
+ 		 */
+ 		tcp_md5_do_add(newsk, addr, AF_INET, 32, l3index, key->flags,
+ 			       key->key, key->keylen, GFP_ATOMIC);
+-		sk_nocaps_add(newsk, NETIF_F_GSO_MASK);
++		sk_gso_disable(newsk);
+ 	}
+ #endif
+ 
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index da11fde1610f..d026b2b2304d 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1361,7 +1361,7 @@ static int __tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,
+ #ifdef CONFIG_TCP_MD5SIG
+ 	/* Calculate the MD5 hash, as we have all we need now */
+ 	if (md5) {
+-		sk_nocaps_add(sk, NETIF_F_GSO_MASK);
++		sk_gso_disable(sk);
+ 		tp->af_specific->calc_md5_hash(opts.hash_location,
+ 					       md5, sk, skb);
+ 	}
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 2f044a49afa8..007e433d4d4d 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -977,7 +977,7 @@ int ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 
+ fail_toobig:
+ 	if (skb->sk && dst_allfrag(skb_dst(skb)))
+-		sk_nocaps_add(skb->sk, NETIF_F_GSO_MASK);
++		sk_gso_disable(skb->sk);
+ 
+ 	icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, mtu);
+ 	err = -EMSGSIZE;
+-- 
+2.33.1
+
