@@ -1,0 +1,77 @@
+From 4ece2cb09bde0bdb5a678bf6c6d0fc4b82a57076 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 15 Nov 2021 11:02:45 -0800
+Subject: tcp: avoid indirect calls to sock_rfree
+
+TCP uses sk_eat_skb() when skbs can be removed from receive queue.
+However, the call so skb_orphan() from __kfree_skb() incurs
+an indirect call so sock_rfee(), which is more expensive than
+a direct call, especially for CONFIG_RETPOLINE=y.
+
+Add tcp_eat_recv_skb() function to make the call before
+__kfree_skb().
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ net/ipv4/tcp.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
+
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -1600,6 +1600,16 @@ void tcp_cleanup_rbuf(struct sock *sk, i
+ 		tcp_send_ack(sk);
+ }
+ 
++static void tcp_eat_recv_skb(struct sock *sk, struct sk_buff *skb)
++{
++	if (likely(skb->destructor == sock_rfree)) {
++		sock_rfree(skb);
++		skb->destructor = NULL;
++		skb->sk = NULL;
++	}
++	sk_eat_skb(sk, skb);
++}
++
+ static struct sk_buff *tcp_recv_skb(struct sock *sk, u32 seq, u32 *off)
+ {
+ 	struct sk_buff *skb;
+@@ -1619,7 +1629,7 @@ static struct sk_buff *tcp_recv_skb(stru
+ 		 * splitted a fat GRO packet, while we released socket lock
+ 		 * in skb_splice_bits()
+ 		 */
+-		sk_eat_skb(sk, skb);
++		tcp_eat_recv_skb(sk, skb);
+ 	}
+ 	return NULL;
+ }
+@@ -1687,11 +1697,11 @@ int tcp_read_sock(struct sock *sk, read_
+ 				continue;
+ 		}
+ 		if (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN) {
+-			sk_eat_skb(sk, skb);
++			tcp_eat_recv_skb(sk, skb);
+ 			++seq;
+ 			break;
+ 		}
+-		sk_eat_skb(sk, skb);
++		tcp_eat_recv_skb(sk, skb);
+ 		if (!desc->count)
+ 			break;
+ 		WRITE_ONCE(tp->copied_seq, seq);
+@@ -2507,14 +2517,14 @@ skip_copy:
+ 		if (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN)
+ 			goto found_fin_ok;
+ 		if (!(flags & MSG_PEEK))
+-			sk_eat_skb(sk, skb);
++			tcp_eat_recv_skb(sk, skb);
+ 		continue;
+ 
+ found_fin_ok:
+ 		/* Process the FIN. */
+ 		WRITE_ONCE(*seq, *seq + 1);
+ 		if (!(flags & MSG_PEEK))
+-			sk_eat_skb(sk, skb);
++			tcp_eat_recv_skb(sk, skb);
+ 		break;
+ 	} while (len > 0);
+ 

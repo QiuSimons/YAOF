@@ -22,11 +22,9 @@ Change-Id: I3b779603797263b52a61ad57c565eb91fe42680c
  net/ipv4/tcp_rate.c | 7 ++++---
  2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 2b274fb8f2ae..6f0243c70b03 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -807,6 +807,11 @@ static inline u32 tcp_stamp_us_delta(u64 t1, u64 t0)
+@@ -800,6 +800,11 @@ static inline u32 tcp_stamp_us_delta(u64
  	return max_t(s64, t1 - t0, 0);
  }
  
@@ -38,7 +36,7 @@ index 2b274fb8f2ae..6f0243c70b03 100644
  static inline u32 tcp_skb_timestamp(const struct sk_buff *skb)
  {
  	return tcp_ns_to_ts(skb->skb_mstamp_ns);
-@@ -882,9 +887,9 @@ struct tcp_skb_cb {
+@@ -875,9 +880,9 @@ struct tcp_skb_cb {
  			/* pkts S/ACKed so far upon tx of skb, incl retrans: */
  			__u32 delivered;
  			/* start of send pipeline phase */
@@ -50,13 +48,11 @@ index 2b274fb8f2ae..6f0243c70b03 100644
  		} tx;   /* only used for outgoing skbs */
  		union {
  			struct inet_skb_parm	h4;
-diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
-index fbab921670cc..b64d82481ae9 100644
 --- a/net/ipv4/tcp_rate.c
 +++ b/net/ipv4/tcp_rate.c
-@@ -96,8 +96,9 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
+@@ -101,8 +101,9 @@ void tcp_rate_skb_delivered(struct sock
  		/* Record send time of most recently ACKed packet: */
- 		tp->first_tx_mstamp  = tcp_skb_timestamp_us(skb);
+ 		tp->first_tx_mstamp  = tx_tstamp;
  		/* Find the duration of the "send phase" of this window: */
 -		rs->interval_us = tcp_stamp_us_delta(tp->first_tx_mstamp,
 -						     scb->tx.first_tx_mstamp);
@@ -66,7 +62,7 @@ index fbab921670cc..b64d82481ae9 100644
  
  	}
  	/* Mark off the skb delivered once it's sacked to avoid being
-@@ -150,7 +151,7 @@ void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
+@@ -155,7 +156,7 @@ void tcp_rate_gen(struct sock *sk, u32 d
  	 * longer phase.
  	 */
  	snd_us = rs->interval_us;				/* send phase */
@@ -75,6 +71,3 @@ index fbab921670cc..b64d82481ae9 100644
  				    rs->prior_mstamp); /* ack phase */
  	rs->interval_us = max(snd_us, ack_us);
  
--- 
-2.33.0
-

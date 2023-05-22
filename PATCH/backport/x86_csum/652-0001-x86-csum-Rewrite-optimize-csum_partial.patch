@@ -49,8 +49,6 @@ Link: https://lore.kernel.org/r/20211112161950.528886-1-eric.dumazet@gmail.com
  arch/x86/lib/csum-partial_64.c | 162 ++++++++++++++-------------------
  1 file changed, 67 insertions(+), 95 deletions(-)
 
-diff --git a/arch/x86/lib/csum-partial_64.c b/arch/x86/lib/csum-partial_64.c
-index e7925d668b68..5ec35626945b 100644
 --- a/arch/x86/lib/csum-partial_64.c
 +++ b/arch/x86/lib/csum-partial_64.c
 @@ -9,6 +9,7 @@
@@ -61,7 +59,7 @@ index e7925d668b68..5ec35626945b 100644
  
  static inline unsigned short from32to16(unsigned a) 
  {
-@@ -21,120 +22,92 @@ static inline unsigned short from32to16(unsigned a)
+@@ -21,120 +22,92 @@ static inline unsigned short from32to16(
  }
  
  /*
@@ -119,7 +117,7 @@ index e7925d668b68..5ec35626945b 100644
 -				buff += 4;
 -			}
 -			count >>= 1;	/* nr of 64-bit words.. */
- 
+-
 -			/* main loop using 64byte blocks */
 -			zero = 0;
 -			count64 = count >> 3;
@@ -139,6 +137,35 @@ index e7925d668b68..5ec35626945b 100644
 -				buff += 64;
 -				count64--;
 -			}
+-
+-			/* last up to 7 8byte blocks */
+-			count %= 8; 
+-			while (count) { 
+-				asm("addq %1,%0\n\t"
+-				    "adcq %2,%0\n" 
+-					    : "=r" (result)
+-				    : "m" (*(unsigned long *)buff), 
+-				    "r" (zero),  "0" (result));
+-				--count; 
+-				buff += 8;
+-			}
+-			result = add32_with_carry(result>>32,
+-						  result&0xffffffff); 
+-
+-			if (len & 4) {
+-				result += *(unsigned int *) buff;
+-				buff += 4;
+-			}
+-		}
+-		if (len & 2) {
+-			result += *(unsigned short *) buff;
+-			buff += 2;
+-		}
+-	}
+-	if (len & 1)
+-		result += *buff;
+-	result = add32_with_carry(result>>32, result & 0xffffffff); 
++
 +	while (unlikely(len >= 64)) {
 +		asm("addq 0*8(%[src]),%[res]\n\t"
 +		    "adcq 1*8(%[src]),%[res]\n\t"
@@ -187,39 +214,14 @@ index e7925d668b68..5ec35626945b 100644
 +	if (len & 7) {
 +		unsigned int shift = (8 - (len & 7)) * 8;
 +		unsigned long trail;
- 
--			/* last up to 7 8byte blocks */
--			count %= 8; 
--			while (count) { 
--				asm("addq %1,%0\n\t"
--				    "adcq %2,%0\n" 
--					    : "=r" (result)
--				    : "m" (*(unsigned long *)buff), 
--				    "r" (zero),  "0" (result));
--				--count; 
--				buff += 8;
--			}
--			result = add32_with_carry(result>>32,
--						  result&0xffffffff); 
++
 +		trail = (load_unaligned_zeropad(buff) << shift) >> shift;
- 
--			if (len & 4) {
--				result += *(unsigned int *) buff;
--				buff += 4;
--			}
--		}
--		if (len & 2) {
--			result += *(unsigned short *) buff;
--			buff += 2;
--		}
++
 +		asm("addq %[trail],%[res]\n\t"
 +		    "adcq $0,%[res]"
 +			: [res] "+r" (temp64)
 +			: [trail] "r" (trail));
- 	}
--	if (len & 1)
--		result += *buff;
--	result = add32_with_carry(result>>32, result & 0xffffffff); 
++	}
 +	result = add32_with_carry(temp64 >> 32, temp64 & 0xffffffff);
  	if (unlikely(odd)) { 
  		result = from32to16(result);
@@ -248,11 +250,8 @@ index e7925d668b68..5ec35626945b 100644
  }
  EXPORT_SYMBOL(csum_partial);
  
-@@ -147,4 +120,3 @@ __sum16 ip_compute_csum(const void *buff, int len)
+@@ -147,4 +120,3 @@ __sum16 ip_compute_csum(const void *buff
  	return csum_fold(csum_partial(buff,len,0));
  }
  EXPORT_SYMBOL(ip_compute_csum);
 -
--- 
-2.33.1
-

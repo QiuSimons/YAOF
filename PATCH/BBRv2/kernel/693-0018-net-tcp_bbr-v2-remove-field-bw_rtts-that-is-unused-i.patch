@@ -9,8 +9,6 @@ Change-Id: I58e3346c707748a6f316f3ed060d2da84c32a79b
  net/ipv4/tcp_bbr2.c | 7 +------
  1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/net/ipv4/tcp_bbr2.c b/net/ipv4/tcp_bbr2.c
-index e00b47850dce..6121cd46f81a 100644
 --- a/net/ipv4/tcp_bbr2.c
 +++ b/net/ipv4/tcp_bbr2.c
 @@ -179,9 +179,8 @@ struct bbr {
@@ -33,7 +31,7 @@ index e00b47850dce..6121cd46f81a 100644
  /* Window length of min_rtt filter (in sec). Max allowed value is 31 (0x1F) */
  static u32 bbr_min_rtt_win_sec = 10;
  /* Minimum time (in ms) spent at bbr_cwnd_min_target in BBR_PROBE_RTT mode.
-@@ -390,7 +387,6 @@ static bool bbr_usage_based_cwnd;		/* default: disabled */
+@@ -390,7 +387,6 @@ static bool bbr_usage_based_cwnd;		/* de
   */
  static bool bbr_ecn_enable = false;
  
@@ -49,6 +47,3 @@ index e00b47850dce..6121cd46f81a 100644
  	bbr->params.full_bw_thresh = min(0x3FFU, bbr_full_bw_thresh);
  	bbr->params.extra_acked_gain = min(0x7FF, bbr_extra_acked_gain);
  	bbr->params.extra_acked_win_rtts = min(0x1FU, bbr_extra_acked_win_rtts);
--- 
-2.33.0
-

@@ -138,8 +138,6 @@ Change-Id: I125cf26ba2a7a686f2fa5e87f4c2afceb65f7a05
  5 files changed, 2742 insertions(+), 2 deletions(-)
  create mode 100644 net/ipv4/tcp_bbr2.c
 
-diff --git a/include/net/inet_connection_sock.h b/include/net/inet_connection_sock.h
-index b06c2d02ec84..2cdc5a0709fe 100644
 --- a/include/net/inet_connection_sock.h
 +++ b/include/net/inet_connection_sock.h
 @@ -134,8 +134,9 @@ struct inet_connection_sock {
@@ -154,8 +152,6 @@ index b06c2d02ec84..2cdc5a0709fe 100644
  };
  
  #define ICSK_TIME_RETRANS	1	/* Retransmit timer */
-diff --git a/include/uapi/linux/inet_diag.h b/include/uapi/linux/inet_diag.h
-index 20ee93f0f876..96d52dd9c48a 100644
 --- a/include/uapi/linux/inet_diag.h
 +++ b/include/uapi/linux/inet_diag.h
 @@ -231,9 +231,42 @@ struct tcp_bbr_info {
@@ -201,11 +197,9 @@ index 20ee93f0f876..96d52dd9c48a 100644
 +	struct tcp_bbr2_info	bbr2;
  };
  #endif /* _UAPI_INET_DIAG_H_ */
-diff --git a/net/ipv4/Kconfig b/net/ipv4/Kconfig
-index 87983e70f03f..a833a7a67ce7 100644
 --- a/net/ipv4/Kconfig
 +++ b/net/ipv4/Kconfig
-@@ -669,6 +669,24 @@ config TCP_CONG_BBR
+@@ -679,6 +679,24 @@ config TCP_CONG_BBR
  	  AQM schemes that do not provide a delay signal. It requires the fq
  	  ("Fair Queue") pacing packet scheduler.
  
@@ -230,7 +224,7 @@ index 87983e70f03f..a833a7a67ce7 100644
  choice
  	prompt "Default TCP congestion control"
  	default DEFAULT_CUBIC
-@@ -706,6 +724,9 @@ choice
+@@ -716,6 +734,9 @@ choice
  	config DEFAULT_BBR
  		bool "BBR" if TCP_CONG_BBR=y
  
@@ -240,7 +234,7 @@ index 87983e70f03f..a833a7a67ce7 100644
  	config DEFAULT_RENO
  		bool "Reno"
  endchoice
-@@ -730,6 +751,7 @@ config DEFAULT_TCP_CONG
+@@ -740,6 +761,7 @@ config DEFAULT_TCP_CONG
  	default "dctcp" if DEFAULT_DCTCP
  	default "cdg" if DEFAULT_CDG
  	default "bbr" if DEFAULT_BBR
@@ -248,11 +242,9 @@ index 87983e70f03f..a833a7a67ce7 100644
  	default "cubic"
  
  config TCP_MD5SIG
-diff --git a/net/ipv4/Makefile b/net/ipv4/Makefile
-index bbdd9c44f14e..8dee1547d820 100644
 --- a/net/ipv4/Makefile
 +++ b/net/ipv4/Makefile
-@@ -46,6 +46,7 @@ obj-$(CONFIG_INET_TCP_DIAG) += tcp_diag.o
+@@ -46,6 +46,7 @@ obj-$(CONFIG_INET_TCP_DIAG) += tcp_diag.
  obj-$(CONFIG_INET_UDP_DIAG) += udp_diag.o
  obj-$(CONFIG_INET_RAW_DIAG) += raw_diag.o
  obj-$(CONFIG_TCP_CONG_BBR) += tcp_bbr.o
@@ -260,9 +252,6 @@ index bbdd9c44f14e..8dee1547d820 100644
  obj-$(CONFIG_TCP_CONG_BIC) += tcp_bic.o
  obj-$(CONFIG_TCP_CONG_CDG) += tcp_cdg.o
  obj-$(CONFIG_TCP_CONG_CUBIC) += tcp_cubic.o
-diff --git a/net/ipv4/tcp_bbr2.c b/net/ipv4/tcp_bbr2.c
-new file mode 100644
-index 000000000000..a6959b70e51d
 --- /dev/null
 +++ b/net/ipv4/tcp_bbr2.c
 @@ -0,0 +1,2683 @@
@@ -2949,6 +2938,3 @@ index 000000000000..a6959b70e51d
 +
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_DESCRIPTION("TCP BBR (Bottleneck Bandwidth and RTT)");
--- 
-2.33.0
-

@@ -26,11 +26,9 @@ Change-Id: I1a184aad6d101c981ac7f2f275aa9417ff856910
  net/ipv4/tcp_output.c |  2 --
  3 files changed, 7 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 784d5c3ef1c5..c397e4a8ce6c 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -875,9 +875,8 @@ struct tcp_skb_cb {
+@@ -868,9 +868,8 @@ struct tcp_skb_cb {
  	union {
  		struct {
  			/* There is space for up to 24 bytes */
@@ -42,11 +40,9 @@ index 784d5c3ef1c5..c397e4a8ce6c 100644
  			/* pkts S/ACKed so far upon tx of skb, incl retrans: */
  			__u32 delivered;
  			/* start of send pipeline phase */
-diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
-index a9fb0f500cde..f1b1d42261f0 100644
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3189,7 +3189,6 @@ static int tcp_clean_rtx_queue(struct sock *sk, const struct sk_buff *ack_skb,
+@@ -3243,7 +3243,6 @@ static int tcp_clean_rtx_queue(struct so
  	long seq_rtt_us = -1L;
  	long ca_rtt_us = -1L;
  	u32 pkts_acked = 0;
@@ -54,7 +50,7 @@ index a9fb0f500cde..f1b1d42261f0 100644
  	bool rtt_update;
  	int flag = 0;
  
-@@ -3225,7 +3224,6 @@ static int tcp_clean_rtx_queue(struct sock *sk, const struct sk_buff *ack_skb,
+@@ -3279,7 +3278,6 @@ static int tcp_clean_rtx_queue(struct so
  			if (!first_ackt)
  				first_ackt = last_ackt;
  
@@ -62,7 +58,7 @@ index a9fb0f500cde..f1b1d42261f0 100644
  			if (before(start_seq, reord))
  				reord = start_seq;
  			if (!after(scb->end_seq, tp->high_seq))
-@@ -3291,8 +3289,8 @@ static int tcp_clean_rtx_queue(struct sock *sk, const struct sk_buff *ack_skb,
+@@ -3345,8 +3343,8 @@ static int tcp_clean_rtx_queue(struct so
  		seq_rtt_us = tcp_stamp_us_delta(tp->tcp_mstamp, first_ackt);
  		ca_rtt_us = tcp_stamp_us_delta(tp->tcp_mstamp, last_ackt);
  
@@ -73,7 +69,7 @@ index a9fb0f500cde..f1b1d42261f0 100644
  		    sack->rate->prior_delivered + 1 == tp->delivered &&
  		    !(flag & (FLAG_CA_ALERT | FLAG_SYN_ACKED))) {
  			/* Conservatively mark a delayed ACK. It's typically
-@@ -3349,9 +3347,10 @@ static int tcp_clean_rtx_queue(struct sock *sk, const struct sk_buff *ack_skb,
+@@ -3403,9 +3401,10 @@ static int tcp_clean_rtx_queue(struct so
  
  	if (icsk->icsk_ca_ops->pkts_acked) {
  		struct ack_sample sample = { .pkts_acked = pkts_acked,
@@ -86,11 +82,9 @@ index a9fb0f500cde..f1b1d42261f0 100644
  		icsk->icsk_ca_ops->pkts_acked(sk, &sample);
  	}
  
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 29553fce8502..5ca809468fae 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1256,8 +1256,6 @@ static int __tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,
+@@ -1254,8 +1254,6 @@ static int __tcp_transmit_skb(struct soc
  	tp->tcp_wstamp_ns = max(tp->tcp_wstamp_ns, tp->tcp_clock_cache);
  	skb->skb_mstamp_ns = tp->tcp_wstamp_ns;
  	if (clone_it) {
@@ -99,6 +93,3 @@ index 29553fce8502..5ca809468fae 100644
  		oskb = skb;
  
  		tcp_skb_tsorted_save(oskb) {
--- 
-2.33.0
-

@@ -29,7 +29,7 @@ sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_
 
 ### 必要的 Patches ###
 # TCP optimizations
-cp -rf ../PATCH/backport/net/* ./target/linux/generic/backport-5.15/
+cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.15/
 # x86_csum
 cp -rf ../PATCH/backport/x86_csum/* ./target/linux/generic/backport-5.15/
 # Patch arm64 型号名称
@@ -83,10 +83,10 @@ rm -rf ./target/linux/rockchip
 cp -rf ../lede/target/linux/rockchip ./target/linux/rockchip
 #rm -rf ./target/linux/rockchip/Makefile
 #cp -rf ../openwrt_release/target/linux/rockchip/Makefile ./target/linux/rockchip/Makefile
-#rm -rf ./target/linux/rockchip/armv8/config-5.10
-#cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.10 ./target/linux/rockchip/armv8/config-5.10
-rm -rf ./target/linux/rockchip/patches-5.15/002-net-usb-r8152-add-LED-configuration-from-OF.patch
-rm -rf ./target/linux/rockchip/patches-5.15/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
+#rm -rf ./target/linux/rockchip/armv8/config-5.15
+#cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.15 ./target/linux/rockchip/armv8/config-5.15
+rm -rf ./target/linux/rockchip/patches-5.15/*otorcomm*
+rm -rf ./target/linux/rockchip/patches-5.15/*8152*
 cp -rf ../PATCH/rockchip-5.15/* ./target/linux/rockchip/patches-5.15/
 rm -rf ./package/boot/uboot-rockchip
 cp -rf ../lede/package/boot/uboot-rockchip ./package/boot/uboot-rockchip

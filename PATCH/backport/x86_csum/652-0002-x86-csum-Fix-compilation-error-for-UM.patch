@@ -19,11 +19,9 @@ Link: https://lkml.kernel.org/r/20211118175239.1525650-1-eric.dumazet@gmail.com
  arch/x86/lib/csum-partial_64.c | 26 ++++++++++++++++++++++++++
  1 file changed, 26 insertions(+)
 
-diff --git a/arch/x86/lib/csum-partial_64.c b/arch/x86/lib/csum-partial_64.c
-index 5ec35626945b..1eb8f2d11f7c 100644
 --- a/arch/x86/lib/csum-partial_64.c
 +++ b/arch/x86/lib/csum-partial_64.c
-@@ -92,6 +92,7 @@ __wsum csum_partial(const void *buff, int len, __wsum sum)
+@@ -92,6 +92,7 @@ __wsum csum_partial(const void *buff, in
  		buff += 8;
  	}
  	if (len & 7) {
@@ -31,7 +29,7 @@ index 5ec35626945b..1eb8f2d11f7c 100644
  		unsigned int shift = (8 - (len & 7)) * 8;
  		unsigned long trail;
  
-@@ -101,6 +102,31 @@ __wsum csum_partial(const void *buff, int len, __wsum sum)
+@@ -101,6 +102,31 @@ __wsum csum_partial(const void *buff, in
  		    "adcq $0,%[res]"
  			: [res] "+r" (temp64)
  			: [trail] "r" (trail));
@@ -63,6 +61,3 @@ index 5ec35626945b..1eb8f2d11f7c 100644
  	}
  	result = add32_with_carry(temp64 >> 32, temp64 & 0xffffffff);
  	if (unlikely(odd)) { 
--- 
-2.33.1
-

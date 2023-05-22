@@ -67,8 +67,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 200 insertions(+), 2 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_proc.c
 
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index d321d6d21a44..d7df72a702e4 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -8,3 +8,4 @@ obj-y				+= lrng_es_mgr.o lrng_aux.o \
@@ -76,11 +74,9 @@ index d321d6d21a44..d7df72a702e4 100644
  
  obj-$(CONFIG_LRNG_IRQ)		+= lrng_es_irq.o
 +obj-$(CONFIG_SYSCTL)		+= lrng_proc.o
-diff --git a/drivers/char/lrng/lrng_interfaces.c b/drivers/char/lrng/lrng_interfaces.c
-index 6316a534bb54..b656aaf0c6cb 100644
 --- a/drivers/char/lrng/lrng_interfaces.c
 +++ b/drivers/char/lrng/lrng_interfaces.c
-@@ -38,8 +38,6 @@ static DECLARE_WAIT_QUEUE_HEAD(lrng_write_wait);
+@@ -38,8 +38,6 @@ static DECLARE_WAIT_QUEUE_HEAD(lrng_writ
  static DECLARE_WAIT_QUEUE_HEAD(lrng_init_wait);
  static struct fasync_struct *fasync;
  
@@ -89,9 +85,6 @@ index 6316a534bb54..b656aaf0c6cb 100644
  /********************************** Helper ***********************************/
  
  /* Is the DRNG seed level too low? */
-diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
-new file mode 100644
-index 000000000000..b48094c32b95
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
 @@ -0,0 +1,199 @@
@@ -294,6 +287,3 @@ index 000000000000..b48094c32b95
 +}
 +
 +module_init(lrng_proc_type_init);
--- 
-2.33.1
-

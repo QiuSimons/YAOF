@@ -20,11 +20,9 @@ Change-Id: I2255506985242f376d910c6fd37daabaf4744f24
  net/ipv4/tcp_input.c |  4 ++--
  2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 6e2e97aa0d1e..b74fe7142386 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1019,7 +1019,11 @@ enum tcp_ca_ack_event_flags {
+@@ -1012,7 +1012,11 @@ enum tcp_ca_ack_event_flags {
  #define TCP_CONG_NON_RESTRICTED 0x1
  /* Requires ECN/ECT set on all packets */
  #define TCP_CONG_NEEDS_ECN	0x2
@@ -37,7 +35,7 @@ index 6e2e97aa0d1e..b74fe7142386 100644
  
  union tcp_cc_info;
  
-@@ -1147,6 +1151,14 @@ static inline char *tcp_ca_get_name_by_key(u32 key, char *buffer)
+@@ -1141,6 +1145,14 @@ static inline char *tcp_ca_get_name_by_k
  }
  #endif
  
@@ -52,11 +50,9 @@ index 6e2e97aa0d1e..b74fe7142386 100644
  static inline bool tcp_ca_needs_ecn(const struct sock *sk)
  {
  	const struct inet_connection_sock *icsk = inet_csk(sk);
-diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
-index 430d734fc283..2cf77fdad9ce 100644
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -348,7 +348,7 @@ static void __tcp_ecn_check_ce(struct sock *sk, const struct sk_buff *skb)
+@@ -349,7 +349,7 @@ static void __tcp_ecn_check_ce(struct so
  			tcp_enter_quickack_mode(sk, 2);
  		break;
  	case INET_ECN_CE:
@@ -65,7 +61,7 @@ index 430d734fc283..2cf77fdad9ce 100644
  			tcp_ca_event(sk, CA_EVENT_ECN_IS_CE);
  
  		if (!(tp->ecn_flags & TCP_ECN_DEMAND_CWR)) {
-@@ -359,7 +359,7 @@ static void __tcp_ecn_check_ce(struct sock *sk, const struct sk_buff *skb)
+@@ -360,7 +360,7 @@ static void __tcp_ecn_check_ce(struct so
  		tp->ecn_flags |= TCP_ECN_SEEN;
  		break;
  	default:
@@ -74,6 +70,3 @@ index 430d734fc283..2cf77fdad9ce 100644
  			tcp_ca_event(sk, CA_EVENT_ECN_NO_CE);
  		tp->ecn_flags |= TCP_ECN_SEEN;
  		break;
--- 
-2.33.0
-

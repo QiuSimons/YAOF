@@ -28,11 +28,9 @@ Change-Id: I0bc4a790f040fd4239620e1eedd5dc64666c6f05
  net/ipv4/tcp_output.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index fbaf6ed39b19..a909be0a9b8c 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -2636,6 +2636,7 @@ static bool tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
+@@ -2640,6 +2640,7 @@ static bool tcp_write_xmit(struct sock *
  			skb->skb_mstamp_ns = tp->tcp_wstamp_ns = tp->tcp_clock_cache;
  			list_move_tail(&skb->tcp_tsorted_anchor, &tp->tsorted_sent_queue);
  			tcp_init_tso_segs(skb, mss_now);
@@ -40,6 +38,3 @@ index fbaf6ed39b19..a909be0a9b8c 100644
  			goto repair; /* Skip network transmission */
  		}
  
--- 
-2.33.0
-

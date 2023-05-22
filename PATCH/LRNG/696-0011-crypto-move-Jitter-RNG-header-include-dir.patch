@@ -43,8 +43,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 2 insertions(+), 3 deletions(-)
  rename {crypto => include/crypto/internal}/jitterentropy.h (100%)
 
-diff --git a/crypto/jitterentropy-kcapi.c b/crypto/jitterentropy-kcapi.c
-index e8a4165a1874..c90e60910827 100644
 --- a/crypto/jitterentropy-kcapi.c
 +++ b/crypto/jitterentropy-kcapi.c
 @@ -43,8 +43,7 @@
@@ -57,8 +55,6 @@ index e8a4165a1874..c90e60910827 100644
  
  /***************************************************************************
   * Helper function
-diff --git a/crypto/jitterentropy.c b/crypto/jitterentropy.c
-index a11b3208760f..f36a391319e1 100644
 --- a/crypto/jitterentropy.c
 +++ b/crypto/jitterentropy.c
 @@ -117,7 +117,7 @@ struct rand_data {
@@ -70,10 +66,43 @@ index a11b3208760f..f36a391319e1 100644
  
  /***************************************************************************
   * Adaptive Proportion Test
-diff --git a/crypto/jitterentropy.h b/include/crypto/internal/jitterentropy.h
-similarity index 100%
-rename from crypto/jitterentropy.h
-rename to include/crypto/internal/jitterentropy.h
--- 
-2.33.1
-
+--- a/crypto/jitterentropy.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
+-
+-extern void *jent_zalloc(unsigned int len);
+-extern void jent_zfree(void *ptr);
+-extern int jent_fips_enabled(void);
+-extern void jent_panic(char *s);
+-extern void jent_memcpy(void *dest, const void *src, unsigned int n);
+-extern void jent_get_nstime(__u64 *out);
+-
+-struct rand_data;
+-extern int jent_entropy_init(void);
+-extern int jent_read_entropy(struct rand_data *ec, unsigned char *data,
+-			     unsigned int len);
+-
+-extern struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
+-						      unsigned int flags);
+-extern void jent_entropy_collector_free(struct rand_data *entropy_collector);
+--- /dev/null
++++ b/include/crypto/internal/jitterentropy.h
+@@ -0,0 +1,17 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++extern void *jent_zalloc(unsigned int len);
++extern void jent_zfree(void *ptr);
++extern int jent_fips_enabled(void);
++extern void jent_panic(char *s);
++extern void jent_memcpy(void *dest, const void *src, unsigned int n);
++extern void jent_get_nstime(__u64 *out);
++
++struct rand_data;
++extern int jent_entropy_init(void);
++extern int jent_read_entropy(struct rand_data *ec, unsigned char *data,
++			     unsigned int len);
++
++extern struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
++						      unsigned int flags);
++extern void jent_entropy_collector_free(struct rand_data *entropy_collector);

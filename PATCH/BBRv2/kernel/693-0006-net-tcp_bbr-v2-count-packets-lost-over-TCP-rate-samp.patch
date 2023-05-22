@@ -16,11 +16,9 @@ Change-Id: I594c2500868d9c530770e7ddd68ffc87c57f4fd5
  net/ipv4/tcp_rate.c | 3 +++
  2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index c5797f42bcd6..1b656ec48d87 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -894,6 +894,7 @@ struct tcp_skb_cb {
+@@ -887,6 +887,7 @@ struct tcp_skb_cb {
  #define TCPCB_IN_FLIGHT_MAX ((1U << TCPCB_IN_FLIGHT_BITS) - 1)
  			u32 in_flight:20,   /* packets in flight at transmit */
  			    unused2:12;
@@ -28,7 +26,7 @@ index c5797f42bcd6..1b656ec48d87 100644
  		} tx;   /* only used for outgoing skbs */
  		union {
  			struct inet_skb_parm	h4;
-@@ -1038,11 +1039,13 @@ struct ack_sample {
+@@ -1031,11 +1032,13 @@ struct ack_sample {
   */
  struct rate_sample {
  	u64  prior_mstamp; /* starting timestamp for interval */
@@ -43,11 +41,9 @@ index c5797f42bcd6..1b656ec48d87 100644
  	long interval_us;	/* time for tp->delivered to incr "delivered" */
  	u32 snd_interval_us;	/* snd interval for delivered packets */
  	u32 rcv_interval_us;	/* rcv interval for delivered packets */
-diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
-index 3ecc831206b5..f454fce5e1fd 100644
 --- a/net/ipv4/tcp_rate.c
 +++ b/net/ipv4/tcp_rate.c
-@@ -67,6 +67,7 @@ void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb)
+@@ -67,6 +67,7 @@ void tcp_rate_skb_sent(struct sock *sk,
  	TCP_SKB_CB(skb)->tx.delivered_mstamp	= tp->delivered_mstamp;
  	TCP_SKB_CB(skb)->tx.delivered		= tp->delivered;
  	TCP_SKB_CB(skb)->tx.delivered_ce	= tp->delivered_ce;
@@ -55,15 +51,15 @@ index 3ecc831206b5..f454fce5e1fd 100644
  	TCP_SKB_CB(skb)->tx.is_app_limited	= tp->app_limited ? 1 : 0;
  
  	/* Check, sanitize, and record packets in flight after skb was sent. */
-@@ -100,6 +101,7 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
- 
+@@ -104,6 +105,7 @@ void tcp_rate_skb_delivered(struct sock
  	if (!rs->prior_delivered ||
- 	    after(scb->tx.delivered, rs->prior_delivered)) {
+ 	    tcp_skb_sent_after(tx_tstamp, tp->first_tx_mstamp,
+ 			       scb->end_seq, rs->last_end_seq)) {
 +		rs->prior_lost	     = scb->tx.lost;
  		rs->prior_delivered_ce  = scb->tx.delivered_ce;
  		rs->prior_delivered  = scb->tx.delivered;
  		rs->prior_mstamp     = scb->tx.delivered_mstamp;
-@@ -154,6 +156,7 @@ void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
+@@ -159,6 +161,7 @@ void tcp_rate_gen(struct sock *sk, u32 d
  		return;
  	}
  	rs->delivered   = tp->delivered - rs->prior_delivered;
@@ -71,6 +67,3 @@ index 3ecc831206b5..f454fce5e1fd 100644
  
  	rs->delivered_ce = tp->delivered_ce - rs->prior_delivered_ce;
  	/* delivered_ce occupies less than 32 bits in the skb control block */
--- 
-2.33.0
-

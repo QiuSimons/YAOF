@@ -27,11 +27,9 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  net/ipv4/tcp_output.c | 11 +++++------
  4 files changed, 34 insertions(+), 21 deletions(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index d17a418a7709..0e4f3b3e95c6 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1077,8 +1077,8 @@ struct tcp_congestion_ops {
+@@ -1078,8 +1078,8 @@ struct tcp_congestion_ops {
  	/* hook for packet ack accounting (optional) */
  	void (*pkts_acked)(struct sock *sk, const struct ack_sample *sample);
  
@@ -42,8 +40,6 @@ index d17a418a7709..0e4f3b3e95c6 100644
  
  	/* react to a specific lost skb (optional) */
  	void (*skb_marked_lost)(struct sock *sk, const struct sk_buff *skb);
-diff --git a/net/ipv4/bpf_tcp_ca.c b/net/ipv4/bpf_tcp_ca.c
-index d3a2dbd13ea6..85eb04b87285 100644
 --- a/net/ipv4/bpf_tcp_ca.c
 +++ b/net/ipv4/bpf_tcp_ca.c
 @@ -20,7 +20,7 @@ static u32 optional_ops[] = {
@@ -55,11 +51,9 @@ index d3a2dbd13ea6..85eb04b87285 100644
  	offsetof(struct tcp_congestion_ops, sndbuf_expand),
  	offsetof(struct tcp_congestion_ops, cong_control),
  };
-diff --git a/net/ipv4/tcp_bbr.c b/net/ipv4/tcp_bbr.c
-index c5ee83654db1..2cd6eb19b587 100644
 --- a/net/ipv4/tcp_bbr.c
 +++ b/net/ipv4/tcp_bbr.c
-@@ -292,26 +292,40 @@ static void bbr_set_pacing_rate(struct sock *sk, u32 bw, int gain)
+@@ -292,26 +292,40 @@ static void bbr_set_pacing_rate(struct s
  		sk->sk_pacing_rate = rate;
  }
  
@@ -111,7 +105,7 @@ index c5ee83654db1..2cd6eb19b587 100644
  }
  
  /* Save "last known good" cwnd so we can restore it after losses or PROBE_RTT */
-@@ -1147,7 +1161,7 @@ static struct tcp_congestion_ops tcp_bbr_cong_ops __read_mostly = {
+@@ -1147,7 +1161,7 @@ static struct tcp_congestion_ops tcp_bbr
  	.undo_cwnd	= bbr_undo_cwnd,
  	.cwnd_event	= bbr_cwnd_event,
  	.ssthresh	= bbr_ssthresh,
@@ -120,11 +114,9 @@ index c5ee83654db1..2cd6eb19b587 100644
  	.get_info	= bbr_get_info,
  	.set_state	= bbr_set_state,
  };
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 0f01db529ce0..5ffbcea14e31 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1990,13 +1990,12 @@ static u32 tcp_tso_autosize(const struct sock *sk, unsigned int mss_now,
+@@ -1994,13 +1994,12 @@ static u32 tcp_tso_autosize(const struct
  static u32 tcp_tso_segs(struct sock *sk, unsigned int mss_now)
  {
  	const struct tcp_congestion_ops *ca_ops = inet_csk(sk)->icsk_ca_ops;
@@ -143,6 +135,3 @@ index 0f01db529ce0..5ffbcea14e31 100644
  	return min_t(u32, tso_segs, sk->sk_gso_max_segs);
  }
  
--- 
-2.33.1
-
