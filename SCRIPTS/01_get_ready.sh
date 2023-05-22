@@ -28,13 +28,15 @@ git clone --single-branch -b openwrt-23.05 https://github.com/openwrt/openwrt op
 git clone -b master --depth 1 https://github.com/immortalwrt/immortalwrt.git immortalwrt
 git clone -b openwrt-21.02 --depth 1 https://github.com/immortalwrt/immortalwrt.git immortalwrt_21
 git clone -b master --depth 1 https://github.com/immortalwrt/packages.git immortalwrt_pkg
+git clone -b openwrt-21.02 --depth 1 https://github.com/immortalwrt/packages.git immortalwrt_pkg_21
 git clone -b master --depth 1 https://github.com/immortalwrt/luci.git immortalwrt_luci
+git clone -b openwrt-21.02 --depth 1 https://github.com/immortalwrt/luci.git immortalwrt_luci_21
 git clone -b master --depth 1 https://github.com/coolsnowwolf/lede.git lede
 git clone -b master --depth 1 https://github.com/coolsnowwolf/luci.git lede_luci
 git clone -b master --depth 1 https://github.com/coolsnowwolf/packages.git lede_pkg
-git clone -b master --depth 1 https://github.com/openwrt/openwrt.git openwrt_ma
-git clone -b master --depth 1 https://github.com/openwrt/packages.git openwrt_pkg_ma
-git clone -b master --depth 1 https://github.com/openwrt/luci.git openwrt_luci_ma
+git clone -b main --depth 1 https://github.com/openwrt/openwrt.git openwrt_ma
+git clone -b main --depth 1 https://github.com/openwrt/packages.git openwrt_pkg_ma
+git clone -b main --depth 1 https://github.com/openwrt/luci.git openwrt_luci_ma
 git clone -b master --depth 1 https://github.com/Lienol/openwrt.git Lienol
 git clone -b main --depth 1 https://github.com/Lienol/openwrt-package Lienol_pkg
 git clone -b master --depth 1 https://github.com/QiuSimons/OpenWrt-Add.git OpenWrt-Add
@@ -49,6 +51,8 @@ git clone -b master --depth 1 https://github.com/QiuSimons/openwrt-mos mosdns
 git clone -b master --depth 1 https://github.com/fw876/helloworld ssrp
 git clone -b master --depth 1 https://github.com/zxlhhyccc/bf-package-master zxlhhyccc
 git clone -b main --depth 1 https://github.com/linkease/openwrt-app-actions linkease
+git clone -b istoreos-21.02 --depth 1 https://github.com/jjm2473/packages linkease_pkg
+git clone -b istoreos-21.02 --depth 1 https://github.com/jjm2473/luci linkease_luci
 #git clone -b linksys-ea6350v3-mastertrack --depth 1 https://github.com/NoTengoBattery/openwrt NoTengoBattery
 
 exit 0
