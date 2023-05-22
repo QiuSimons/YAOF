@@ -2,9 +2,6 @@
 
 sed -i 's/O2/O2 -mtune=goldmont-plus/g' include/target.mk
 
-rm -rf ./package/kernel/linux/modules/video.mk
-cp -rf ../lede/package/kernel/linux/modules/video.mk ./package/kernel/linux/modules/video.mk
-
 echo '# Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.
 
