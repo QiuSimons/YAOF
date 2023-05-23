@@ -117,6 +117,8 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 # dae ready
 cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
+wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/package/kernel/linux/modules/netsupport.mk -O package/kernel/linux/modules/netsupport.mk
+wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/hack-5.15/901-debloat_sock_diag.patch -O target/linux/generic/hack-5.15/901-debloat_sock_diag.patch
 # mount cgroupv2
 pushd feeds/packages
 wget -qO - https://github.com/openwrt/packages/commit/7a64a5f4.patch | patch -p1
