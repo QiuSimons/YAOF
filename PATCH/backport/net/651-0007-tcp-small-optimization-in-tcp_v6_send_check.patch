@@ -1,0 +1,33 @@
+From ad0d587d6f4d189b84d43968188ad633f3d9bcb6 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 15 Nov 2021 11:02:32 -0800
+Subject: [PATCH 07/24] tcp: small optimization in tcp_v6_send_check()
+
+For TCP flows, inet6_sk(sk)->saddr has the same value
+than sk->sk_v6_rcv_saddr.
+
+Using sk->sk_v6_rcv_saddr increases data locality.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ net/ipv6/tcp_ipv6.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
+index b03dd02c9f13..f96c8543305f 100644
+--- a/net/ipv6/tcp_ipv6.c
++++ b/net/ipv6/tcp_ipv6.c
+@@ -1894,9 +1894,7 @@ static struct timewait_sock_ops tcp6_timewait_sock_ops = {
+ 
+ INDIRECT_CALLABLE_SCOPE void tcp_v6_send_check(struct sock *sk, struct sk_buff *skb)
+ {
+-	struct ipv6_pinfo *np = inet6_sk(sk);
+-
+-	__tcp_v6_send_check(skb, &np->saddr, &sk->sk_v6_daddr);
++	__tcp_v6_send_check(skb, &sk->sk_v6_rcv_saddr, &sk->sk_v6_daddr);
+ }
+ 
+ const struct inet_connection_sock_af_ops ipv6_specific = {
+-- 
+2.33.1
+

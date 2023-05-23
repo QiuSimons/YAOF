@@ -1,0 +1,18 @@
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -392,6 +392,7 @@
+ 			snps,dis_u2_susphy_quirk;
+ 			snps,dis-del-phy-power-chg-quirk;
+ 			snps,dis-tx-ipgap-linecheck-quirk;
++			snps,xhci-trb-ent-quirk;
+ 			power-domains = <&power RK3399_PD_USB3>;
+ 			status = "disabled";
+ 		};
+@@ -428,6 +429,7 @@
+ 			snps,dis_u2_susphy_quirk;
+ 			snps,dis-del-phy-power-chg-quirk;
+ 			snps,dis-tx-ipgap-linecheck-quirk;
++			snps,xhci-trb-ent-quirk;
+ 			power-domains = <&power RK3399_PD_USB3>;
+ 			status = "disabled";
+ 		};

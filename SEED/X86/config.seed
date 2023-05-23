@@ -29,7 +29,7 @@ CONFIG_NODEJS_ICU_NONE=y
 ### BASIC ###
 CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
 CONFIG_PACKAGE_addition-trans-zh=y
-CONFIG_PACKAGE_autocore-x86=y
+CONFIG_PACKAGE_autocore=y
 CONFIG_PACKAGE_ethtool=y
 CONFIG_PACKAGE_dnsmasq-full=y
 CONFIG_PACKAGE_dnsmasq_full_ipset=y

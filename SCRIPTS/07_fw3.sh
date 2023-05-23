@@ -5,8 +5,8 @@ sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall/Makefi
 sed -i 's,iptables-nft +kmod-nft-fullcone,iptables-mod-fullconenat,g' ./package/new/addition-trans-zh/Makefile
 rm -rf ./feeds/packages/net/miniupnpd
 cp -rf ../lede_pkg/net/miniupnpd ./feeds/packages/net/miniupnpd
-rm -rf ./feeds/luci/applications/luci-app-upnp
-cp -rf ../lede_luci/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
+#rm -rf ./feeds/luci/applications/luci-app-upnp
+#cp -rf ../lede_luci/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
 sed -i '/firewall/d' ./.config
 sed -i '/offload/d' ./.config
 sed -i '/tables/d' ./.config
@@ -14,6 +14,8 @@ sed -i '/nft/d' ./.config
 echo '
 CONFIG_PACKAGE_firewall=y
 # CONFIG_PACKAGE_firewall4 is not set
+# CONFIG_PACKAGE_iptables-nft is not set
+CONFIG_PACKAGE_iptables-zz-legacy=y
 # CONFIG_PACKAGE_ip6tables-nft is not set
 CONFIG_PACKAGE_ip6tables-zz-legacy=y
 CONFIG_PACKAGE_xtables-legacy=y

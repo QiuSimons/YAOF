@@ -1,8 +1,0 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
-
-/dts-v1/;
-
-/ {
-	model = "Ariaboard Photonicat";
-	compatible = "ariaboard,photonicat", "rockchip,rk3568";
-};

@@ -1,0 +1,45 @@
+From 1dea553659465888fc90aecda773c9c838863605 Mon Sep 17 00:00:00 2001
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 15 Nov 2021 11:02:38 -0800
+Subject: [PATCH 13/24] net: forward_alloc_get depends on CONFIG_MPTCP
+
+(struct proto)->sk_forward_alloc is currently only used by MPTCP.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ include/net/sock.h | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/sock.h b/include/net/sock.h
+index 1258e826c650..5ba426d429c2 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -1208,7 +1208,9 @@ struct proto {
+ 	unsigned int		inuse_idx;
+ #endif
+ 
++#if IS_ENABLED(CONFIG_MPTCP)
+ 	int			(*forward_alloc_get)(const struct sock *sk);
++#endif
+ 
+ 	bool			(*stream_memory_free)(const struct sock *sk, int wake);
+ 	bool			(*sock_is_readable)(struct sock *sk);
+@@ -1297,10 +1299,11 @@ INDIRECT_CALLABLE_DECLARE(bool tcp_stream_memory_free(const struct sock *sk, int
+ 
+ static inline int sk_forward_alloc_get(const struct sock *sk)
+ {
+-	if (!sk->sk_prot->forward_alloc_get)
+-		return sk->sk_forward_alloc;
+-
+-	return sk->sk_prot->forward_alloc_get(sk);
++#if IS_ENABLED(CONFIG_MPTCP)
++	if (sk->sk_prot->forward_alloc_get)
++		return sk->sk_prot->forward_alloc_get(sk);
++#endif
++	return sk->sk_forward_alloc;
+ }
+ 
+ static inline bool __sk_stream_memory_free(const struct sock *sk, int wake)
+-- 
+2.33.1
+
