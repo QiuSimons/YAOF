@@ -43,8 +43,8 @@ cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
 # SSL
 rm -rf ./package/libs/mbedtls
 cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
-rm -rf ./package/libs/openssl
-cp -rf ../immortalwrt_21/package/libs/openssl ./package/libs/openssl
+#rm -rf ./package/libs/openssl
+#cp -rf ../immortalwrt_21/package/libs/openssl ./package/libs/openssl
 # fstool
 wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
 
