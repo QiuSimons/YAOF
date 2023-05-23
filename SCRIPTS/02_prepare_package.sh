@@ -91,6 +91,8 @@ rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-bind
 cp -rf ../PATCH/rockchip-5.10/* ./target/linux/rockchip/patches-5.10/
 rm -rf ./package/firmware/linux-firmware/intel.mk
 cp -rf ../lede/package/firmware/linux-firmware/intel.mk ./package/firmware/linux-firmware/intel.mk
+rm -rf ./package/firmware/linux-firmware/mediatek.mk
+cp -rf ../lede/package/firmware/linux-firmware/mediatek.mk ./package/firmware/linux-firmware/mediatek.mk
 rm -rf ./package/firmware/linux-firmware/Makefile
 cp -rf ../lede/package/firmware/linux-firmware/Makefile ./package/firmware/linux-firmware/Makefile
 mkdir -p target/linux/rockchip/files-5.10
