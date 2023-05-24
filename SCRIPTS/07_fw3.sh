@@ -4,9 +4,9 @@ sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall2/Makef
 sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall/Makefile
 sed -i 's,iptables-nft +kmod-nft-fullcone,iptables-mod-fullconenat,g' ./package/new/addition-trans-zh/Makefile
 rm -rf ./feeds/packages/net/miniupnpd
-cp -rf ../lede_pkg/net/miniupnpd ./feeds/packages/net/miniupnpd
-#rm -rf ./feeds/luci/applications/luci-app-upnp
-#cp -rf ../lede_luci/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
+cp -rf ../immortalwrt_pkg_21/net/miniupnpd ./feeds/packages/net/miniupnpd
+rm -rf ./feeds/luci/applications/luci-app-upnp
+cp -rf ../immortalwrt_luci_21/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
 sed -i '/firewall/d' ./.config
 sed -i '/offload/d' ./.config
 sed -i '/tables/d' ./.config
