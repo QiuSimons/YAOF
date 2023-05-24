@@ -197,9 +197,22 @@ cp -rf ../immortalwrt_luci/applications/luci-app-autoreboot ./feeds/luci/applica
 ln -sf ../../../feeds/luci/applications/luci-app-autoreboot ./package/feeds/luci/luci-app-autoreboot
 # Boost 通用即插即用
 rm -rf ./feeds/packages/net/miniupnpd
-cp -rf ../immortalwrt_pkg_21/net/miniupnpd ./feeds/packages/net/miniupnpd
-#rm -rf ./feeds/luci/applications/luci-app-upnp
-#cp -rf ../immortalwrt_luci_21/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
+cp -rf ../openwrt_pkg_ma/net/miniupnpd ./feeds/packages/net/miniupnpd
+pushd feeds/packages
+wget -qO- https://github.com/openwrt/packages/commit/785bbcb.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/commit/d811cb4.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/commit/9a2da85.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/commit/71dc090.patch | patch -p1
+popd
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/201-change-default-chain-rule-to-accept.patch
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0004-miniupnpd-format-xml-to-make-some-app-happy.patch
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0005-miniupnpd-stun-ignore-external-port-changed.patch
+wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0006-miniupnpd-fix-stun-POSTROUTING-filter-for-openwrt.patch
+rm -rf ./feeds/luci/applications/luci-app-upnp
+cp -rf ../openwrt_luci_ma/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
+pushd feeds/luci
+wget -qO- https://github.com/openwrt/luci/commit/0b5fb915.patch | patch -p1
+popd
 # ChinaDNS
 git clone -b luci --depth 1 https://github.com/QiuSimons/openwrt-chinadns-ng.git package/new/luci-app-chinadns-ng
 cp -rf ../passwall_pkg/chinadns-ng ./package/new/chinadns-ng
