@@ -177,6 +177,9 @@ cp -rf ../Lienol/tools/upx ./tools/upx
 # 更换 golang 版本
 rm -rf ./feeds/packages/lang/golang
 cp -rf ../openwrt_pkg_ma/lang/golang ./feeds/packages/lang/golang
+# 更换 python 版本
+rm -rf ./feeds/packages/lang/python
+cp -rf ../lede_pkg/lang/python ./feeds/packages/lang/python
 # 访问控制
 cp -rf ../lede_luci/applications/luci-app-accesscontrol ./package/new/luci-app-accesscontrol
 cp -rf ../OpenWrt-Add/luci-app-control-weburl ./package/new/luci-app-control-weburl
