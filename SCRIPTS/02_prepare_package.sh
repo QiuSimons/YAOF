@@ -87,11 +87,11 @@ cp -rf ../lede/target/linux/rockchip ./target/linux/rockchip
 #cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.15 ./target/linux/rockchip/armv8/config-5.15
 rm -rf ./target/linux/rockchip/patches-5.15/*otorcomm*
 rm -rf ./target/linux/rockchip/patches-5.15/*8152*
-sed -i 's,+LINUX_6_1:kmod-drm-display-helper,,g' target/linux/rockchip/modules.mk
-sed -i '/drm_dp_aux_bus\.ko/d' target/linux/rockchip/modules.mk
 cp -rf ../PATCH/rockchip-5.15/* ./target/linux/rockchip/patches-5.15/
 rm -rf ./package/boot/uboot-rockchip
 cp -rf ../lede/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
+rm -rf ./package/boot/arm-trusted-firmware-rockchip
+cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
 cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
 #video.mk
 rm -rf ./package/kernel/linux/modules/video.mk
