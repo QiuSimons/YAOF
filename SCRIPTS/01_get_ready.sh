@@ -27,6 +27,7 @@ git clone --single-branch -b openwrt-23.05 https://github.com/openwrt/openwrt op
 # 获取源代码
 git clone -b master --depth 1 https://github.com/immortalwrt/immortalwrt.git immortalwrt
 git clone -b openwrt-21.02 --depth 1 https://github.com/immortalwrt/immortalwrt.git immortalwrt_21
+git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/immortalwrt.git immortalwrt_23
 git clone -b master --depth 1 https://github.com/immortalwrt/packages.git immortalwrt_pkg
 git clone -b openwrt-21.02 --depth 1 https://github.com/immortalwrt/packages.git immortalwrt_pkg_21
 git clone -b master --depth 1 https://github.com/immortalwrt/luci.git immortalwrt_luci
