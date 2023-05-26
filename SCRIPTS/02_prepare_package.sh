@@ -80,19 +80,19 @@ cp -rf ../Lienol/package/network/utils/fullconenat ./package/new/fullconenat
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
-cp -rf ../lede/target/linux/rockchip ./target/linux/rockchip
+cp -rf ../immortalwrt_23/target/linux/rockchip ./target/linux/rockchip
 #rm -rf ./target/linux/rockchip/Makefile
 #cp -rf ../openwrt_release/target/linux/rockchip/Makefile ./target/linux/rockchip/Makefile
 #rm -rf ./target/linux/rockchip/armv8/config-5.15
 #cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.15 ./target/linux/rockchip/armv8/config-5.15
-rm -rf ./target/linux/rockchip/patches-5.15/*otorcomm*
-rm -rf ./target/linux/rockchip/patches-5.15/*8152*
+#rm -rf ./target/linux/rockchip/patches-5.15/*otorcomm*
+#rm -rf ./target/linux/rockchip/patches-5.15/*8152*
 cp -rf ../PATCH/rockchip-5.15/* ./target/linux/rockchip/patches-5.15/
 rm -rf ./package/boot/uboot-rockchip
-cp -rf ../lede/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
+cp -rf ../immortalwrt_23/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
 rm -rf ./package/boot/arm-trusted-firmware-rockchip
-cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
-cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
+cp -rf ../immortalwrt_23/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
+#cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
 #video.mk
 rm -rf ./package/kernel/linux/modules/video.mk
 cp -rf ../lede/package/kernel/linux/modules/video.mk ./package/kernel/linux/modules/video.mk
