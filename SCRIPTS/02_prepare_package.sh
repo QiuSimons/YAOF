@@ -124,17 +124,17 @@ pushd feeds/packages
 wget -qO - https://github.com/openwrt/packages/commit/7a64a5f4.patch | patch -p1
 popd
 # AutoCore
-cp -rf ../immortalwrt/package/emortal/autocore ./package/new/autocore
+cp -rf ../immortalwrt_23/package/emortal/autocore ./package/new/autocore
 sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package/new/autocore/files/luci-mod-status-autocore.json
-sed -i '/"$threads"/d' package/new/autocore/files/autocore
+cp -rf ../OpenWrt-Add/autocore/files/x86/autocore ./package/new/autocore/files/autocore
 rm -rf ./feeds/luci/modules/luci-base
-cp -rf ../immortalwrt_luci/modules/luci-base ./feeds/luci/modules/luci-base
+cp -rf ../immortalwrt_luci_23/modules/luci-base ./feeds/luci/modules/luci-base
 sed -i "s,(br-lan),,g" feeds/luci/modules/luci-base/root/usr/share/rpcd/ucode/luci
 rm -rf ./feeds/luci/modules/luci-mod-status
-cp -rf ../immortalwrt_luci/modules/luci-mod-status ./feeds/luci/modules/luci-mod-status
+cp -rf ../immortalwrt_luci_23/modules/luci-mod-status ./feeds/luci/modules/luci-mod-status
 rm -rf ./feeds/packages/utils/coremark
 cp -rf ../immortalwrt_pkg/utils/coremark ./feeds/packages/utils/coremark
-cp -rf ../immortalwrt/package/utils/mhz ./package/utils/mhz
+cp -rf ../immortalwrt_23/package/utils/mhz ./package/utils/mhz
 # Airconnect
 cp -rf ../OpenWrt-Add/airconnect ./package/new/airconnect
 cp -rf ../OpenWrt-Add/luci-app-airconnect ./package/new/luci-app-airconnect

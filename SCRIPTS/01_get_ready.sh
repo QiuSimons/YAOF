@@ -32,6 +32,7 @@ git clone -b master --depth 1 https://github.com/immortalwrt/packages.git immort
 git clone -b openwrt-21.02 --depth 1 https://github.com/immortalwrt/packages.git immortalwrt_pkg_21
 git clone -b master --depth 1 https://github.com/immortalwrt/luci.git immortalwrt_luci
 git clone -b openwrt-21.02 --depth 1 https://github.com/immortalwrt/luci.git immortalwrt_luci_21
+git clone -b openwrt-23.05 --depth 1 https://github.com/immortalwrt/luci.git immortalwrt_luci_23
 git clone -b master --depth 1 https://github.com/coolsnowwolf/lede.git lede
 git clone -b master --depth 1 https://github.com/coolsnowwolf/luci.git lede_luci
 git clone -b master --depth 1 https://github.com/coolsnowwolf/packages.git lede_pkg
