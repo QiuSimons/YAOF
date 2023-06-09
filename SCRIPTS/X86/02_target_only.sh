@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sed -i 's/O2/O2 -mtune=goldmont-plus/g' include/target.mk
+sed -i 's/O2/O2 -march=x86-64-v2/g' include/target.mk
 
 echo '# Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.

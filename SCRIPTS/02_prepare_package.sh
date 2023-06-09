@@ -13,12 +13,12 @@ sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqba
 sed -i 's,-SNAPSHOT,,g' include/version.mk
 sed -i 's,-SNAPSHOT,,g' package/base-files/image-config.in
 # 维多利亚的秘密
-rm -rf ./scripts/download.pl
-rm -rf ./include/download.mk
-cp -rf ../immortalwrt/scripts/download.pl ./scripts/download.pl
-cp -rf ../immortalwrt/include/download.mk ./include/download.mk
-sed -i '/unshift/d' scripts/download.pl
-sed -i '/mirror02/d' scripts/download.pl
+#rm -rf ./scripts/download.pl
+#rm -rf ./include/download.mk
+#cp -rf ../immortalwrt/scripts/download.pl ./scripts/download.pl
+#cp -rf ../immortalwrt/include/download.mk ./include/download.mk
+#sed -i '/unshift/d' scripts/download.pl
+#sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 # Nginx
 sed -i "s/client_max_body_size 128M/client_max_body_size 2048M/g" feeds/packages/net/nginx-util/files/uci.conf.template
