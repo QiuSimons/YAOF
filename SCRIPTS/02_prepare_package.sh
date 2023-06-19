@@ -347,7 +347,7 @@ cp -rf ../ssrp/v2ray-core ./package/new/v2ray-core
 cp -rf ../passwall_pkg/hysteria ./package/new/hysteria
 cp -rf ../ssrp/sagernet-core ./package/new/sagernet-core
 rm -rf ./feeds/packages/net/xray-core
-cp -rf ../passwall_pkg/xray-core ./package/new/xray-core
+cp -rf ../ssrp/xray-core ./package/new/xray-core
 cp -rf ../ssrp/v2ray-plugin ./package/new/v2ray-plugin
 cp -rf ../ssrp/shadowsocks-rust ./package/new/shadowsocks-rust
 cp -rf ../ssrp/lua-neturl ./package/new/lua-neturl
