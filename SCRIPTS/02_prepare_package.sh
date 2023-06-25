@@ -119,6 +119,7 @@ cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
 cp -rf ../immortalwrt_pkg/net/daed ./feeds/packages/net/daed
 ln -sf ../../../feeds/packages/net/daed ./package/feeds/packages/daed
+git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
 wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/package/kernel/linux/modules/netsupport.mk -O package/kernel/linux/modules/netsupport.mk
 wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/hack-5.15/901-debloat_sock_diag.patch -O target/linux/generic/hack-5.15/901-debloat_sock_diag.patch
 # mount cgroupv2
@@ -276,6 +277,7 @@ git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package
 # Mosdns
 cp -rf ../mosdns/mosdns ./package/new/mosdns
 cp -rf ../mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
+rm -rf ./feeds/packages/net/v2ray-geodata
 cp -rf ../mosdns/v2ray-geodata ./package/new/v2ray-geodata
 # 流量监管
 cp -rf ../lede_luci/applications/luci-app-netdata ./package/new/luci-app-netdata
