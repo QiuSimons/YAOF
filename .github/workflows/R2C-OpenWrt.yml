@@ -44,6 +44,7 @@ jobs:
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
         sudo -E git config --global user.name 'GitHub Actions' && git config --global user.email 'noreply@github.com'
+        sudo -E git config --global core.abbrev auto
         df -h
     - name: Prepare Mixedwrt
       run: |
@@ -130,7 +131,7 @@ jobs:
 
     - name: Create release
       id: create_release
-      uses: ncipollo/release-action@main
+      uses: ncipollo/release-action@v1.12.0
       with:
         name: OpenWRT-${{ env.latest_release }}
         allowUpdates: true
