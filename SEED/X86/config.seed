@@ -93,6 +93,7 @@ CONFIG_PACKAGE_luci-compat=y
 
 ### APPLICATION ###
 CONFIG_PACKAGE_luci-proto-wireguard=y
+CONFIG_PACKAGE_qrencode=y
 CONFIG_PACKAGE_luci-app-socat=y
 CONFIG_PACKAGE_luci-app-argon-config=y
 CONFIG_PACKAGE_luci-app-arpbind=y
