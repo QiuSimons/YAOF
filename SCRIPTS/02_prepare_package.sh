@@ -443,7 +443,6 @@ mkdir -p package/base-files/files/usr/bin
 cp -rf ../OpenWrt-Add/fuck ./package/base-files/files/usr/bin/fuck
 # 生成默认配置及缓存
 rm -rf .config
-cat ../SEED/extra.cfg >> ./target/linux/generic/config-5.15
 sed -i 's,CONFIG_WERROR=y,# CONFIG_WERROR is not set,g' target/linux/generic/config-5.15
 
 ### Shortcut-FE 部分 ###
