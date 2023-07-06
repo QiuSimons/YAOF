@@ -124,8 +124,10 @@ wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/package/kernel
 wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/hack-5.15/901-debloat_sock_diag.patch -O target/linux/generic/hack-5.15/901-debloat_sock_diag.patch
 # mount cgroupv2
 pushd feeds/packages
-wget -qO - https://github.com/openwrt/packages/commit/7a64a5f4.patch | patch -p1
+patch -p1 <../../../PATCH/cgroupfs-mount/0001-fix-cgroupfs-mount.patch | patch -p1
 popd
+mkdir -p feeds/packages/utils/cgroupfs-mount/patches
+cp -rf ../PATCH/cgroupfs-mount/900-add-cgroupfs2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
 # AutoCore
 cp -rf ../immortalwrt_23/package/emortal/autocore ./package/new/autocore
 sed -i 's/"getTempInfo" /"getTempInfo", "getCPUBench", "getCPUUsage" /g' package/new/autocore/files/luci-mod-status-autocore.json

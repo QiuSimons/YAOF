@@ -1,0 +1,26 @@
+diff --git a/utils/cgroupfs-mount/files/cgroupfs-mount.init b/utils/cgroupfs-mount/files/cgroupfs-mount.init
+index 0d6b68d..4ae3185 100755
+--- a/utils/cgroupfs-mount/files/cgroupfs-mount.init
++++ b/utils/cgroupfs-mount/files/cgroupfs-mount.init
+@@ -4,9 +4,17 @@ START=01
+ 
+ boot() {
+ 	# Procd mounts non-hierarchical cgroupfs so unmount first before cgroupfs-mount
+-	if mountpoint -q /sys/fs/cgroup; then
+-		umount /sys/fs/cgroup/
+-	fi
++	umount_cgroup() {
++		for sys in $(awk '!/^#/ { if ($4 == 1) print $1 }' /proc/cgroups); do
++			if mountpoint -q /sys/fs/cgroup/$sys; then
++				umount /sys/fs/cgroup/$sys || true
++			fi
++		done
++		if mountpoint -q /sys/fs/cgroup; then
++			umount /sys/fs/cgroup || true
++		fi
++	}
+ 
+-	cgroupfs-mount
++	umount_cgroup
++	cgroupfs-mount v2
+ }
