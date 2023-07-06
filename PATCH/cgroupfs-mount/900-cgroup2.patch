@@ -1,0 +1,11 @@
+--- a/cgroupfs-mount
++++ b/cgroupfs-mount
+@@ -26,7 +26,7 @@ fi
+ 
+ # mount /sys/fs/cgroup if not already done
+ if ! mountpoint -q /sys/fs/cgroup; then
+-	mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
++	mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup2 /sys/fs/cgroup
+ fi
+ 
+ cd /sys/fs/cgroup
