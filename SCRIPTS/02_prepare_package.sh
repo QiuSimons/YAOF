@@ -338,7 +338,7 @@ cp -rf ../lede_pkg/libs/rblibtorrent ./package/new/rblibtorrent
 # 清理内存
 cp -rf ../lede_luci/applications/luci-app-ramfree ./package/new/luci-app-ramfree
 # ServerChan 微信推送
-git clone -b master --depth 1 https://github.com/tty228/luci-app-serverchan.git package/new/luci-app-serverchan
+git clone -b master --depth 1 https://github.com/tty228/luci-app-wechatpush.git package/new/luci-app-serverchan
 # ShadowsocksR Plus+ 依赖
 rm -rf ./feeds/packages/net/shadowsocks-libev
 cp -rf ../lede_pkg/net/shadowsocks-libev ./package/new/shadowsocks-libev
