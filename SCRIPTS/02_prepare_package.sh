@@ -436,6 +436,12 @@ echo > ./feeds/packages/utils/watchcat/files/watchcat.config
 # 翻译及部分功能优化
 cp -rf ../OpenWrt-Add/addition-trans-zh ./package/new/addition-trans-zh
 sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/new/addition-trans-zh/Makefile
+#glibc
+sed -i 's/-Wno-error=maybe-uninitialized/-Wno-error=maybe-uninitialized \\\n\t-Wno-error=dangling-pointer/g' package/network/utils/uqmi/Makefile
+git clone -b master --depth 1 https://github.com/sbwml/package_libs_musl-libc package/new/package_libs_musl-libc
+sed -i 's,-static,,g' package/new/airconnect/Makefile
+sed -i 's,@USE_MUSL ,,g' package/new/shadowsocks-rust/Makefile
+sed -i 's,@USE_MUSL ,,g' package/new/shadowsocks-rust/Makefile
 
 ### 最后的收尾工作 ###
 # Lets Fuck
