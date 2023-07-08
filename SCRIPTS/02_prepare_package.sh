@@ -145,6 +145,8 @@ cp -rf ../immortalwrt_23/package/utils/mhz ./package/utils/mhz
 # Airconnect
 cp -rf ../OpenWrt-Add/airconnect ./package/new/airconnect
 cp -rf ../OpenWrt-Add/luci-app-airconnect ./package/new/luci-app-airconnect
+# luci-app-ap-modem
+cp -rf ../linkease/applications/luci-app-ap-modem ./package/new/luci-app-ap-modem
 # luci-app-irqbalance
 cp -rf ../OpenWrt-Add/luci-app-irqbalance ./package/new/luci-app-irqbalance
 # 更换 Nodejs 版本
