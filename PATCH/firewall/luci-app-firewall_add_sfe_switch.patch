@@ -61,7 +61,7 @@ diff --git a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resour
  
  return view.extend({
  	callConntrackHelpers: rpc.declare({
-@@ -18,7 +70,8 @@
+@@ -18,7 +70,8 @@ return view.extend({
  	load: function() {
  		return Promise.all([
  			this.callConntrackHelpers(),
@@ -71,28 +71,26 @@ diff --git a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resour
  		]);
  	},
  
-@@ -32,6 +85,7 @@
+@@ -32,6 +85,7 @@ return view.extend({
  	renderZones: function(data) {
  		var ctHelpers = data[0],
  		    fwDefaults = data[1],
 +			sfe_support = data[2],
  		    m, s, o, inp, out;
+ 		var fw4 = L.hasSystemFeature('firewall4');
  
- 		m = new form.Map('firewall', _('Firewall - Zone Settings'),
-@@ -58,6 +112,16 @@
+@@ -78,7 +132,13 @@ return view.extend({
  
- 		/* Netfilter flow offload support */
- 
-+		s = m.section(form.TypedSection, 'defaults', _('Routing/NAT Offloading'), _('Experimental feature. Not fully compatible with QoS/SQM.'));
-+        s.anonymous = true;
-+        s.addremove = false;
-+        o = s.option(sfe, _('SFE flow offloading'),
-+			_('SFE flow offloading'), _('SFE based offloading for Routing/NAT. Restart recommended.'));
-+        o.sfe_support = sfe_support;
-+        o.load = function (section_id) {
-+            return (uci.get('system', 'shortcut-fe', 'enabled') != 0) ? '1' : '0';
-+        };
-+
- 		if (L.hasSystemFeature('offloading')) {
- 			s = m.section(form.TypedSection, 'defaults', _('Routing/NAT Offloading'),
- 				_('Experimental feature. Not fully compatible with QoS/SQM.'));
+ 			s.anonymous = true;
+ 			s.addremove = false;
+-
++			
++	        o = s.option(sfe, _('SFE flow offloading'),
++				_('SFE flow offloading'), _('SFE based offloading for Routing/NAT. Restart recommended.'));
++			o.sfe_support = sfe_support;
++			o.load = function (section_id) {
++				return (uci.get('system', 'shortcut-fe', 'enabled') != 0) ? '1' : '0';
++			};
+ 			o = s.option(form.Flag, 'flow_offloading',
+ 				_('Software flow offloading'),
+ 				_('Software based offloading for routing/NAT'));

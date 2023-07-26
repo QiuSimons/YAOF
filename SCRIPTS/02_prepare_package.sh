@@ -466,6 +466,7 @@ cp -rf ../lede/package/lean/shortcut-fe/fast-classifier ./package/lean/shortcut-
 cp -rf ../lede/package/lean/shortcut-fe/shortcut-fe ./package/lean/shortcut-fe/shortcut-fe
 cp -rf ../lede/package/lean/shortcut-fe/simulated-driver ./package/lean/shortcut-fe/simulated-driver
 wget -qO - https://github.com/coolsnowwolf/lede/commit/e517080.patch | patch -p1
+wget -qO - https://github.com/coolsnowwolf/lede/commit/0e29809.patch | patch -p1
 
 #LTO/GC
 # Grub 2
