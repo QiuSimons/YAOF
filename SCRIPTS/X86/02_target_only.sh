@@ -12,7 +12,7 @@ grep "Default string" /tmp/sysinfo/model >> /dev/null
 if [ $? -ne 0 ];then
     echo should be fine
 else
-    echo "Compatible PC" > /tmp/sysinfo/model
+    echo "Generic PC" > /tmp/sysinfo/model
 fi
 
 exit 0
