@@ -467,6 +467,7 @@ cp -rf ../lede/package/lean/shortcut-fe/shortcut-fe ./package/lean/shortcut-fe/s
 cp -rf ../lede/package/lean/shortcut-fe/simulated-driver ./package/lean/shortcut-fe/simulated-driver
 wget -qO - https://github.com/coolsnowwolf/lede/commit/e517080.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/413cd91.patch | patch -p1
+wget -qO - https://github.com/coolsnowwolf/lede/commit/eb70dad.patch | patch -p1
 
 #LTO/GC
 # Grub 2
