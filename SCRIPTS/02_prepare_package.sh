@@ -47,6 +47,8 @@ cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
 #cp -rf ../immortalwrt_21/package/libs/openssl ./package/libs/openssl
 # fstool
 wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
+# wg
+cp -rf ../PATCH/wg/* ./target/linux/generic/hack-5.15/
 
 ### Fullcone-NAT 部分 ###
 # Patch Kernel 以解决 FullCone 冲突
@@ -124,7 +126,7 @@ wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/package/kernel
 wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/hack-5.15/901-debloat_sock_diag.patch -O target/linux/generic/hack-5.15/901-debloat_sock_diag.patch
 # mount cgroupv2
 pushd feeds/packages
-patch -p1 <../../../PATCH/cgroupfs-mount/0001-fix-cgroupfs-mount.patch | patch -p1
+patch -p1 <../../../PATCH/cgroupfs-mount/0001-fix-cgroupfs-mount.patch
 popd
 mkdir -p feeds/packages/utils/cgroupfs-mount/patches
 cp -rf ../PATCH/cgroupfs-mount/900-add-cgroupfs2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
