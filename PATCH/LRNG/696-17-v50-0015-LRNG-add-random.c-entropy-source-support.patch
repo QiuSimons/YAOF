@@ -1,0 +1,217 @@
+From 9234b168501f314390553bb158a6a10056217aaa Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Mon, 20 Feb 2023 22:07:27 +0100
+Subject: [PATCH v50 15/25] LRNG - add random.c entropy source support
+
+The random.c implementation can be used as an entropy source by the
+LRNG. This support can be enabled at compile time.
+
+The entropy rate can be set at compile time which is only applied:
+
+- once the random.c considers itself fully seeded, and
+
+- the kernel does not operate in FIPS mode (i.e. fips=1 is not set at
+  the kernel command line)
+
+If one of these properties is not set, the ES will obtain data, but will
+credit it with zero bits of entropy. For the first bullet, it is clear
+why it will have zero bits of entropy. But for the second property, this
+is set because the random.c is not operating SP800-90B compliant and
+thus must be treated to not deliver any entropy in FIPS mode.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Kconfig        |  56 ++++++++---------
+ drivers/char/lrng/Makefile       |   1 +
+ drivers/char/lrng/lrng_es_krng.c | 100 +++++++++++++++++++++++++++++++
+ 3 files changed, 129 insertions(+), 28 deletions(-)
+ create mode 100644 drivers/char/lrng/lrng_es_krng.c
+
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index 22a224bc8b52..573c3bf88a11 100644
+--- a/drivers/char/lrng/Kconfig
++++ b/drivers/char/lrng/Kconfig
+@@ -529,34 +529,34 @@ config LRNG_SCHED_ENTROPY_RATE
+ 	  scheduler entropy source will still deliver data but without
+ 	  being credited with entropy.
+ 
+-# comment "Kernel RNG Entropy Source"
+-#
+-# config LRNG_KERNEL_RNG
+-# 	bool "Enable Kernel RNG as LRNG Seed Source"
+-# 	depends on RANDOM_DEFAULT_IMPL
+-# 	help
+-# 	  The LRNG may use the kernel RNG (random.c) as entropy
+-# 	  source.
+-#
+-# config LRNG_KERNEL_RNG_ENTROPY_RATE
+-# 	int "Kernel RNG Entropy Source Entropy Rate"
+-# 	depends on LRNG_KERNEL_RNG
+-# 	range 0 256
+-# 	default 256
+-# 	help
+-# 	  The option defines the amount of entropy the LRNG applies to 256
+-# 	  bits of data obtained from the kernel RNG entropy source. The
+-# 	  LRNG enforces the limit that this value must be in the range
+-# 	  between 0 and 256.
+-#
+-# 	  When configuring this value to 0, the kernel RNG entropy source
+-# 	  will provide 256 bits of data without being credited to contain
+-# 	  entropy.
+-#
+-# 	  Note: This value is set to 0 automatically when booting the
+-# 	  kernel in FIPS mode (with fips=1 kernel command line option).
+-# 	  This is due to the fact that random.c is not SP800-90B
+-# 	  compliant.
++comment "Kernel RNG Entropy Source"
++
++config LRNG_KERNEL_RNG
++	bool "Enable Kernel RNG as LRNG Seed Source"
++	depends on RANDOM_DEFAULT_IMPL
++	help
++	  The LRNG may use the kernel RNG (random.c) as entropy
++	  source.
++
++config LRNG_KERNEL_RNG_ENTROPY_RATE
++	int "Kernel RNG Entropy Source Entropy Rate"
++	depends on LRNG_KERNEL_RNG
++	range 0 256
++	default 256
++	help
++	  The option defines the amount of entropy the LRNG applies to 256
++	  bits of data obtained from the kernel RNG entropy source. The
++	  LRNG enforces the limit that this value must be in the range
++	  between 0 and 256.
++
++	  When configuring this value to 0, the kernel RNG entropy source
++	  will provide 256 bits of data without being credited to contain
++	  entropy.
++
++	  Note: This value is set to 0 automatically when booting the
++	  kernel in FIPS mode (with fips=1 kernel command line option).
++	  This is due to the fact that random.c is not SP800-90B
++	  compliant.
+ 
+ endmenu # "Entropy Source Configuration"
+ 
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 6dc38c1b70e9..811208f38005 100644
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -20,6 +20,7 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
+ 
+ obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
+ obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
++obj-$(CONFIG_LRNG_KERNEL_RNG)		+= lrng_es_krng.o
+ obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
+ 
+ obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
+diff --git a/drivers/char/lrng/lrng_es_krng.c b/drivers/char/lrng/lrng_es_krng.c
+new file mode 100644
+index 000000000000..519ba640cc75
+--- /dev/null
++++ b/drivers/char/lrng/lrng_es_krng.c
+@@ -0,0 +1,100 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG Fast Entropy Source: Linux kernel RNG (random.c)
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/fips.h>
++#include <linux/module.h>
++#include <linux/random.h>
++#include <linux/types.h>
++
++#include "lrng_es_aux.h"
++#include "lrng_es_krng.h"
++
++static u32 krng_entropy = CONFIG_LRNG_KERNEL_RNG_ENTROPY_RATE;
++#ifdef CONFIG_LRNG_RUNTIME_ES_CONFIG
++module_param(krng_entropy, uint, 0644);
++MODULE_PARM_DESC(krng_entropy, "Entropy in bits of 256 data bits from the kernel RNG noise source");
++#endif
++
++static atomic_t lrng_krng_initial_rate = ATOMIC_INIT(0);
++
++static u32 lrng_krng_fips_entropylevel(u32 entropylevel)
++{
++	return fips_enabled ? 0 : entropylevel;
++}
++
++static int lrng_krng_adjust_entropy(void)
++{
++	u32 entropylevel;
++
++	krng_entropy = atomic_read_u32(&lrng_krng_initial_rate);
++
++	entropylevel = lrng_krng_fips_entropylevel(krng_entropy);
++	pr_debug("Kernel RNG is fully seeded, setting entropy rate to %u bits of entropy\n",
++		 entropylevel);
++	lrng_drng_force_reseed();
++	if (entropylevel)
++		lrng_es_add_entropy();
++	return 0;
++}
++
++static u32 lrng_krng_entropylevel(u32 requested_bits)
++{
++	static bool init = false;
++
++	if (unlikely(!init) && rng_is_initialized()) {
++		init = true;
++		lrng_krng_adjust_entropy();
++	}
++
++	return lrng_fast_noise_entropylevel(
++		lrng_krng_fips_entropylevel(krng_entropy), requested_bits);
++}
++
++static u32 lrng_krng_poolsize(void)
++{
++	return lrng_krng_entropylevel(lrng_security_strength());
++}
++
++/*
++ * lrng_krng_get() - Get kernel RNG entropy
++ *
++ * @eb: entropy buffer to store entropy
++ * @requested_bits: requested entropy in bits
++ */
++static void lrng_krng_get(struct entropy_buf *eb, u32 requested_bits,
++			  bool __unused)
++{
++	u32 ent_bits = lrng_krng_entropylevel(requested_bits);
++
++	get_random_bytes(eb->e[lrng_ext_es_krng], requested_bits >> 3);
++
++	pr_debug("obtained %u bits of entropy from kernel RNG noise source\n",
++		 ent_bits);
++
++	eb->e_bits[lrng_ext_es_krng] = ent_bits;
++}
++
++static void lrng_krng_es_state(unsigned char *buf, size_t buflen)
++{
++	snprintf(buf, buflen,
++		 " Available entropy: %u\n"
++		 " Entropy Rate per 256 data bits: %u\n",
++		 lrng_krng_poolsize(),
++		 lrng_krng_entropylevel(256));
++}
++
++struct lrng_es_cb lrng_es_krng = {
++	.name			= "KernelRNG",
++	.get_ent		= lrng_krng_get,
++	.curr_entropy		= lrng_krng_entropylevel,
++	.max_entropy		= lrng_krng_poolsize,
++	.state			= lrng_krng_es_state,
++	.reset			= NULL,
++	.switch_hash		= NULL,
++};
+-- 
+2.40.0
+

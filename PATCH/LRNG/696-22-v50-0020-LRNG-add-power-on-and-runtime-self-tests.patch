@@ -1,7 +1,7 @@
-From 492760c0c295f9e7df5d1057cd5b5fd6be2616c4 Mon Sep 17 00:00:00 2001
+From 701df290e9ec462937eff52707ec397e0e7d53b4 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Tue, 28 Sep 2021 17:41:57 +0200
-Subject: [PATCH 15/15] char/lrng: add power-on and runtime self-tests
+Date: Sun, 15 May 2022 18:13:56 +0200
+Subject: [PATCH v50 20/25] LRNG - add power-on and runtime self-tests
 
 Parts of the LRNG are already covered by self-tests, including:
 
@@ -45,43 +45,49 @@ writing anything into the selftest_status SysFS file.
 
 [1] https://www.chronox.de/chacha20.html
 
-CC: Torsten Duwe <duwe@lst.de>
-CC: "Eric W. Biederman" <ebiederm@xmission.com>
-CC: "Alexander E. Patrakov" <patrakov@gmail.com>
-CC: "Ahmed S. Darwish" <darwish.07@gmail.com>
-CC: "Theodore Y. Ts'o" <tytso@mit.edu>
-CC: Willy Tarreau <w@1wt.eu>
-CC: Matthew Garrett <mjg59@srcf.ucam.org>
-CC: Vito Caputo <vcaputo@pengaru.com>
-CC: Andreas Dilger <adilger.kernel@dilger.ca>
-CC: Jan Kara <jack@suse.cz>
-CC: Ray Strode <rstrode@redhat.com>
-CC: William Jon McCann <mccann@jhu.edu>
-CC: zhangjs <zachary@baishancloud.com>
-CC: Andy Lutomirski <luto@kernel.org>
-CC: Florian Weimer <fweimer@redhat.com>
-CC: Lennart Poettering <mzxreary@0pointer.de>
-CC: Nicolai Stange <nstange@suse.de>
-CC: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
-CC: Neil Horman <nhorman@redhat.com>
-Reviewed-by: Alexander Lobakin <alobakin@pm.me>
-Tested-by: Alexander Lobakin <alobakin@pm.me>
-Tested-by: Jirka Hladky <jhladky@redhat.com>
-Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig         |  26 ++
+ drivers/char/lrng/Kconfig         |  52 ++--
  drivers/char/lrng/Makefile        |   1 +
- drivers/char/lrng/lrng_selftest.c | 386 ++++++++++++++++++++++++++++++
- 3 files changed, 413 insertions(+)
+ drivers/char/lrng/lrng_selftest.c | 397 ++++++++++++++++++++++++++++++
+ 3 files changed, 424 insertions(+), 26 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_selftest.c
 
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index e9b5f78afa0b..db06e9ecd33b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -560,4 +560,30 @@ config LRNG_TESTING
+@@ -928,32 +928,32 @@ config LRNG_TEST_CPU_ES_COMPRESSION
+ 	  than what may be required.
  
  endif #LRNG_TESTING_MENU
- 
+-#
+-# config LRNG_SELFTEST
+-# 	bool "Enable power-on and on-demand self-tests"
+-# 	help
+-# 	  The power-on self-tests are executed during boot time
+-# 	  covering the ChaCha20 DRNG, the hash operation used for
+-# 	  processing the entropy pools and the auxiliary pool, and
+-# 	  the time stamp management of the LRNG.
+-#
+-# 	  The on-demand self-tests are triggered by writing any
+-# 	  value into the SysFS file selftest_status. At the same
+-# 	  time, when reading this file, the test status is
+-# 	  returned. A zero indicates that all tests were executed
+-# 	  successfully.
+-#
+-# 	  If unsure, say Y.
+-#
+-# if LRNG_SELFTEST
+-#
+-# config LRNG_SELFTEST_PANIC
+-# 	bool "Panic the kernel upon self-test failure"
+-# 	help
+-# 	  If the option is enabled, the kernel is terminated if an
+-# 	  LRNG power-on self-test failure is detected.
+-#
+-# endif # LRNG_SELFTEST
++
 +config LRNG_SELFTEST
 +	bool "Enable power-on and on-demand self-tests"
 +	help
@@ -107,23 +113,29 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	  LRNG power-on self-test failure is detected.
 +
 +endif # LRNG_SELFTEST
-+
+ 
  endif # LRNG
+ 
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 552ad7232d0d..0a61a2c9ec6e 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -18,3 +18,4 @@ obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
- obj-$(CONFIG_LRNG_JENT)		+= lrng_es_jent.o
- obj-$(CONFIG_LRNG_HEALTH_TESTS)	+= lrng_health.o
- obj-$(CONFIG_LRNG_TESTING)	+= lrng_testing.o
-+obj-$(CONFIG_LRNG_SELFTEST)	+= lrng_selftest.o
+@@ -27,3 +27,4 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
+ 
+ obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
+ obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
++obj-$(CONFIG_LRNG_SELFTEST)		+= lrng_selftest.o
+diff --git a/drivers/char/lrng/lrng_selftest.c b/drivers/char/lrng/lrng_selftest.c
+new file mode 100644
+index 000000000000..15f1e4a2a719
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_selftest.c
-@@ -0,0 +1,386 @@
+@@ -0,0 +1,397 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG power-on and on-demand self-test
 + *
-+ * Copyright (C) 2016 - 2021, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +/*
@@ -145,12 +157,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+#include <linux/module.h>
 +#include <linux/lrng.h>
++#include <linux/module.h>
 +#include <linux/slab.h>
 +
-+#include "lrng_chacha20.h"
-+#include "lrng_internal.h"
++#include "lrng_drng_chacha20.h"
++#include "lrng_sha.h"
 +
 +#define LRNG_SELFTEST_PASSED		0
 +#define LRNG_SEFLTEST_ERROR_TIME	(1 << 0)
@@ -159,14 +171,14 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +#define LRNG_SEFLTEST_ERROR_GCD		(1 << 3)
 +#define LRNG_SELFTEST_NOT_EXECUTED	0xffffffff
 +
-+#ifdef CONFIG_LRNG_IRQ
++#ifdef CONFIG_LRNG_TIMER_COMMON
 +
-+#include "lrng_es_irq.h"
++#include "lrng_es_timer_common.h"
 +
 +static u32 lrng_data_selftest_ptr = 0;
 +static u32 lrng_data_selftest[LRNG_DATA_ARRAY_SIZE];
 +
-+static inline void lrng_data_process_selftest_insert(u32 time)
++static void lrng_data_process_selftest_insert(u32 time)
 +{
 +	u32 ptr = lrng_data_selftest_ptr++ & LRNG_DATA_WORD_MASK;
 +	unsigned int array = lrng_data_idx2array(ptr);
@@ -180,7 +192,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +		lrng_data_slot_val(time & LRNG_DATA_SLOTSIZE_MASK, slot);
 +}
 +
-+static inline void lrng_data_process_selftest_u32(u32 data)
++static void lrng_data_process_selftest_u32(u32 data)
 +{
 +	u32 pre_ptr, ptr, mask;
 +	unsigned int pre_array;
@@ -191,7 +203,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	/* ptr to current unit */
 +	ptr = lrng_data_selftest_ptr;
 +
-+	lrng_pcpu_split_u32(&ptr, &pre_ptr, &mask);
++	lrng_data_split_u32(&ptr, &pre_ptr, &mask);
 +
 +	/* MSB of data go into previous unit */
 +	pre_array = lrng_data_idx2array(pre_ptr);
@@ -272,7 +284,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	return LRNG_SEFLTEST_ERROR_GCD;
 +}
 +
-+#else /* CONFIG_LRNG_IRQ */
++#else /* CONFIG_LRNG_TIMER_COMMON */
 +
 +static unsigned int lrng_data_process_selftest(void)
 +{
@@ -284,26 +296,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	return LRNG_SELFTEST_PASSED;
 +}
 +
-+#endif /* CONFIG_LRNG_IRQ */
-+
-+static inline void lrng_selftest_bswap32(u32 *ptr, u32 words)
-+{
-+	u32 i;
-+
-+	/* Byte-swap data which is an LE representation */
-+	for (i = 0; i < words; i++) {
-+		__le32 *p = (__le32 *)ptr;
-+
-+		*p = cpu_to_le32(*ptr);
-+		ptr++;
-+	}
-+}
++#endif /* CONFIG_LRNG_TIMER_COMMON */
 +
 +/* The test vectors are taken from crypto/testmgr.h */
 +static unsigned int lrng_hash_selftest(void)
 +{
 +	SHASH_DESC_ON_STACK(shash, NULL);
-+	const struct lrng_crypto_cb *crypto_cb = &lrng_cc20_crypto_cb;
++	const struct lrng_hash_cb *hash_cb = &lrng_sha_hash_cb;
 +	static const u8 lrng_hash_selftest_result[] =
 +#ifdef CONFIG_CRYPTO_LIB_SHA256
 +		{ 0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea,
@@ -317,17 +316,33 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	static const u8 hash_input[] = { 0x61, 0x62, 0x63 }; /* "abc" */
 +	u8 digest[sizeof(lrng_hash_selftest_result)] __aligned(sizeof(u32));
 +
-+	BUG_ON(sizeof(digest) != crypto_cb->lrng_hash_digestsize(NULL));
++	if (sizeof(digest) != hash_cb->hash_digestsize(NULL))
++		return LRNG_SEFLTEST_ERROR_HASH;
 +
-+	if (!crypto_cb->lrng_hash_init(shash, NULL) &&
-+	    !crypto_cb->lrng_hash_update(shash, hash_input,
++	if (!hash_cb->hash_init(shash, NULL) &&
++	    !hash_cb->hash_update(shash, hash_input,
 +					 sizeof(hash_input)) &&
-+	    !crypto_cb->lrng_hash_final(shash, digest) &&
++	    !hash_cb->hash_final(shash, digest) &&
 +	    !memcmp(digest, lrng_hash_selftest_result, sizeof(digest)))
 +		return 0;
 +
-+	pr_err("LRNG %s Hash self-test FAILED\n", crypto_cb->lrng_hash_name());
++	pr_err("LRNG %s Hash self-test FAILED\n", hash_cb->hash_name());
 +	return LRNG_SEFLTEST_ERROR_HASH;
++}
++
++#ifdef CONFIG_LRNG_DRNG_CHACHA20
++
++static void lrng_selftest_bswap32(u32 *ptr, u32 words)
++{
++	u32 i;
++
++	/* Byte-swap data which is an LE representation */
++	for (i = 0; i < words; i++) {
++		__le32 *p = (__le32 *)ptr;
++
++		*p = cpu_to_le32(*ptr);
++		ptr++;
++	}
 +}
 +
 +/*
@@ -336,7 +351,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 + */
 +static unsigned int lrng_chacha20_drng_selftest(void)
 +{
-+	const struct lrng_crypto_cb *crypto_cb = &lrng_cc20_crypto_cb;
++	const struct lrng_drng_cb *drng_cb = &lrng_cc20_drng_cb;
 +	u8 seed[CHACHA_KEY_SIZE * 2] = {
 +		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 +		0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
@@ -414,8 +429,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	lrng_selftest_bswap32((u32 *)seed, sizeof(seed) / sizeof(u32));
 +
 +	/* Generate with zero state */
-+	ret = crypto_cb->lrng_drng_generate_helper(&chacha20, outbuf,
-+						   sizeof(expected_halfblock));
++	ret = drng_cb->drng_generate(&chacha20, outbuf,
++				     sizeof(expected_halfblock));
 +	if (ret != sizeof(expected_halfblock))
 +		goto err;
 +	if (memcmp(outbuf, expected_halfblock, sizeof(expected_halfblock)))
@@ -425,12 +440,11 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	memset(&chacha20.key.u[0], 0, 48);
 +
 +	/* Reseed with 2 key blocks */
-+	ret = crypto_cb->lrng_drng_seed_helper(&chacha20, seed,
-+					       sizeof(expected_oneblock));
++	ret = drng_cb->drng_seed(&chacha20, seed, sizeof(expected_oneblock));
 +	if (ret < 0)
 +		goto err;
-+	ret = crypto_cb->lrng_drng_generate_helper(&chacha20, outbuf,
-+						   sizeof(expected_oneblock));
++	ret = drng_cb->drng_generate(&chacha20, outbuf,
++				     sizeof(expected_oneblock));
 +	if (ret != sizeof(expected_oneblock))
 +		goto err;
 +	if (memcmp(outbuf, expected_oneblock, sizeof(expected_oneblock)))
@@ -440,12 +454,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	memset(&chacha20.key.u[0], 0, 48);
 +
 +	/* Reseed with 1 key block and one byte */
-+	ret = crypto_cb->lrng_drng_seed_helper(&chacha20, seed,
-+					sizeof(expected_block_nonalinged));
++	ret = drng_cb->drng_seed(&chacha20, seed,
++				 sizeof(expected_block_nonalinged));
 +	if (ret < 0)
 +		goto err;
-+	ret = crypto_cb->lrng_drng_generate_helper(&chacha20, outbuf,
-+					sizeof(expected_block_nonalinged));
++	ret = drng_cb->drng_generate(&chacha20, outbuf,
++				     sizeof(expected_block_nonalinged));
 +	if (ret != sizeof(expected_block_nonalinged))
 +		goto err;
 +	if (memcmp(outbuf, expected_block_nonalinged,
@@ -458,6 +472,15 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +	pr_err("LRNG ChaCha20 DRNG self-test FAILED\n");
 +	return LRNG_SEFLTEST_ERROR_CHACHA20;
 +}
++
++#else /* CONFIG_LRNG_DRNG_CHACHA20 */
++
++static unsigned int lrng_chacha20_drng_selftest(void)
++{
++	return LRNG_SELFTEST_PASSED;
++}
++
++#endif /* CONFIG_LRNG_DRNG_CHACHA20 */
 +
 +static unsigned int lrng_selftest_status = LRNG_SELFTEST_NOT_EXECUTED;
 +
@@ -505,3 +528,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 +}
 +
 +module_init(lrng_selftest_init);
+-- 
+2.40.0
+

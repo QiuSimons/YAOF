@@ -1,0 +1,956 @@
+From 45c2b2320e9898edec8ca62c176a93aa8b4eca89 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Mon, 20 Feb 2023 22:12:04 +0100
+Subject: [PATCH v50 22/25] LRMG - add drop-in replacement random(4) API
+
+The LRNG is intended to be a full replacement of the existing random.c.
+This also includes the providing of a full API and ABI compliant drop-in
+replacement of all APIs offered by random.c.
+
+These LRNG interfaces are compiled when the random.c is not compiled
+any more.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/Makefile                         |   3 +-
+ drivers/char/lrng/Makefile                    |   5 +
+ drivers/char/lrng/lrng_interface_aux.c        | 209 ++++++++++++
+ drivers/char/lrng/lrng_interface_dev_common.c | 315 ++++++++++++++++++
+ .../char/lrng/lrng_interface_random_kernel.c  | 248 ++++++++++++++
+ .../char/lrng/lrng_interface_random_user.c    | 104 ++++++
+ 6 files changed, 883 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/char/lrng/lrng_interface_aux.c
+ create mode 100644 drivers/char/lrng/lrng_interface_dev_common.c
+ create mode 100644 drivers/char/lrng/lrng_interface_random_kernel.c
+ create mode 100644 drivers/char/lrng/lrng_interface_random_user.c
+
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index 3ee88288d1f8..0d56f0a24fcd 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -3,7 +3,8 @@
+ # Makefile for the kernel character device drivers.
+ #
+ 
+-obj-y				+= mem.o random.o
++obj-y				+= mem.o
++obj-$(CONFIG_RANDOM_DEFAULT_IMPL) += random.o
+ obj-$(CONFIG_TTY_PRINTK)	+= ttyprintk.o
+ obj-y				+= misc.o
+ obj-$(CONFIG_ATARI_DSP56K)	+= dsp56k.o
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 52b4625a0760..6242262d577e 100644
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -29,3 +29,8 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
+ obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
+ obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
+ obj-$(CONFIG_LRNG_SELFTEST)		+= lrng_selftest.o
++
++obj-$(CONFIG_LRNG_COMMON_DEV_IF)	+= lrng_interface_dev_common.o
++obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
++					   lrng_interface_random_kernel.o \
++					   lrng_interface_aux.o
+diff --git a/drivers/char/lrng/lrng_interface_aux.c b/drivers/char/lrng/lrng_interface_aux.c
+new file mode 100644
+index 000000000000..84f3ce38f332
+--- /dev/null
++++ b/drivers/char/lrng/lrng_interface_aux.c
+@@ -0,0 +1,209 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG auxiliary interfaces
++ *
++ * Copyright (C) 2022 Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2017 Jason A. Donenfeld <Jason@zx2c4.com>. All
++ * Rights Reserved.
++ * Copyright (C) 2016 Jason Cooper <jason@lakedaemon.net>
++ */
++
++#include <linux/lrng.h>
++#include <linux/mm.h>
++#include <linux/random.h>
++
++#include "lrng_es_mgr.h"
++#include "lrng_interface_random_kernel.h"
++
++/*
++ * Fill a buffer with random numbers and tokenize it to provide random numbers
++ * to callers in fixed chunks. This approach is provided to be consistent with
++ * the Linux kernel interface requirements. Yet, this approach violate the
++ * backtracking resistance of the random number generator. Thus, the provided
++ * random numbers are not considered to be as strong as those requested directly
++ * from the LRNG.
++ */
++struct batched_entropy {
++	union {
++		u64 entropy_u64[LRNG_DRNG_BLOCKSIZE / sizeof(u64)];
++		u32 entropy_u32[LRNG_DRNG_BLOCKSIZE / sizeof(u32)];
++		u16 entropy_u16[LRNG_DRNG_BLOCKSIZE / sizeof(u16)];
++		u8 entropy_u8[LRNG_DRNG_BLOCKSIZE / sizeof(u8)];
++	};
++	unsigned int position;
++	spinlock_t batch_lock;
++};
++
++/*
++ * Get a random word for internal kernel use only. The quality of the random
++ * number is as good as /dev/urandom, but there is no backtrack protection,
++ * with the goal of being quite fast and not depleting entropy.
++ */
++static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_u64) = {
++	.batch_lock	= __SPIN_LOCK_UNLOCKED(batched_entropy_u64.lock),
++};
++
++u64 get_random_u64(void)
++{
++	u64 ret;
++	unsigned long flags;
++	struct batched_entropy *batch;
++
++	lrng_debug_report_seedlevel("get_random_u64");
++
++	batch = raw_cpu_ptr(&batched_entropy_u64);
++	spin_lock_irqsave(&batch->batch_lock, flags);
++	if (batch->position % ARRAY_SIZE(batch->entropy_u64) == 0) {
++		lrng_get_random_bytes(batch->entropy_u64, LRNG_DRNG_BLOCKSIZE);
++		batch->position = 0;
++	}
++	ret = batch->entropy_u64[batch->position++];
++	spin_unlock_irqrestore(&batch->batch_lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(get_random_u64);
++
++static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_u32) = {
++	.batch_lock	= __SPIN_LOCK_UNLOCKED(batched_entropy_u32.lock),
++};
++
++u32 get_random_u32(void)
++{
++	u32 ret;
++	unsigned long flags;
++	struct batched_entropy *batch;
++
++	lrng_debug_report_seedlevel("get_random_u32");
++
++	batch = raw_cpu_ptr(&batched_entropy_u32);
++	spin_lock_irqsave(&batch->batch_lock, flags);
++	if (batch->position % ARRAY_SIZE(batch->entropy_u32) == 0) {
++		lrng_get_random_bytes(batch->entropy_u32, LRNG_DRNG_BLOCKSIZE);
++		batch->position = 0;
++	}
++	ret = batch->entropy_u32[batch->position++];
++	spin_unlock_irqrestore(&batch->batch_lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(get_random_u32);
++
++static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_u16) = {
++	.batch_lock	= __SPIN_LOCK_UNLOCKED(batched_entropy_u16.lock),
++};
++
++u16 get_random_u16(void)
++{
++	u16 ret;
++	unsigned long flags;
++	struct batched_entropy *batch;
++
++	lrng_debug_report_seedlevel("get_random_u16");
++
++	batch = raw_cpu_ptr(&batched_entropy_u16);
++	spin_lock_irqsave(&batch->batch_lock, flags);
++	if (batch->position % ARRAY_SIZE(batch->entropy_u16) == 0) {
++		lrng_get_random_bytes(batch->entropy_u16, LRNG_DRNG_BLOCKSIZE);
++		batch->position = 0;
++	}
++	ret = batch->entropy_u16[batch->position++];
++	spin_unlock_irqrestore(&batch->batch_lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(get_random_u16);
++
++static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_u8) = {
++	.batch_lock	= __SPIN_LOCK_UNLOCKED(batched_entropy_u8.lock),
++};
++
++u8 get_random_u8(void)
++{
++	u8 ret;
++	unsigned long flags;
++	struct batched_entropy *batch;
++
++	lrng_debug_report_seedlevel("get_random_u8");
++
++	batch = raw_cpu_ptr(&batched_entropy_u8);
++	spin_lock_irqsave(&batch->batch_lock, flags);
++	if (batch->position % ARRAY_SIZE(batch->entropy_u8) == 0) {
++		lrng_get_random_bytes(batch->entropy_u8, LRNG_DRNG_BLOCKSIZE);
++		batch->position = 0;
++	}
++	ret = batch->entropy_u8[batch->position++];
++	spin_unlock_irqrestore(&batch->batch_lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(get_random_u8);
++
++/* Taken directly from random.c */
++u32 __get_random_u32_below(u32 ceil)
++{
++	u64 mult = (u64)ceil * get_random_u32();
++	if (unlikely((u32)mult < ceil)) {
++		u32 bound = -ceil % ceil;
++		while (unlikely((u32)mult < bound))
++			mult = (u64)ceil * get_random_u32();
++	}
++	return mult >> 32;
++}
++EXPORT_SYMBOL(__get_random_u32_below);
++
++#ifdef CONFIG_SMP
++/*
++ * This function is called when the CPU is coming up, with entry
++ * CPUHP_RANDOM_PREPARE, which comes before CPUHP_WORKQUEUE_PREP.
++ */
++int random_prepare_cpu(unsigned int cpu)
++{
++	/*
++	 * When the cpu comes back online, immediately invalidate all batches,
++	 * so that we serve fresh randomness.
++	 */
++	per_cpu_ptr(&batched_entropy_u8, cpu)->position = 0;
++	per_cpu_ptr(&batched_entropy_u16, cpu)->position = 0;
++	per_cpu_ptr(&batched_entropy_u32, cpu)->position = 0;
++	per_cpu_ptr(&batched_entropy_u64, cpu)->position = 0;
++	return 0;
++}
++
++int random_online_cpu(unsigned int cpu)
++{
++        return 0;
++}
++#endif
++
++/*
++ * It's important to invalidate all potential batched entropy that might
++ * be stored before the crng is initialized, which we can do lazily by
++ * simply resetting the counter to zero so that it's re-extracted on the
++ * next usage.
++ */
++void invalidate_batched_entropy(void)
++{
++	int cpu;
++	unsigned long flags;
++
++	for_each_possible_cpu(cpu) {
++		struct batched_entropy *batched_entropy;
++
++		batched_entropy = per_cpu_ptr(&batched_entropy_u8, cpu);
++		spin_lock_irqsave(&batched_entropy->batch_lock, flags);
++		batched_entropy->position = 0;
++		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
++
++		batched_entropy = per_cpu_ptr(&batched_entropy_u16, cpu);
++		spin_lock_irqsave(&batched_entropy->batch_lock, flags);
++		batched_entropy->position = 0;
++		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
++
++		batched_entropy = per_cpu_ptr(&batched_entropy_u32, cpu);
++		spin_lock_irqsave(&batched_entropy->batch_lock, flags);
++		batched_entropy->position = 0;
++		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
++
++		batched_entropy = per_cpu_ptr(&batched_entropy_u64, cpu);
++		spin_lock(&batched_entropy->batch_lock);
++		batched_entropy->position = 0;
++		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
++	}
++}
+diff --git a/drivers/char/lrng/lrng_interface_dev_common.c b/drivers/char/lrng/lrng_interface_dev_common.c
+new file mode 100644
+index 000000000000..a2845e278c6d
+--- /dev/null
++++ b/drivers/char/lrng/lrng_interface_dev_common.c
+@@ -0,0 +1,315 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG User and kernel space interfaces
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/random.h>
++#include <linux/slab.h>
++
++#include "lrng_drng_mgr.h"
++#include "lrng_es_aux.h"
++#include "lrng_es_mgr.h"
++#include "lrng_interface_dev_common.h"
++
++DECLARE_WAIT_QUEUE_HEAD(lrng_write_wait);
++static struct fasync_struct *fasync;
++
++static bool lrng_seed_hw = true;	/* Allow HW to provide seed */
++static bool lrng_seed_user = true;	/* Allow user space to provide seed */
++
++/********************************** Helper ***********************************/
++
++static u32 lrng_get_aux_ent(void)
++{
++	return lrng_es[lrng_ext_es_aux]->curr_entropy(0);
++}
++
++/* Is the DRNG seed level too low? */
++bool lrng_need_entropy(void)
++{
++	return (lrng_get_aux_ent() < lrng_write_wakeup_bits);
++}
++
++void lrng_writer_wakeup(void)
++{
++	if (lrng_need_entropy() && wq_has_sleeper(&lrng_write_wait)) {
++		wake_up_interruptible(&lrng_write_wait);
++		kill_fasync(&fasync, SIGIO, POLL_OUT);
++	}
++}
++
++void lrng_init_wakeup_dev(void)
++{
++	kill_fasync(&fasync, SIGIO, POLL_IN);
++}
++
++/* External entropy provider is allowed to provide seed data */
++bool lrng_state_exseed_allow(enum lrng_external_noise_source source)
++{
++	if (source == lrng_noise_source_hw)
++		return lrng_seed_hw;
++	return lrng_seed_user;
++}
++
++/* Enable / disable external entropy provider to furnish seed */
++void lrng_state_exseed_set(enum lrng_external_noise_source source, bool type)
++{
++	/*
++	 * If the LRNG is not yet operational, allow all entropy sources
++	 * to deliver data unconditionally to get fully seeded asap.
++	 */
++	if (!lrng_state_operational())
++		return;
++
++	if (source == lrng_noise_source_hw)
++		lrng_seed_hw = type;
++	else
++		lrng_seed_user = type;
++}
++
++void lrng_state_exseed_allow_all(void)
++{
++	lrng_state_exseed_set(lrng_noise_source_hw, true);
++	lrng_state_exseed_set(lrng_noise_source_user, true);
++}
++
++/************************ LRNG user output interfaces *************************/
++
++ssize_t lrng_read_seed(char __user *buf, size_t nbytes, unsigned int flags)
++{
++	ssize_t ret = 0;
++	u64 t[(sizeof(struct entropy_buf) + 3 * sizeof(u64) - 1) / sizeof(u64)];
++
++	memset(t, 0, sizeof(t));
++	ret = lrng_get_seed(t, min_t(size_t, nbytes, sizeof(t)), flags);
++	if (ret == -EMSGSIZE && copy_to_user(buf, t, sizeof(u64))) {
++		ret = -EFAULT;
++	} else if (ret > 0 && copy_to_user(buf, t, ret)) {
++		ret = -EFAULT;
++	}
++	memzero_explicit(t, sizeof(t));
++
++	return ret;
++}
++
++ssize_t lrng_read_common(char __user *buf, size_t nbytes, bool pr)
++{
++	ssize_t ret = 0;
++	u8 tmpbuf[LRNG_DRNG_BLOCKSIZE] __aligned(LRNG_KCAPI_ALIGN);
++	u8 *tmp_large = NULL, *tmp = tmpbuf;
++	u32 tmplen = sizeof(tmpbuf);
++
++	if (nbytes == 0)
++		return 0;
++
++	/*
++	 * Satisfy large read requests -- as the common case are smaller
++	 * request sizes, such as 16 or 32 bytes, avoid a kmalloc overhead for
++	 * those by using the stack variable of tmpbuf.
++	 */
++	if (!CONFIG_BASE_SMALL && (nbytes > sizeof(tmpbuf))) {
++		tmplen = min_t(u32, nbytes, LRNG_DRNG_MAX_REQSIZE);
++		tmp_large = kmalloc(tmplen + LRNG_KCAPI_ALIGN, GFP_KERNEL);
++		if (!tmp_large)
++			tmplen = sizeof(tmpbuf);
++		else
++			tmp = PTR_ALIGN(tmp_large, LRNG_KCAPI_ALIGN);
++	}
++
++	while (nbytes) {
++		u32 todo = min_t(u32, nbytes, tmplen);
++		int rc = 0;
++
++		/* Reschedule if we received a large request. */
++		if ((tmp_large) && need_resched()) {
++			if (signal_pending(current)) {
++				if (ret == 0)
++					ret = -ERESTARTSYS;
++				break;
++			}
++			schedule();
++		}
++
++		rc = lrng_drng_get_sleep(tmp, todo, pr);
++		if (rc <= 0) {
++			if (rc < 0)
++				ret = rc;
++			break;
++		}
++		if (copy_to_user(buf, tmp, rc)) {
++			ret = -EFAULT;
++			break;
++		}
++
++		nbytes -= rc;
++		buf += rc;
++		ret += rc;
++	}
++
++	/* Wipe data just returned from memory */
++	if (tmp_large)
++		kfree_sensitive(tmp_large);
++	else
++		memzero_explicit(tmpbuf, sizeof(tmpbuf));
++
++	return ret;
++}
++
++ssize_t lrng_read_common_block(int nonblock, int pr,
++			       char __user *buf, size_t nbytes)
++{
++	int ret;
++
++	if (nbytes == 0)
++		return 0;
++
++	ret = lrng_drng_sleep_while_nonoperational(nonblock);
++	if (ret)
++		return ret;
++
++	return lrng_read_common(buf, nbytes, !!pr);
++}
++
++ssize_t lrng_drng_read_block(struct file *file, char __user *buf, size_t nbytes,
++			     loff_t *ppos)
++{
++	return lrng_read_common_block(file->f_flags & O_NONBLOCK,
++				      file->f_flags & O_SYNC, buf, nbytes);
++}
++
++__poll_t lrng_random_poll(struct file *file, poll_table *wait)
++{
++	__poll_t mask;
++
++	poll_wait(file, &lrng_init_wait, wait);
++	poll_wait(file, &lrng_write_wait, wait);
++	mask = 0;
++	if (lrng_state_operational())
++		mask |= EPOLLIN | EPOLLRDNORM;
++	if (lrng_need_entropy() ||
++	    lrng_state_exseed_allow(lrng_noise_source_user)) {
++		lrng_state_exseed_set(lrng_noise_source_user, false);
++		mask |= EPOLLOUT | EPOLLWRNORM;
++	}
++	return mask;
++}
++
++ssize_t lrng_drng_write_common(const char __user *buffer, size_t count,
++			       u32 entropy_bits)
++{
++	ssize_t ret = 0;
++	u8 buf[64] __aligned(LRNG_KCAPI_ALIGN);
++	const char __user *p = buffer;
++	u32 orig_entropy_bits = entropy_bits;
++
++	if (!lrng_get_available()) {
++		ret = lrng_drng_initalize();
++		if (!ret)
++			return ret;
++	}
++
++	count = min_t(size_t, count, INT_MAX);
++	while (count > 0) {
++		size_t bytes = min_t(size_t, count, sizeof(buf));
++		u32 ent = min_t(u32, bytes<<3, entropy_bits);
++
++		if (copy_from_user(&buf, p, bytes))
++			return -EFAULT;
++		/* Inject data into entropy pool */
++		lrng_pool_insert_aux(buf, bytes, ent);
++
++		count -= bytes;
++		p += bytes;
++		ret += bytes;
++		entropy_bits -= ent;
++
++		cond_resched();
++	}
++
++	/* Force reseed of DRNG during next data request. */
++	if (!orig_entropy_bits)
++		lrng_drng_force_reseed();
++
++	return ret;
++}
++
++ssize_t lrng_drng_write(struct file *file, const char __user *buffer,
++			size_t count, loff_t *ppos)
++{
++	return lrng_drng_write_common(buffer, count, 0);
++}
++
++long lrng_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
++{
++	u32 digestsize_bits;
++	int size, ent_count_bits, ret;
++	int __user *p = (int __user *)arg;
++
++	switch (cmd) {
++	case RNDGETENTCNT:
++		ent_count_bits = lrng_avail_entropy_aux();
++		if (put_user(ent_count_bits, p))
++			return -EFAULT;
++		return 0;
++	case RNDADDTOENTCNT:
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		if (get_user(ent_count_bits, p))
++			return -EFAULT;
++		ent_count_bits = (int)lrng_get_aux_ent() + ent_count_bits;
++		if (ent_count_bits < 0)
++			ent_count_bits = 0;
++		digestsize_bits = lrng_get_digestsize();
++		if (ent_count_bits > digestsize_bits)
++			ent_count_bits = digestsize_bits;
++		lrng_pool_set_entropy(ent_count_bits);
++		return 0;
++	case RNDADDENTROPY:
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		if (get_user(ent_count_bits, p++))
++			return -EFAULT;
++		if (ent_count_bits < 0)
++			return -EINVAL;
++		if (get_user(size, p++))
++			return -EFAULT;
++		if (size < 0)
++			return -EINVAL;
++		/* there cannot be more entropy than data */
++		ent_count_bits = min(ent_count_bits, size<<3);
++		ret = lrng_drng_write_common((const char __user *)p, size,
++					     ent_count_bits);
++		return (ret < 0) ? ret : 0;
++	case RNDZAPENTCNT:
++	case RNDCLEARPOOL:
++		/* Clear the entropy pool counter. */
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		lrng_pool_set_entropy(0);
++		return 0;
++	case RNDRESEEDCRNG:
++		/*
++		 * We leave the capability check here since it is present
++		 * in the upstream's RNG implementation. Yet, user space
++		 * can trigger a reseed as easy as writing into /dev/random
++		 * or /dev/urandom where no privilege is needed.
++		 */
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		/* Force a reseed of all DRNGs */
++		lrng_drng_force_reseed();
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++EXPORT_SYMBOL(lrng_ioctl);
++
++int lrng_fasync(int fd, struct file *filp, int on)
++{
++	return fasync_helper(fd, filp, on, &fasync);
++}
+diff --git a/drivers/char/lrng/lrng_interface_random_kernel.c b/drivers/char/lrng/lrng_interface_random_kernel.c
+new file mode 100644
+index 000000000000..fabf2109ceaf
+--- /dev/null
++++ b/drivers/char/lrng/lrng_interface_random_kernel.c
+@@ -0,0 +1,248 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG Kernel space interfaces API/ABI compliant to linux/random.h
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/blkdev.h>
++#include <linux/hw_random.h>
++#include <linux/kthread.h>
++#include <linux/lrng.h>
++#include <linux/random.h>
++
++#include "lrng_es_aux.h"
++#include "lrng_es_irq.h"
++#include "lrng_es_mgr.h"
++#include "lrng_interface_dev_common.h"
++#include "lrng_interface_random_kernel.h"
++
++static ATOMIC_NOTIFIER_HEAD(random_ready_notifier);
++
++/********************************** Helper ***********************************/
++
++static bool lrng_trust_bootloader __initdata =
++	IS_ENABLED(CONFIG_RANDOM_TRUST_BOOTLOADER);
++
++static int __init lrng_parse_trust_bootloader(char *arg)
++{
++	return kstrtobool(arg, &lrng_trust_bootloader);
++}
++early_param("random.trust_bootloader", lrng_parse_trust_bootloader);
++
++void __init random_init_early(const char *command_line)
++{
++	lrng_rand_initialize_early();
++	lrng_pool_insert_aux(command_line, strlen(command_line), 0);
++}
++
++void __init random_init(void)
++{
++	lrng_rand_initialize();
++}
++
++/*
++ * Add a callback function that will be invoked when the LRNG is initialised,
++ * or immediately if it already has been. Only use this is you are absolutely
++ * sure it is required. Most users should instead be able to test
++ * `rng_is_initialized()` on demand, or make use of `get_random_bytes_wait()`.
++ */
++int __cold execute_with_initialized_rng(struct notifier_block *nb)
++{
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&random_ready_notifier.lock, flags);
++	if (rng_is_initialized())
++		nb->notifier_call(nb, 0, NULL);
++	else
++		ret = raw_notifier_chain_register(
++			(struct raw_notifier_head *)&random_ready_notifier.head,
++			nb);
++	spin_unlock_irqrestore(&random_ready_notifier.lock, flags);
++	return ret;
++}
++
++void lrng_kick_random_ready(void)
++{
++	atomic_notifier_call_chain(&random_ready_notifier, 0, NULL);
++}
++
++/************************ LRNG kernel input interfaces ************************/
++
++/*
++ * add_hwgenerator_randomness() - Interface for in-kernel drivers of true
++ * hardware RNGs.
++ *
++ * Those devices may produce endless random bits and will be throttled
++ * when our pool is full.
++ *
++ * @buffer: buffer holding the entropic data from HW noise sources to be used to
++ *	    insert into entropy pool.
++ * @count: length of buffer
++ * @entropy_bits: amount of entropy in buffer (value is in bits)
++ */
++void add_hwgenerator_randomness(const void *buffer, size_t count,
++				size_t entropy_bits, bool sleep_after)
++{
++	/*
++	 * Suspend writing if we are fully loaded with entropy or if caller
++	 * did not provide any entropy. We'll be woken up again once below
++	 * lrng_write_wakeup_thresh, or when the calling thread is about to
++	 * terminate.
++	 */
++	wait_event_interruptible(lrng_write_wait,
++				(lrng_need_entropy() && entropy_bits) ||
++				lrng_state_exseed_allow(lrng_noise_source_hw) ||
++				!sleep_after ||
++				kthread_should_stop());
++	lrng_state_exseed_set(lrng_noise_source_hw, false);
++	lrng_pool_insert_aux(buffer, count, entropy_bits);
++}
++EXPORT_SYMBOL_GPL(add_hwgenerator_randomness);
++
++/*
++ * add_bootloader_randomness() - Handle random seed passed by bootloader.
++ *
++ * If the seed is trustworthy, it would be regarded as hardware RNGs. Otherwise
++ * it would be regarded as device data.
++ * The decision is controlled by CONFIG_RANDOM_TRUST_BOOTLOADER.
++ *
++ * @buf: buffer holding the entropic data from HW noise sources to be used to
++ *	 insert into entropy pool.
++ * @size: length of buffer
++ */
++void __init add_bootloader_randomness(const void *buf, size_t size)
++{
++	lrng_pool_insert_aux(buf, size, lrng_trust_bootloader ? size * 8 : 0);
++}
++
++/*
++ * Callback for HID layer -- use the HID event values to stir the entropy pool
++ */
++void add_input_randomness(unsigned int type, unsigned int code,
++			  unsigned int value)
++{
++	static unsigned char last_value;
++
++	/* ignore autorepeat and the like */
++	if (value == last_value)
++		return;
++
++	last_value = value;
++
++	lrng_irq_array_add_u32((type << 4) ^ code ^ (code >> 4) ^ value);
++}
++EXPORT_SYMBOL_GPL(add_input_randomness);
++
++/*
++ * add_device_randomness() - Add device- or boot-specific data to the entropy
++ * pool to help initialize it.
++ *
++ * None of this adds any entropy; it is meant to avoid the problem of
++ * the entropy pool having similar initial state across largely
++ * identical devices.
++ *
++ * @buf: buffer holding the entropic data from HW noise sources to be used to
++ *	 insert into entropy pool.
++ * @size: length of buffer
++ */
++void add_device_randomness(const void *buf, size_t size)
++{
++	lrng_pool_insert_aux((u8 *)buf, size, 0);
++}
++EXPORT_SYMBOL(add_device_randomness);
++
++#ifdef CONFIG_BLOCK
++void rand_initialize_disk(struct gendisk *disk) { }
++void add_disk_randomness(struct gendisk *disk) { }
++EXPORT_SYMBOL(add_disk_randomness);
++#endif
++
++#ifndef CONFIG_LRNG_IRQ
++void add_interrupt_randomness(int irq) { }
++EXPORT_SYMBOL(add_interrupt_randomness);
++#endif
++
++#if IS_ENABLED(CONFIG_VMGENID)
++static BLOCKING_NOTIFIER_HEAD(lrng_vmfork_chain);
++
++/*
++ * Handle a new unique VM ID, which is unique, not secret, so we
++ * don't credit it, but we do immediately force a reseed after so
++ * that it's used by the crng posthaste.
++ */
++void add_vmfork_randomness(const void *unique_vm_id, size_t size)
++{
++	add_device_randomness(unique_vm_id, size);
++	if (lrng_state_operational())
++		lrng_drng_force_reseed();
++	blocking_notifier_call_chain(&lrng_vmfork_chain, 0, NULL);
++}
++#if IS_MODULE(CONFIG_VMGENID)
++EXPORT_SYMBOL_GPL(add_vmfork_randomness);
++#endif
++
++int register_random_vmfork_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&lrng_vmfork_chain, nb);
++}
++EXPORT_SYMBOL_GPL(register_random_vmfork_notifier);
++
++int unregister_random_vmfork_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&lrng_vmfork_chain, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_random_vmfork_notifier);
++#endif
++
++/*********************** LRNG kernel output interfaces ************************/
++
++/*
++ * get_random_bytes() - Provider of cryptographic strong random numbers for
++ * kernel-internal usage.
++ *
++ * This function is appropriate for all in-kernel use cases. However,
++ * it will always use the ChaCha20 DRNG.
++ *
++ * @buf: buffer to store the random bytes
++ * @nbytes: size of the buffer
++ */
++void get_random_bytes(void *buf, size_t nbytes)
++{
++	lrng_get_random_bytes(buf, nbytes);
++}
++EXPORT_SYMBOL(get_random_bytes);
++
++/*
++ * wait_for_random_bytes() - Wait for the LRNG to be seeded and thus
++ * guaranteed to supply cryptographically secure random numbers.
++ *
++ * This applies to: the /dev/urandom device, the get_random_bytes function,
++ * and the get_random_{u32,u64,int,long} family of functions. Using any of
++ * these functions without first calling this function forfeits the guarantee
++ * of security.
++ *
++ * Return:
++ * * 0 if the LRNG has been seeded.
++ * * -ERESTARTSYS if the function was interrupted by a signal.
++ */
++int wait_for_random_bytes(void)
++{
++	return lrng_drng_sleep_while_non_min_seeded();
++}
++EXPORT_SYMBOL(wait_for_random_bytes);
++
++/*
++ * Returns whether or not the LRNG has been seeded.
++ *
++ * Returns: true if the urandom pool has been seeded.
++ *          false if the urandom pool has not been seeded.
++ */
++bool rng_is_initialized(void)
++{
++	return lrng_state_operational();
++}
++EXPORT_SYMBOL(rng_is_initialized);
+diff --git a/drivers/char/lrng/lrng_interface_random_user.c b/drivers/char/lrng/lrng_interface_random_user.c
+new file mode 100644
+index 000000000000..d12e883804d9
+--- /dev/null
++++ b/drivers/char/lrng/lrng_interface_random_user.c
+@@ -0,0 +1,104 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG Common user space interfaces compliant to random(4), random(7) and
++ * getrandom(2) man pages.
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/random.h>
++#include <linux/syscalls.h>
++
++#include "lrng_es_mgr.h"
++#include "lrng_interface_dev_common.h"
++
++static ssize_t lrng_drng_read(struct file *file, char __user *buf,
++			      size_t nbytes, loff_t *ppos)
++{
++	if (!lrng_state_min_seeded())
++		pr_notice_ratelimited("%s - use of insufficiently seeded DRNG (%zu bytes read)\n",
++				      current->comm, nbytes);
++	else if (!lrng_state_operational())
++		pr_debug_ratelimited("%s - use of not fully seeded DRNG (%zu bytes read)\n",
++				     current->comm, nbytes);
++
++	return lrng_read_common(buf, nbytes, false);
++}
++
++const struct file_operations random_fops = {
++	.read  = lrng_drng_read_block,
++	.write = lrng_drng_write,
++	.poll  = lrng_random_poll,
++	.unlocked_ioctl = lrng_ioctl,
++	.compat_ioctl = compat_ptr_ioctl,
++	.fasync = lrng_fasync,
++	.llseek = noop_llseek,
++};
++
++const struct file_operations urandom_fops = {
++	.read  = lrng_drng_read,
++	.write = lrng_drng_write,
++	.unlocked_ioctl = lrng_ioctl,
++	.compat_ioctl = compat_ptr_ioctl,
++	.fasync = lrng_fasync,
++	.llseek = noop_llseek,
++};
++
++/*
++ * GRND_SEED
++ *
++ * This flag requests to provide the data directly from the entropy sources.
++ *
++ * The behavior of the call is exactly as outlined for the function
++ * lrng_get_seed in lrng.h.
++ */
++#define GRND_SEED		0x0010
++
++/*
++ * GRND_FULLY_SEEDED
++ *
++ * This flag indicates whether the caller wants to reseed a DRNG that is already
++ * fully seeded. See esdm_get_seed in lrng.h for details.
++ */
++#define GRND_FULLY_SEEDED	0x0020
++
++SYSCALL_DEFINE3(getrandom, char __user *, buf, size_t, count,
++		unsigned int, flags)
++{
++	if (flags & ~(GRND_NONBLOCK|GRND_RANDOM|GRND_INSECURE|
++		      GRND_SEED|GRND_FULLY_SEEDED))
++		return -EINVAL;
++
++	/*
++	 * Requesting insecure and blocking randomness at the same time makes
++	 * no sense.
++	 */
++	if ((flags &
++	     (GRND_INSECURE|GRND_RANDOM)) == (GRND_INSECURE|GRND_RANDOM))
++		return -EINVAL;
++	if ((flags &
++	     (GRND_INSECURE|GRND_SEED)) == (GRND_INSECURE|GRND_SEED))
++		return -EINVAL;
++	if ((flags &
++	     (GRND_RANDOM|GRND_SEED)) == (GRND_RANDOM|GRND_SEED))
++		return -EINVAL;
++
++	if (count > INT_MAX)
++		count = INT_MAX;
++
++	if (flags & GRND_INSECURE) {
++		return lrng_drng_read(NULL, buf, count, NULL);
++	} else if (flags & GRND_SEED) {
++		unsigned int seed_flags = (flags & GRND_NONBLOCK) ?
++					  LRNG_GET_SEED_NONBLOCK : 0;
++
++		seed_flags |= (flags & GRND_FULLY_SEEDED) ?
++			      LRNG_GET_SEED_FULLY_SEEDED : 0;
++		return lrng_read_seed(buf, count, seed_flags);
++	}
++
++	return lrng_read_common_block(flags & GRND_NONBLOCK,
++				      flags & GRND_RANDOM, buf, count);
++}
+-- 
+2.40.0
+
