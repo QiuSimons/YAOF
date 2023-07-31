@@ -39,10 +39,10 @@ cp -rf ../PATCH/BBRv2/kernel/* ./target/linux/generic/hack-5.15/
 cp -rf ../PATCH/BBRv2/openwrt/package ./
 wget -qO - https://github.com/openwrt/openwrt/commit/7db9763.patch | patch -p1
 # LRNG
-cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
-echo '
-CONFIG_LRNG=y
-' >>./target/linux/generic/config-5.15
+#cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
+#echo '
+#CONFIG_LRNG=y
+#' >>./target/linux/generic/config-5.15
 # SSL
 rm -rf ./package/libs/mbedtls
 cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
