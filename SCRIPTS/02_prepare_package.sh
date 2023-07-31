@@ -40,6 +40,9 @@ cp -rf ../PATCH/BBRv2/openwrt/package ./
 wget -qO - https://github.com/openwrt/openwrt/commit/7db9763.patch | patch -p1
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
+echo '
+CONFIG_LRNG=y
+' >>./target/linux/generic/config-5.15
 # SSL
 rm -rf ./package/libs/mbedtls
 cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
@@ -83,29 +86,16 @@ cp -rf ../Lienol/package/network/utils/fullconenat ./package/new/fullconenat
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
 cp -rf ../immortalwrt_23/target/linux/rockchip ./target/linux/rockchip
-#rm -rf ./target/linux/rockchip/Makefile
-#cp -rf ../openwrt_release/target/linux/rockchip/Makefile ./target/linux/rockchip/Makefile
-#rm -rf ./target/linux/rockchip/armv8/config-5.15
-#cp -rf ../openwrt_release/target/linux/rockchip/armv8/config-5.15 ./target/linux/rockchip/armv8/config-5.15
-#rm -rf ./target/linux/rockchip/patches-5.15/*otorcomm*
-#rm -rf ./target/linux/rockchip/patches-5.15/*8152*
 cp -rf ../PATCH/rockchip-5.15/* ./target/linux/rockchip/patches-5.15/
 rm -rf ./package/boot/uboot-rockchip
 cp -rf ../immortalwrt_23/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
 rm -rf ./package/boot/arm-trusted-firmware-rockchip
 cp -rf ../immortalwrt_23/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
-#cp -rf ../lede/package/boot/arm-trusted-firmware-rockchip-vendor ./package/boot/arm-trusted-firmware-rockchip-vendor
-#video.mk
-rm -rf ./package/kernel/linux/modules/video.mk
-cp -rf ../lede/package/kernel/linux/modules/video.mk ./package/kernel/linux/modules/video.mk
-sed -i '/nouveau\.ko/d' package/kernel/linux/modules/video.mk
 #intel-firmware
-rm -rf ./package/firmware/linux-firmware/intel.mk
-cp -rf ../lede/package/firmware/linux-firmware/intel.mk ./package/firmware/linux-firmware/intel.mk
-rm -rf ./package/firmware/linux-firmware/Makefile
-cp -rf ../lede/package/firmware/linux-firmware/Makefile ./package/firmware/linux-firmware/Makefile
+wget -qO - https://github.com/openwrt/openwrt/commit/9c58add.patch | patch -p1
+wget -qO - https://github.com/openwrt/openwrt/commit/64f1a65.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
-cp -rf ../lede/target/linux/x86/64/config-5.15 ./target/linux/x86/64/config-5.15
+sed -i '/I915/d' target/linux/x86/64/config-5.15
 # Disable Mitigations
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/mmc.bootscript
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/nanopi-r2s.bootscript
