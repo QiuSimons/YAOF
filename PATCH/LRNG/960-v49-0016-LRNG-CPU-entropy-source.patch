@@ -1,7 +1,7 @@
-From ef642506dcc9449995f7c59d123335e7078d4a67 Mon Sep 17 00:00:00 2001
+From cd47f676e3e7e1f2390aa79537a7231c427cf498 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Mon, 20 Feb 2023 22:08:23 +0100
-Subject: [PATCH v50 16/25] LRNG - CPU entropy source
+Subject: [PATCH 16/31] LRNG - CPU entropy source
 
 Certain CPUs provide instructions giving access to an entropy source
 (e.g. RDSEED on Intel/AMD, DARN on POWER, etc.). The LRNG can utilize
@@ -22,10 +22,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_es_cpu.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 573c3bf88a11..1140e3972d97 100644
+index 3364301f3..a6ebea064 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -439,44 +439,44 @@ config LRNG_IRQ_ENTROPY_RATE
+@@ -427,44 +427,44 @@ config LRNG_IRQ_ENTROPY_RATE
  # 	  will provide 256 bits of data without being credited to contain
  # 	  entropy.
  #
@@ -109,7 +109,7 @@ index 573c3bf88a11..1140e3972d97 100644
  
  config LRNG_SCHED
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 811208f38005..101c323ea1f2 100644
+index 811208f38..101c323ea 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -22,5 +22,6 @@ obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
@@ -121,7 +121,7 @@ index 811208f38005..101c323ea1f2 100644
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
 diff --git a/drivers/char/lrng/lrng_es_cpu.c b/drivers/char/lrng/lrng_es_cpu.c
 new file mode 100644
-index 000000000000..e52d6b478f9f
+index 000000000..e52d6b478
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_cpu.c
 @@ -0,0 +1,281 @@
@@ -134,11 +134,11 @@ index 000000000000..e52d6b478f9f
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
++#include <asm/archrandom.h>
 +#include <linux/lrng.h>
 +#include <crypto/hash.h>
 +#include <linux/module.h>
 +#include <linux/random.h>
-+#include <asm/archrandom.h>
 +
 +#include "lrng_definitions.h"
 +#include "lrng_es_aux.h"
@@ -407,5 +407,5 @@ index 000000000000..e52d6b478f9f
 +	.switch_hash		= lrng_cpu_switch_hash,
 +};
 -- 
-2.40.0
+2.30.2
 

@@ -1,7 +1,7 @@
-From 1d0ad7bb276cbce728436feca494c4e123660cc0 Mon Sep 17 00:00:00 2001
+From 746c88e03833ca0f7eb23bfd26977f586d11467a Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 31 Jul 2022 22:34:51 +0200
-Subject: [PATCH v50 21/25] LRNG - sysctls and /proc interface
+Subject: [PATCH 22/31] LRNG - sysctls and /proc interface
 
 The LRNG sysctl interface provides the same controls as the existing
 /dev/random implementation. These sysctls behave identically and are
@@ -21,7 +21,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_sysctl.c
 
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 0a61a2c9ec6e..52b4625a0760 100644
+index 0a61a2c9e..52b4625a0 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -9,6 +9,7 @@ obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha256.o
@@ -34,7 +34,7 @@ index 0a61a2c9ec6e..52b4625a0760 100644
  obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
 diff --git a/drivers/char/lrng/lrng_sysctl.c b/drivers/char/lrng/lrng_sysctl.c
 new file mode 100644
-index 000000000000..ecdd96a842b4
+index 000000000..ecdd96a84
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_sysctl.c
 @@ -0,0 +1,140 @@
@@ -179,5 +179,5 @@ index 000000000000..ecdd96a842b4
 +}
 +device_initcall(random_sysctls_init);
 -- 
-2.40.0
+2.30.2
 

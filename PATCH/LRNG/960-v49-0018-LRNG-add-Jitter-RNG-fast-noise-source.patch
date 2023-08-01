@@ -1,7 +1,7 @@
-From 1210178db36612198f4ac391ea2512bb193da6bd Mon Sep 17 00:00:00 2001
+From e15e6a9badc06ea9d461851028455ba36425d9d3 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Tue, 25 Apr 2023 23:15:14 +0200
-Subject: [PATCH v50 17/25] LRNG - add Jitter RNG fast noise source
+Date: Wed, 22 Feb 2023 07:08:12 +0100
+Subject: [PATCH 18/31] LRNG - add Jitter RNG fast noise source
 
 The Jitter RNG fast noise source implemented as part of the kernel
 crypto API is queried for 256 bits of entropy at the time the seed
@@ -14,17 +14,17 @@ to claim full entropy.
 
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig        |  58 ++++++-------
+ drivers/char/lrng/Kconfig        |  58 ++++++------
  drivers/char/lrng/Makefile       |   1 +
- drivers/char/lrng/lrng_es_jent.c | 136 +++++++++++++++++++++++++++++++
- 3 files changed, 166 insertions(+), 29 deletions(-)
+ drivers/char/lrng/lrng_es_jent.c | 152 +++++++++++++++++++++++++++++++
+ 3 files changed, 182 insertions(+), 29 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_jent.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 1140e3972d97..8b827a746a60 100644
+index a6ebea064..75f042d9d 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -410,35 +410,35 @@ config LRNG_IRQ_ENTROPY_RATE
+@@ -398,35 +398,35 @@ config LRNG_IRQ_ENTROPY_RATE
  	  interrupt entropy source will still deliver data but without
  	  being credited with entropy.
  
@@ -90,7 +90,7 @@ index 1140e3972d97..8b827a746a60 100644
  
  config LRNG_CPU
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 101c323ea1f2..96652f3aefd9 100644
+index 101c323ea..96652f3ae 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -23,5 +23,6 @@ obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
@@ -102,28 +102,27 @@ index 101c323ea1f2..96652f3aefd9 100644
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
 diff --git a/drivers/char/lrng/lrng_es_jent.c b/drivers/char/lrng/lrng_es_jent.c
 new file mode 100644
-index 000000000000..f74b7a03b00f
+index 000000000..7bff23628
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_jent.c
-@@ -0,0 +1,136 @@
+@@ -0,0 +1,152 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Fast Entropy Source: Jitter RNG
 + *
-+ * Copyright (C) 2022 - 2023, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+#include <crypto/rng.h>
 +#include <linux/fips.h>
 +#include <linux/module.h>
 +#include <linux/types.h>
++#include <crypto/internal/jitterentropy.h>
 +
 +#include "lrng_definitions.h"
 +#include "lrng_es_aux.h"
 +#include "lrng_es_jent.h"
-+#include "lrng_es_mgr.h"
 +
 +/*
 + * Estimated entropy of data is a 16th of LRNG_DRNG_SECURITY_STRENGTH_BITS.
@@ -139,16 +138,18 @@ index 000000000000..f74b7a03b00f
 +#endif
 +
 +static bool lrng_jent_initialized = false;
-+static struct crypto_rng *jent;
++static u32 lrng_jent_health_test_failure = 0;
++static struct rand_data *lrng_jent_state;
 +
 +static int __init lrng_jent_initialize(void)
 +{
-+	jent = crypto_alloc_rng("jitterentropy_rng", 0, 0);
-+	if (IS_ERR(jent)) {
-+		pr_err("Cannot allocate Jitter RNG\n");
-+		return PTR_ERR(jent);
++	/* Initialize the Jitter RNG after the clocksources are initialized. */
++	if (jent_entropy_init() ||
++	    (lrng_jent_state = jent_entropy_collector_alloc(1, 0)) == NULL) {
++		jent_entropy = 0;
++		pr_info("Jitter RNG unusable on current system\n");
++		return 0;
 +	}
-+
 +	lrng_jent_initialized = true;
 +	pr_debug("Jitter RNG working on current system\n");
 +
@@ -204,9 +205,22 @@ index 000000000000..f74b7a03b00f
 +		goto err;
 +	}
 +
-+	ret = crypto_rng_get_bytes(jent, eb->e[lrng_ext_es_jitter],
-+				   requested_bits >> 3);
++	ret = jent_read_entropy(lrng_jent_state, eb->e[lrng_ext_es_jitter],
++				requested_bits >> 3);
 +
++	/* Check if health test errors are identified */
++	/* RCT failure */
++	if (ret == -2 ||
++	    /* APT failure */
++	    ret == -3 ||
++	    /* Startup health failure */
++	    ret == 9) {
++		lrng_jent_health_test_failure++;
++
++		if (fips_enabled && (lrng_jent_health_test_failure > 1<<10))
++			panic("Jitter RNG had too many health failures\n");
++	} else
++		lrng_jent_health_test_failure = 0;
 +	spin_unlock_irqrestore(&lrng_jent_lock, flags);
 +
 +	if (ret) {
@@ -228,9 +242,11 @@ index 000000000000..f74b7a03b00f
 +{
 +	snprintf(buf, buflen,
 +		 " Available entropy: %u\n"
-+		 " Enabled: %s\n",
++		 " Enabled: %s\n"
++		 " Health test passed: %s\n",
 +		 lrng_jent_poolsize(),
-+		 lrng_jent_initialized ? "true" : "false");
++		 lrng_jent_initialized ? "true" : "false",
++		 lrng_jent_health_test_failure ? "false" : "true");
 +}
 +
 +struct lrng_es_cb lrng_es_jent = {
@@ -243,5 +259,5 @@ index 000000000000..f74b7a03b00f
 +	.switch_hash		= NULL,
 +};
 -- 
-2.40.0
+2.30.2
 

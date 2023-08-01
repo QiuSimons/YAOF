@@ -1,7 +1,7 @@
-From 9dc158a441869e9ab0286dfbd747aeb6b3883d14 Mon Sep 17 00:00:00 2001
+From 138f5892af6eea0b537f129a5e6cf346be3450af Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 18 Dec 2022 21:22:36 +0100
-Subject: [PATCH v50 19/25] LRNG - add interface for gathering of raw entropy
+Subject: [PATCH 20/31] LRNG - add interface for gathering of raw entropy
 
 The test interface allows a privileged process to capture the raw
 unconditioned noise that is collected by the LRNG for statistical
@@ -78,10 +78,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_testing.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index f2889f7c32cf..e9b5f78afa0b 100644
+index a13b01263..f1f81265a 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -661,273 +661,273 @@ choice
+@@ -649,273 +649,273 @@ choice
  		select LRNG_DRNG_KCAPI
  endchoice
  
@@ -623,7 +623,7 @@ index f2889f7c32cf..e9b5f78afa0b 100644
  # config LRNG_SELFTEST
  # 	bool "Enable power-on and on-demand self-tests"
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 96652f3aefd9..552ad7232d0d 100644
+index 96652f3ae..552ad7232 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -26,3 +26,4 @@ obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.o
@@ -633,7 +633,7 @@ index 96652f3aefd9..552ad7232d0d 100644
 +obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
 diff --git a/drivers/char/lrng/lrng_testing.c b/drivers/char/lrng/lrng_testing.c
 new file mode 100644
-index 000000000000..101140085d81
+index 000000000..101140085
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_testing.c
 @@ -0,0 +1,901 @@
@@ -1539,5 +1539,5 @@ index 000000000000..101140085d81
 +
 +module_init(lrng_raw_init);
 -- 
-2.40.0
+2.30.2
 

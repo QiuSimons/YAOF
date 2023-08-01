@@ -1,7 +1,7 @@
-From fd15cd72ccaae48344ddcc69913ce5da4a413b0b Mon Sep 17 00:00:00 2001
+From 2b1b4963da55992fd582fd17798d2235b49f916c Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Tue, 25 Apr 2023 23:03:39 +0200
-Subject: [PATCH v50 11/25] LRNG - add interrupt entropy source
+Date: Wed, 22 Feb 2023 07:04:12 +0100
+Subject: [PATCH 11/31] LRNG - add interrupt entropy source
 
 The interrupt entropy source (ES) consumes the events triggered by the
 kernel invoked with the add_interrupt_randomness. Its main goal is:
@@ -49,7 +49,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_es_irq.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index d6bc429e0660..b5f4f6703d87 100644
+index ceafb81db..81d7ead75 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -122,8 +122,8 @@ endmenu # "Specific DRNG seeding strategies"
@@ -246,10 +246,10 @@ index d6bc429e0660..b5f4f6703d87 100644
  # config LRNG_HEALTH_TESTS
  # 	bool "Enable internal entropy source online health tests"
  # 	depends on LRNG_TIMER_COMMON
-@@ -303,113 +303,113 @@ config LRNG_TIMER_COMMON
+@@ -291,113 +291,113 @@ config LRNG_TIMER_COMMON
  # 	int
- # 	default 371 if !LRNG_APT_BROKEN
- # 	default 33 if LRNG_APT_BROKEN
+ # 	default 325 if !LRNG_APT_BROKEN
+ # 	default 32 if LRNG_APT_BROKEN
 -#
 -# comment "Interrupt Entropy Source"
 -#
@@ -467,7 +467,7 @@ index d6bc429e0660..b5f4f6703d87 100644
  # comment "Jitter RNG Entropy Source"
  #
  # config LRNG_JENT
-@@ -557,8 +557,8 @@ config LRNG_TIMER_COMMON
+@@ -545,8 +545,8 @@ config LRNG_TIMER_COMMON
  # 	  kernel in FIPS mode (with fips=1 kernel command line option).
  # 	  This is due to the fact that random.c is not SP800-90B
  # 	  compliant.
@@ -479,7 +479,7 @@ index d6bc429e0660..b5f4f6703d87 100644
  config LRNG_DRNG_CHACHA20
  	tristate
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 3cfbf21271e2..a64075c8fee5 100644
+index 3cfbf2127..a64075c8f 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -19,3 +19,4 @@ obj-$(CONFIG_LRNG_DRNG_KCAPI)		+= lrng_drng_kcapi.o
@@ -489,7 +489,7 @@ index 3cfbf21271e2..a64075c8fee5 100644
 +obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
 diff --git a/drivers/char/lrng/lrng_es_irq.c b/drivers/char/lrng/lrng_es_irq.c
 new file mode 100644
-index 000000000000..4eb12872c54b
+index 000000000..7f5060808
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.c
 @@ -0,0 +1,730 @@
@@ -497,7 +497,7 @@ index 000000000000..4eb12872c54b
 +/*
 + * LRNG Slow Entropy Source: Interrupt data collection
 + *
-+ * Copyright (C) 2022 - 2023, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -1224,5 +1224,5 @@ index 000000000000..4eb12872c54b
 +	.switch_hash		= lrng_irq_switch_hash,
 +};
 -- 
-2.40.0
+2.30.2
 

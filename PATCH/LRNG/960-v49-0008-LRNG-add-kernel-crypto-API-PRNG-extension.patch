@@ -1,7 +1,7 @@
-From db06188464271ea9b760d00a9311d2e998708214 Mon Sep 17 00:00:00 2001
+From 4305a6101128a428bc121163833122397fa039b3 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Mon, 20 Feb 2023 22:23:59 +0100
-Subject: [PATCH v50 08/25] LRNG - add kernel crypto API PRNG extension
+Subject: [PATCH 08/31] LRNG - add kernel crypto API PRNG extension
 
 Add runtime-pluggable support for all PRNGs that are accessible via
 the kernel crypto API, including hardware PRNGs. The PRNG is selected
@@ -25,10 +25,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_drng_kcapi.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 4f0c13841eaf..5551139a05d3 100644
+index 189f273ca..9ed059634 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -568,10 +568,10 @@ config LRNG_DRBG
+@@ -556,10 +556,10 @@ config LRNG_DRBG
  	depends on CRYPTO
  	select CRYPTO_DRBG_MENU
  
@@ -43,7 +43,7 @@ index 4f0c13841eaf..5551139a05d3 100644
  
  config LRNG_SWITCH
  	bool
-@@ -623,17 +623,17 @@ config LRNG_SWITCH_DRBG
+@@ -611,17 +611,17 @@ config LRNG_SWITCH_DRBG
  	  module is loaded, output from /dev/random, /dev/urandom,
  	  getrandom(2), or get_random_bytes_full is provided by a DRBG.
  
@@ -72,7 +72,7 @@ index 4f0c13841eaf..5551139a05d3 100644
  
  endif # LRNG_SWITCH_DRNG
  
-@@ -655,10 +655,10 @@ choice
+@@ -643,10 +643,10 @@ choice
  		bool "SP800-90A DRBG"
  		select LRNG_DRBG
  
@@ -88,7 +88,7 @@ index 4f0c13841eaf..5551139a05d3 100644
  
  # menuconfig LRNG_TESTING_MENU
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index b59414316f1c..099d366500e5 100644
+index b59414316..099d36650 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
@@ -98,7 +98,7 @@ index b59414316f1c..099d366500e5 100644
 +obj-$(CONFIG_LRNG_DRNG_KCAPI)		+= lrng_drng_kcapi.o
 diff --git a/drivers/char/lrng/lrng_drng_kcapi.c b/drivers/char/lrng/lrng_drng_kcapi.c
 new file mode 100644
-index 000000000000..a204bcf52a9a
+index 000000000..a204bcf52
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng_kcapi.c
 @@ -0,0 +1,208 @@
@@ -311,5 +311,5 @@ index 000000000000..a204bcf52a9a
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - kernel crypto API DRNG backend");
 +#endif /* CONFIG_LRNG_DFLT_DRNG_KCAPI */
 -- 
-2.40.0
+2.30.2
 

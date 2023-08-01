@@ -1,7 +1,7 @@
-From 45c2b2320e9898edec8ca62c176a93aa8b4eca89 Mon Sep 17 00:00:00 2001
+From ae13c5e69220203689ade209ad9aca4f5a3abc80 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Mon, 20 Feb 2023 22:12:04 +0100
-Subject: [PATCH v50 22/25] LRMG - add drop-in replacement random(4) API
+Subject: [PATCH 23/31] LRMG - add drop-in replacement random(4) API
 
 The LRNG is intended to be a full replacement of the existing random.c.
 This also includes the providing of a full API and ABI compliant drop-in
@@ -25,7 +25,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_random_user.c
 
 diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index 3ee88288d1f8..0d56f0a24fcd 100644
+index bcb57ac88..c2676f5d5 100644
 --- a/drivers/char/Makefile
 +++ b/drivers/char/Makefile
 @@ -3,7 +3,8 @@
@@ -39,7 +39,7 @@ index 3ee88288d1f8..0d56f0a24fcd 100644
  obj-y				+= misc.o
  obj-$(CONFIG_ATARI_DSP56K)	+= dsp56k.o
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 52b4625a0760..6242262d577e 100644
+index 52b4625a0..6242262d5 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -29,3 +29,8 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
@@ -53,7 +53,7 @@ index 52b4625a0760..6242262d577e 100644
 +					   lrng_interface_aux.o
 diff --git a/drivers/char/lrng/lrng_interface_aux.c b/drivers/char/lrng/lrng_interface_aux.c
 new file mode 100644
-index 000000000000..84f3ce38f332
+index 000000000..84f3ce38f
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_aux.c
 @@ -0,0 +1,209 @@
@@ -268,7 +268,7 @@ index 000000000000..84f3ce38f332
 +}
 diff --git a/drivers/char/lrng/lrng_interface_dev_common.c b/drivers/char/lrng/lrng_interface_dev_common.c
 new file mode 100644
-index 000000000000..a2845e278c6d
+index 000000000..a2845e278
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_dev_common.c
 @@ -0,0 +1,315 @@
@@ -589,7 +589,7 @@ index 000000000000..a2845e278c6d
 +}
 diff --git a/drivers/char/lrng/lrng_interface_random_kernel.c b/drivers/char/lrng/lrng_interface_random_kernel.c
 new file mode 100644
-index 000000000000..fabf2109ceaf
+index 000000000..fabf2109c
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_kernel.c
 @@ -0,0 +1,248 @@
@@ -843,7 +843,7 @@ index 000000000000..fabf2109ceaf
 +EXPORT_SYMBOL(rng_is_initialized);
 diff --git a/drivers/char/lrng/lrng_interface_random_user.c b/drivers/char/lrng/lrng_interface_random_user.c
 new file mode 100644
-index 000000000000..d12e883804d9
+index 000000000..d12e88380
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_user.c
 @@ -0,0 +1,104 @@
@@ -952,5 +952,5 @@ index 000000000000..d12e883804d9
 +				      flags & GRND_RANDOM, buf, count);
 +}
 -- 
-2.40.0
+2.30.2
 

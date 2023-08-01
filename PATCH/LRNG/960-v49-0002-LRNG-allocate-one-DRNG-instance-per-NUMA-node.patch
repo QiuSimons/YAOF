@@ -1,7 +1,7 @@
-From 00c96821779bc3ca240de75fcaba7f3219fb3101 Mon Sep 17 00:00:00 2001
+From c22d959209d696e00c0012a40d338af36ac6f2dd Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 15:40:46 +0200
-Subject: [PATCH v50 02/25] LRNG - allocate one DRNG instance per NUMA node
+Subject: [PATCH 02/31] LRNG - allocate one DRNG instance per NUMA node
 
 In order to improve NUMA-locality when serving getrandom(2) requests,
 allocate one DRNG instance per node.
@@ -30,7 +30,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_proc.h
 
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 809e1911d370..60effabb1372 100644
+index 809e1911d..60effabb1 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -8,4 +8,6 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr.o \
@@ -42,7 +42,7 @@ index 809e1911d370..60effabb1372 100644
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 diff --git a/drivers/char/lrng/lrng_numa.c b/drivers/char/lrng/lrng_numa.c
 new file mode 100644
-index 000000000000..d74dd8df2843
+index 000000000..d74dd8df2
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_numa.c
 @@ -0,0 +1,124 @@
@@ -171,7 +171,7 @@ index 000000000000..d74dd8df2843
 +
 +late_initcall(lrng_numa_init);
 diff --git a/drivers/char/lrng/lrng_numa.h b/drivers/char/lrng/lrng_numa.h
-index bfbb9a489031..dc8dff9816ee 100644
+index bfbb9a489..dc8dff981 100644
 --- a/drivers/char/lrng/lrng_numa.h
 +++ b/drivers/char/lrng/lrng_numa.h
 @@ -6,6 +6,10 @@
@@ -187,7 +187,7 @@ index bfbb9a489031..dc8dff9816ee 100644
  #endif /* _LRNG_NUMA_H */
 diff --git a/drivers/char/lrng/lrng_proc.h b/drivers/char/lrng/lrng_proc.h
 new file mode 100644
-index 000000000000..e8097abe7fbd
+index 000000000..e8097abe7
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.h
 @@ -0,0 +1,11 @@
@@ -203,5 +203,5 @@ index 000000000000..e8097abe7fbd
 +
 +#endif /* _LRNG_PROC_H */
 -- 
-2.40.0
+2.30.2
 

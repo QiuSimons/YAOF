@@ -1,0 +1,50 @@
+From 643fe9d220cbb5f62b26ed9fbbd5851229302a1d Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 17:47:58 +0200
+Subject: [PATCH 17/31] crypto: move Jitter RNG header include dir
+
+To support the LRNG operation which uses the Jitter RNG separately
+from the kernel crypto API, the header file must be accessible to
+the LRNG code.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ crypto/jitterentropy-kcapi.c                        | 2 +-
+ crypto/jitterentropy.c                              | 2 +-
+ {crypto => include/crypto/internal}/jitterentropy.h | 0
+ 3 files changed, 2 insertions(+), 2 deletions(-)
+ rename {crypto => include/crypto/internal}/jitterentropy.h (100%)
+
+diff --git a/crypto/jitterentropy-kcapi.c b/crypto/jitterentropy-kcapi.c
+index e8a4165a1..5a751a26d 100644
+--- a/crypto/jitterentropy-kcapi.c
++++ b/crypto/jitterentropy-kcapi.c
+@@ -44,7 +44,7 @@
+ #include <linux/time.h>
+ #include <crypto/internal/rng.h>
+ 
+-#include "jitterentropy.h"
++#include <crypto/internal/jitterentropy.h>
+ 
+ /***************************************************************************
+  * Helper function
+diff --git a/crypto/jitterentropy.c b/crypto/jitterentropy.c
+index f6d3a84e3..6ab471810 100644
+--- a/crypto/jitterentropy.c
++++ b/crypto/jitterentropy.c
+@@ -117,7 +117,7 @@ struct rand_data {
+ #define JENT_EHEALTH		9 /* Health test failed during initialization */
+ #define JENT_ERCT		10 /* RCT failed during initialization */
+ 
+-#include "jitterentropy.h"
++#include <crypto/internal/jitterentropy.h>
+ 
+ /***************************************************************************
+  * Adaptive Proportion Test
+diff --git a/crypto/jitterentropy.h b/include/crypto/internal/jitterentropy.h
+similarity index 100%
+rename from crypto/jitterentropy.h
+rename to include/crypto/internal/jitterentropy.h
+-- 
+2.30.2
+

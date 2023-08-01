@@ -1,7 +1,7 @@
-From 3806d45ffb8f45e55a446c33e5a3050226868842 Mon Sep 17 00:00:00 2001
+From 4bed88d8cab71f6bb65d8ec03fa5ebcaec192628 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:39:30 +0200
-Subject: [PATCH v50 24/25] LRNG - add /dev/lrng device file support
+Subject: [PATCH 25/31] LRNG - add /dev/lrng device file support
 
 The LRNG can create a character device file that operates identically
 to /dev/random including IOCTL, read and write operations.
@@ -15,7 +15,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_dev.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 7e3f5d14e69f..cff605c0c13f 100644
+index 951ef09d3..fcabbc0a8 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -111,15 +111,15 @@ config LRNG_KCAPI_IF
@@ -44,7 +44,7 @@ index 7e3f5d14e69f..cff605c0c13f 100644
  
  menu "Entropy Source Configuration"
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6a163038ffb4..9dd87363a97e 100644
+index 6a163038f..9dd87363a 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -35,3 +35,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
@@ -54,7 +54,7 @@ index 6a163038ffb4..9dd87363a97e 100644
 +obj-$(CONFIG_LRNG_DEV_IF)		+= lrng_interface_dev.o
 diff --git a/drivers/char/lrng/lrng_interface_dev.c b/drivers/char/lrng/lrng_interface_dev.c
 new file mode 100644
-index 000000000000..e60060d402b3
+index 000000000..e60060d40
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_dev.c
 @@ -0,0 +1,35 @@
@@ -94,5 +94,5 @@ index 000000000000..e60060d402b3
 +}
 +device_initcall(lrng_dev_if_mod_init);
 -- 
-2.40.0
+2.30.2
 

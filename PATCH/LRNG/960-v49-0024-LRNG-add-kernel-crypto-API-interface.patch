@@ -1,7 +1,7 @@
-From edadf1f0c0a8e46a652f058338c8002aecd03746 Mon Sep 17 00:00:00 2001
+From e797c464ae24edb2637d87fa6accb8f33d2539b6 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 9 Oct 2022 10:22:39 +0200
-Subject: [PATCH v50 23/25] LRNG - add kernel crypto API interface
+Subject: [PATCH 24/31] LRNG - add kernel crypto API interface
 
 The LRNG can be registered with the kernel crypto API's random number
 generator framework. This offers a random number generator with the name
@@ -17,7 +17,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_kcapi.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index db06e9ecd33b..7e3f5d14e69f 100644
+index 5b359b7be..951ef09d3 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -89,18 +89,18 @@ config LRNG_AIS2031_NTG1_SEEDING_STRATEGY
@@ -61,7 +61,7 @@ index db06e9ecd33b..7e3f5d14e69f 100644
  menu "Entropy Source Configuration"
  
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6242262d577e..6a163038ffb4 100644
+index 6242262d5..6a163038f 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -34,3 +34,4 @@ obj-$(CONFIG_LRNG_COMMON_DEV_IF)	+= lrng_interface_dev_common.o
@@ -71,7 +71,7 @@ index 6242262d577e..6a163038ffb4 100644
 +obj-$(CONFIG_LRNG_KCAPI_IF)		+= lrng_interface_kcapi.o
 diff --git a/drivers/char/lrng/lrng_interface_kcapi.c b/drivers/char/lrng/lrng_interface_kcapi.c
 new file mode 100644
-index 000000000000..4cb511f8088e
+index 000000000..4cb511f80
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_kcapi.c
 @@ -0,0 +1,129 @@
@@ -205,5 +205,5 @@ index 000000000000..4cb511f8088e
 +MODULE_ALIAS_CRYPTO("lrng_atomic");
 +MODULE_ALIAS_CRYPTO("stdrng");
 -- 
-2.40.0
+2.30.2
 

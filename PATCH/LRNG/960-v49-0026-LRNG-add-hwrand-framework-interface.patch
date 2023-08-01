@@ -1,7 +1,7 @@
-From 2d134486a74ac67b8454a3560d32424b02a0534f Mon Sep 17 00:00:00 2001
+From bd10e067896ea37308a332fe4eaa3ea30af2dac6 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:43:30 +0200
-Subject: [PATCH v50 25/25] LRNG - add hwrand framework interface
+Subject: [PATCH 26/31] LRNG - add hwrand framework interface
 
 The LRNG can be registered with the hardware random number generator
 framework. This offers a random number generator with the name "lrng"
@@ -17,7 +17,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_hwrand.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index cff605c0c13f..5b27569b6f81 100644
+index fcabbc0a8..f4c343265 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -101,16 +101,16 @@ config LRNG_KCAPI_IF
@@ -48,7 +48,7 @@ index cff605c0c13f..5b27569b6f81 100644
  config LRNG_DEV_IF
  	bool "Character device file interface"
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 9dd87363a97e..f61fc40f4620 100644
+index 9dd87363a..f61fc40f4 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -36,3 +36,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
@@ -58,7 +58,7 @@ index 9dd87363a97e..f61fc40f4620 100644
 +obj-$(CONFIG_LRNG_HWRAND_IF)		+= lrng_interface_hwrand.o
 diff --git a/drivers/char/lrng/lrng_interface_hwrand.c b/drivers/char/lrng/lrng_interface_hwrand.c
 new file mode 100644
-index 000000000000..e841eea13348
+index 000000000..e841eea13
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_hwrand.c
 @@ -0,0 +1,68 @@
@@ -131,5 +131,5 @@ index 000000000000..e841eea13348
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager HW-Random Interface");
 -- 
-2.40.0
+2.30.2
 

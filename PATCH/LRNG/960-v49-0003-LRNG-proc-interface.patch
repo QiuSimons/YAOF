@@ -1,7 +1,7 @@
-From 7f992ffb0e7c02390c0eaf056a8a1f422b6ffa4e Mon Sep 17 00:00:00 2001
+From ecf557b2d7d7ee1a83a52489ecd000153c31f1a6 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 18 Dec 2022 21:12:42 +0100
-Subject: [PATCH v50 03/25] LRNG - /proc interface
+Subject: [PATCH 03/31] LRNG - /proc interface
 
 The patch adds the file lrng_type which provides details about
 the LRNG:
@@ -34,7 +34,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_proc.c
 
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 60effabb1372..dafa6299972d 100644
+index 60effabb1..dafa62999 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -8,6 +8,7 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr.o \
@@ -47,7 +47,7 @@ index 60effabb1372..dafa6299972d 100644
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
 new file mode 100644
-index 000000000000..a9c8d90c7d56
+index 000000000..a9c8d90c7
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
 @@ -0,0 +1,74 @@
@@ -126,7 +126,7 @@ index 000000000000..a9c8d90c7d56
 +
 +module_init(lrng_proc_type_init);
 diff --git a/drivers/char/lrng/lrng_proc.h b/drivers/char/lrng/lrng_proc.h
-index e8097abe7fbd..c653274f1954 100644
+index e8097abe7..c653274f1 100644
 --- a/drivers/char/lrng/lrng_proc.h
 +++ b/drivers/char/lrng/lrng_proc.h
 @@ -6,6 +6,10 @@
@@ -141,5 +141,5 @@ index e8097abe7fbd..c653274f1954 100644
  
  #endif /* _LRNG_PROC_H */
 -- 
-2.40.0
+2.30.2
 
