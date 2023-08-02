@@ -1,0 +1,24 @@
+diff --git a/drivers/char/lrng/lrng_interface_random_kernel.c b/drivers/char/lrng/lrng_interface_random_kernel.c
+index 5beb23f61..30ade94eb 100644
+--- a/drivers/char/lrng/lrng_interface_random_kernel.c
++++ b/drivers/char/lrng/lrng_interface_random_kernel.c
+@@ -36,15 +36,17 @@ static int __init lrng_parse_trust_bootloader(char *arg)
+ }
+ early_param("random.trust_bootloader", lrng_parse_trust_bootloader);
+ 
+-void __init random_init_early(const char *command_line)
++static void __init random_init_early(const char *command_line)
+ {
+ 	lrng_rand_initialize_early();
+ 	lrng_pool_insert_aux(command_line, strlen(command_line), 0);
+ }
+ 
+-void __init random_init(void)
++int __init random_init(const char *command_line)
+ {
++	random_init_early(command_line);
+ 	lrng_rand_initialize();
++	return 0;
+ }
+ 
+ /*

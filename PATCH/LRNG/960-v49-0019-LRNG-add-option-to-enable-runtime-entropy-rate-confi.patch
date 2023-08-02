@@ -1,0 +1,65 @@
+From a574eb32b31a2e3f7b729ed80a64f7edbd628075 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 17:56:56 +0200
+Subject: [PATCH 19/31] LRNG - add option to enable runtime entropy rate
+ configuration
+
+The entropy rate for the different entropy sources is configured at
+compile time. Enabling the option CONFIG_LRNG_RUNTIME_ES_CONFIG allows
+the entropy sources' entropy rate to be adjusted at runtime or boot
+time. The different options are:
+
+- IRQ ES: lrng_es_irq.irq_entropy
+
+- Scheduler ES: lrng_es_sched.sched_entropy
+
+- CPU ES: lrng_es_cpu.cpu_entropy
+
+- Kernel ES: lrng_es_krng.krng_entropy
+
+- Jitter RNG ES: lrng_es_jent.jent_entropy
+
+The values to be specified there must apply the rationale given for the
+different CONFIG_LRNG_*_ENTROPY_RATE kernel configuration options.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Kconfig | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index 75f042d9d..a13b01263 100644
+--- a/drivers/char/lrng/Kconfig
++++ b/drivers/char/lrng/Kconfig
+@@ -124,17 +124,17 @@ endmenu # "Specific DRNG seeding strategies"
+ 
+ menu "Entropy Source Configuration"
+ 
+-# config LRNG_RUNTIME_ES_CONFIG
+-# 	bool "Enable runtime configuration of entropy sources"
+-# 	help
+-# 	  When enabling this option, the LRNG provides the mechanism
+-# 	  allowing to alter the entropy rate of each entropy source
+-# 	  during boot time and runtime.
+-#
+-# 	  Each entropy source allows its entropy rate changed with
+-# 	  a kernel command line option. When not providing any
+-# 	  option, the default specified during kernel compilation
+-# 	  is applied.
++config LRNG_RUNTIME_ES_CONFIG
++	bool "Enable runtime configuration of entropy sources"
++	help
++	  When enabling this option, the LRNG provides the mechanism
++	  allowing to alter the entropy rate of each entropy source
++	  during boot time and runtime.
++
++	  Each entropy source allows its entropy rate changed with
++	  a kernel command line option. When not providing any
++	  option, the default specified during kernel compilation
++	  is applied.
+ 
+ comment "Common Timer-based Entropy Source Configuration"
+ 
+-- 
+2.30.2
+
