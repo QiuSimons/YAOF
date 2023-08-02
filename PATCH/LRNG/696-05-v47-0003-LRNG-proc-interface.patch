@@ -1,7 +1,7 @@
-From 7f992ffb0e7c02390c0eaf056a8a1f422b6ffa4e Mon Sep 17 00:00:00 2001
+From 8b238ba6ce39ce1221982f5c5b328872fd9a0abd Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 18 Dec 2022 21:12:42 +0100
-Subject: [PATCH v50 03/25] LRNG - /proc interface
+Date: Sun, 9 Oct 2022 10:07:59 +0200
+Subject: [PATCH v47 03/26] LRNG - /proc interface
 
 The patch adds the file lrng_type which provides details about
 the LRNG:
@@ -47,7 +47,7 @@ index 60effabb1372..dafa6299972d 100644
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
 new file mode 100644
-index 000000000000..a9c8d90c7d56
+index 000000000000..2818591be3f0
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
 @@ -0,0 +1,74 @@
@@ -95,7 +95,7 @@ index 000000000000..a9c8d90c7d56
 +		 lrng_security_strength(),
 +		 numa_drngs,
 +		 lrng_sp80090c_compliant() ? "SP800-90C, " : "",
-+		 lrng_ntg1_2022_compliant() ? " / 2022" : "",
++		 lrng_ntg1_compliant() ? " / 2022" : "",
 +		 lrng_state_min_seeded() ? "true" : "false",
 +		 lrng_state_fully_seeded() ? "true" : "false",
 +		 lrng_avail_entropy());
@@ -141,5 +141,5 @@ index e8097abe7fbd..c653274f1954 100644
  
  #endif /* _LRNG_PROC_H */
 -- 
-2.40.0
+2.37.3
 

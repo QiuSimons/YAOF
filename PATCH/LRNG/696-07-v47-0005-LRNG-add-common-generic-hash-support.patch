@@ -1,7 +1,7 @@
-From 67f996836d52adbbf516de67bd1d4639cb974af6 Mon Sep 17 00:00:00 2001
+From afba5f179d1d948ac091aee51bd5decf40ce0b28 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:01:44 +0200
-Subject: [PATCH v50 05/25] LRNG - add common generic hash support
+Subject: [PATCH v47 05/26] LRNG - add common generic hash support
 
 The LRNG switchable DRNG support also allows the replacement of the hash
 implementation used as conditioning component. The common generic hash
@@ -20,10 +20,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_hash_kcapi.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 9d24cfb5c5e2..54c4395a5129 100644
+index b128aac36e2a..587c56963719 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -576,26 +576,26 @@ config LRNG_DRNG_CHACHA20
+@@ -558,26 +558,26 @@ config LRNG_DRNG_CHACHA20
  config LRNG_SWITCH
  	bool
  
@@ -227,5 +227,5 @@ index 000000000000..13e62db9b6c8
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - Kernel crypto API hash backend");
 -- 
-2.40.0
+2.37.3
 

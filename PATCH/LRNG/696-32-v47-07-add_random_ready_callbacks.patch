@@ -1,3 +1,15 @@
+--- linux-5.18.8/drivers/char/lrng/lrng_drng_mgr.c.orig	2022-08-01 09:13:51.700910509 +0200
++++ linux-5.18.8/drivers/char/lrng/lrng_drng_mgr.c	2022-08-01 09:31:18.926127936 +0200
+@@ -292,7 +292,8 @@ static void lrng_drng_seed(struct lrng_d
+ 		 * If no-one is waiting for the DRNG, seed the atomic DRNG
+ 		 * directly from the entropy sources.
+ 		 */
+-		if (!wq_has_sleeper(&lrng_init_wait))
++		if (!wq_has_sleeper(&lrng_init_wait) &&
++		    !lrng_ready_chain_has_sleeper())
+ 			lrng_drng_atomic_seed_es();
+ 		else
+ 			lrng_init_ops(NULL);
 --- linux-5.18.8/drivers/char/lrng/lrng_es_mgr.c.orig	2022-08-01 09:35:07.227572096 +0200
 +++ linux-5.18.8/drivers/char/lrng/lrng_es_mgr.c	2022-08-01 09:31:18.926127936 +0200
 @@ -218,6 +218,7 @@ static void lrng_set_operational(void)
@@ -160,17 +172,16 @@
   * Returns: true if the urandom pool has been seeded.
 --- linux-5.15.58/drivers/char/lrng/lrng_interface_random_kernel.h.orig	2022-08-01 10:01:32.939911355 +0200
 +++ linux-5.15.58/drivers/char/lrng/lrng_interface_random_kernel.h	2022-08-01 10:01:38.564923636 +0200
-@@ -7,9 +7,13 @@
+@@ -7,8 +7,12 @@
  #define _LRNG_INTERFACE_RANDOM_H
  
  #ifdef CONFIG_LRNG_RANDOM_IF
 +void lrng_process_ready_list(void);
 +bool lrng_ready_chain_has_sleeper(void);
  void invalidate_batched_entropy(void);
- void lrng_kick_random_ready(void);
  #else /* CONFIG_LRNG_RANDOM_IF */
 +static inline bool lrng_ready_chain_has_sleeper(void) { return false; }
 +static inline void lrng_process_ready_list(void) { }
  static inline void invalidate_batched_entropy(void) { }
- static inline void lrng_kick_random_ready(void) { }
  #endif /* CONFIG_LRNG_RANDOM_IF */
+ 

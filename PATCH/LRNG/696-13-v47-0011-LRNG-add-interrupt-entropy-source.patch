@@ -1,7 +1,7 @@
-From fd15cd72ccaae48344ddcc69913ce5da4a413b0b Mon Sep 17 00:00:00 2001
+From f39eeddd1011c6baebbe1533195d526c0e747e80 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Tue, 25 Apr 2023 23:03:39 +0200
-Subject: [PATCH v50 11/25] LRNG - add interrupt entropy source
+Date: Sun, 31 Jul 2022 22:25:11 +0200
+Subject: [PATCH v47 11/26] LRNG - add interrupt entropy source
 
 The interrupt entropy source (ES) consumes the events triggered by the
 kernel invoked with the add_interrupt_randomness. Its main goal is:
@@ -44,15 +44,15 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Kconfig       | 386 ++++++++---------
  drivers/char/lrng/Makefile      |   1 +
- drivers/char/lrng/lrng_es_irq.c | 730 ++++++++++++++++++++++++++++++++
- 3 files changed, 924 insertions(+), 193 deletions(-)
+ drivers/char/lrng/lrng_es_irq.c | 727 ++++++++++++++++++++++++++++++++
+ 3 files changed, 921 insertions(+), 193 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_irq.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index d6bc429e0660..b5f4f6703d87 100644
+index 8e341f22ab95..54512c65e51c 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -122,8 +122,8 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -116,8 +116,8 @@ endmenu # "Specific DRNG seeding strategies"
  #
  # endmenu # "LRNG Interfaces"
  
@@ -63,7 +63,7 @@ index d6bc429e0660..b5f4f6703d87 100644
  # config LRNG_RUNTIME_ES_CONFIG
  # 	bool "Enable runtime configuration of entropy sources"
  # 	help
-@@ -135,100 +135,100 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -129,100 +129,100 @@ endmenu # "Specific DRNG seeding strategies"
  # 	  a kernel command line option. When not providing any
  # 	  option, the default specified during kernel compilation
  # 	  is applied.
@@ -246,10 +246,10 @@ index d6bc429e0660..b5f4f6703d87 100644
  # config LRNG_HEALTH_TESTS
  # 	bool "Enable internal entropy source online health tests"
  # 	depends on LRNG_TIMER_COMMON
-@@ -303,113 +303,113 @@ config LRNG_TIMER_COMMON
+@@ -285,113 +285,113 @@ config LRNG_TIMER_COMMON
  # 	int
- # 	default 371 if !LRNG_APT_BROKEN
- # 	default 33 if LRNG_APT_BROKEN
+ # 	default 325 if !LRNG_APT_BROKEN
+ # 	default 32 if LRNG_APT_BROKEN
 -#
 -# comment "Interrupt Entropy Source"
 -#
@@ -467,7 +467,7 @@ index d6bc429e0660..b5f4f6703d87 100644
  # comment "Jitter RNG Entropy Source"
  #
  # config LRNG_JENT
-@@ -557,8 +557,8 @@ config LRNG_TIMER_COMMON
+@@ -539,8 +539,8 @@ config LRNG_TIMER_COMMON
  # 	  kernel in FIPS mode (with fips=1 kernel command line option).
  # 	  This is due to the fact that random.c is not SP800-90B
  # 	  compliant.
@@ -489,15 +489,15 @@ index 3cfbf21271e2..a64075c8fee5 100644
 +obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
 diff --git a/drivers/char/lrng/lrng_es_irq.c b/drivers/char/lrng/lrng_es_irq.c
 new file mode 100644
-index 000000000000..4eb12872c54b
+index 000000000000..97c5c1d26447
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.c
-@@ -0,0 +1,730 @@
+@@ -0,0 +1,727 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Slow Entropy Source: Interrupt data collection
 + *
-+ * Copyright (C) 2022 - 2023, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -1202,16 +1202,13 @@ index 000000000000..4eb12872c54b
 +		 " per-CPU interrupt collection size: %u\n"
 +		 " Standards compliance: %s\n"
 +		 " High-resolution timer: %s\n"
-+		 " Continuous compression: %s\n"
-+		 " Health test passed: %s\n",
++		 " Continuous compression: %s\n",
 +		 lrng_drng_init->hash_cb->hash_name(),
 +		 lrng_irq_avail_entropy(0),
 +		 LRNG_DATA_NUM_VALUES,
 +		 lrng_sp80090b_compliant(lrng_int_es_irq) ? "SP800-90B " : "",
 +		 lrng_highres_timer() ? "true" : "false",
-+		 lrng_irq_continuous_compression ? "true" : "false",
-+		 lrng_sp80090b_startup_complete_es(lrng_int_es_irq) ? "true" :
-+								      "false");
++		 lrng_irq_continuous_compression ? "true" : "false");
 +}
 +
 +struct lrng_es_cb lrng_es_irq = {
@@ -1224,5 +1221,5 @@ index 000000000000..4eb12872c54b
 +	.switch_hash		= lrng_irq_switch_hash,
 +};
 -- 
-2.40.0
+2.37.3
 

@@ -1,7 +1,7 @@
-From 1b9dc8a231ee2fb0a2196b0ff3511aa3e867f2d6 Mon Sep 17 00:00:00 2001
+From d90bbdd1b899b8fad6780ad88432c475843f936b Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Tue, 25 Apr 2023 22:22:44 +0200
-Subject: [PATCH v50 01/25] LRNG: Entropy Source and DRNG Manager
+Date: Sun, 9 Oct 2022 18:30:55 +0200
+Subject: [PATCH v47 01/26] crypto: Entropy Source and DRNG Manager
 
 The kernel crypto API contains deterministic random number generators
 (DRNG) which a caller must seed and reseed. The task of seeding a DRNG
@@ -140,36 +140,36 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/Kconfig                          |   2 +
  drivers/char/Makefile                         |   2 +
- drivers/char/lrng/Kconfig                     | 960 ++++++++++++++++++
+ drivers/char/lrng/Kconfig                     | 933 ++++++++++++++++++
  drivers/char/lrng/Makefile                    |  11 +
- drivers/char/lrng/lrng_definitions.h          | 163 +++
+ drivers/char/lrng/lrng_definitions.h          | 154 +++
  drivers/char/lrng/lrng_drng_atomic.h          |  23 +
  drivers/char/lrng/lrng_drng_chacha20.c        | 195 ++++
  drivers/char/lrng/lrng_drng_chacha20.h        |  42 +
  drivers/char/lrng/lrng_drng_drbg.h            |  13 +
  drivers/char/lrng/lrng_drng_kcapi.h           |  13 +
- drivers/char/lrng/lrng_drng_mgr.c             | 742 ++++++++++++++
- drivers/char/lrng/lrng_drng_mgr.h             |  86 ++
- drivers/char/lrng/lrng_es_aux.c               | 335 ++++++
+ drivers/char/lrng/lrng_drng_mgr.c             | 651 ++++++++++++
+ drivers/char/lrng/lrng_drng_mgr.h             |  85 ++
+ drivers/char/lrng/lrng_es_aux.c               | 335 +++++++
  drivers/char/lrng/lrng_es_aux.h               |  44 +
  drivers/char/lrng/lrng_es_cpu.h               |  17 +
  drivers/char/lrng/lrng_es_irq.h               |  24 +
  drivers/char/lrng/lrng_es_jent.h              |  17 +
  drivers/char/lrng/lrng_es_krng.h              |  17 +
- drivers/char/lrng/lrng_es_mgr.c               | 506 +++++++++
- drivers/char/lrng/lrng_es_mgr.h               |  56 +
+ drivers/char/lrng/lrng_es_mgr.c               | 489 +++++++++
+ drivers/char/lrng/lrng_es_mgr.h               |  53 +
  drivers/char/lrng/lrng_es_mgr_cb.h            |  87 ++
  drivers/char/lrng/lrng_es_sched.h             |  20 +
  drivers/char/lrng/lrng_es_timer_common.h      |  83 ++
  drivers/char/lrng/lrng_interface_dev_common.h |  51 +
- .../char/lrng/lrng_interface_random_kernel.h  |  17 +
+ .../char/lrng/lrng_interface_random_kernel.h  |  15 +
  drivers/char/lrng/lrng_numa.h                 |  11 +
  drivers/char/lrng/lrng_sha.h                  |  14 +
  drivers/char/lrng/lrng_sha1.c                 |  88 ++
  drivers/char/lrng/lrng_sha256.c               |  72 ++
  drivers/char/lrng/lrng_sysctl.h               |  15 +
  include/linux/lrng.h                          | 251 +++++
- 31 files changed, 3977 insertions(+)
+ 31 files changed, 3827 insertions(+)
  create mode 100644 drivers/char/lrng/Kconfig
  create mode 100644 drivers/char/lrng/Makefile
  create mode 100644 drivers/char/lrng/lrng_definitions.h
@@ -201,12 +201,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 include/linux/lrng.h
 
 diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
-index 30fe9848dac1..dfb3a5666932 100644
+index 0f378d29dab0..39c91f09cbe0 100644
 --- a/drivers/char/Kconfig
 +++ b/drivers/char/Kconfig
-@@ -423,4 +423,6 @@ config ADI
- 	  and SSM (Silicon Secured Memory).  Intended consumers of this
- 	  driver include crash and makedumpfile.
+@@ -459,4 +459,6 @@ config RANDOM_TRUST_BOOTLOADER
+ 	  believe its RNG facilities may be faulty. This may also be configured
+ 	  at boot time with "random.trust_bootloader=on/off".
  
 +source "drivers/char/lrng/Kconfig"
 +
@@ -223,10 +223,10 @@ index 1b35d1724565..3ee88288d1f8 100644
 +obj-$(CONFIG_LRNG)		+= lrng/
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
 new file mode 100644
-index 000000000000..8715deecb920
+index 000000000000..e78963532180
 --- /dev/null
 +++ b/drivers/char/lrng/Kconfig
-@@ -0,0 +1,960 @@
+@@ -0,0 +1,933 @@
 +# SPDX-License-Identifier: GPL-2.0
 +#
 +# Linux Random Number Generator configuration
@@ -238,12 +238,6 @@ index 000000000000..8715deecb920
 +	help
 +	  The default random number generator as provided with
 +	  drivers/char/random.c is selected with this option.
-+
-+config LRNG_AUTO_SELECTED
-+	bool
-+	default y if !RANDOM_DEFAULT_IMPL
-+	default n if RANDOM_DEFAULT_IMPL
-+	select LRNG
 +
 +config LRNG
 +	bool "Linux Random Number Generator"
@@ -509,29 +503,17 @@ index 000000000000..8715deecb920
 +#
 +# 	  If unsure, say N.
 +#
-+# Default taken from SP800-90B sec 4.4.1 - significance level 2^-30
++# # Default taken from SP800-90B sec 4.4.1 - significance level 2^-30
 +# config LRNG_RCT_CUTOFF
 +# 	int
 +# 	default 31 if !LRNG_RCT_BROKEN
 +# 	default 1 if LRNG_RCT_BROKEN
 +#
-+# Default taken from SP800-90B sec 4.4.1 - significance level 2^-80
-+# config LRNG_RCT_CUTOFF_PERMANENT
-+# 	int
-+# 	default 81 if !LRNG_RCT_BROKEN
-+# 	default 2 if LRNG_RCT_BROKEN
-+#
-+# Default taken from SP800-90B sec 4.4.2 - significance level 2^-30
++# # Default taken from SP800-90B sec 4.4.2 - significance level 2^-30
 +# config LRNG_APT_CUTOFF
 +# 	int
 +# 	default 325 if !LRNG_APT_BROKEN
 +# 	default 32 if LRNG_APT_BROKEN
-+#
-+# Default taken from SP800-90B sec 4.4.2 - significance level 2^-80
-+# config LRNG_APT_CUTOFF_PERMANENT
-+# 	int
-+# 	default 371 if !LRNG_APT_BROKEN
-+# 	default 33 if LRNG_APT_BROKEN
 +#
 +# comment "Interrupt Entropy Source"
 +#
@@ -880,12 +862,10 @@ index 000000000000..8715deecb920
 +		select LRNG_DRNG_CHACHA20
 +
 +# 	config LRNG_DFLT_DRNG_DRBG
-+# 		depends on RANDOM_DEFAULT_IMPL
 +# 		bool "SP800-90A DRBG"
 +# 		select LRNG_DRBG
 +#
 +# 	config LRNG_DFLT_DRNG_KCAPI
-+# 		depends on RANDOM_DEFAULT_IMPL
 +# 		bool "Kernel Crypto API DRNG"
 +# 		select LRNG_DRNG_KCAPI
 +endchoice
@@ -1139,13 +1119,6 @@ index 000000000000..8715deecb920
 +# 	  operations without a reseed that has full entropy. The
 +# 	  interface is lrng_drng.max_wo_reseed.
 +#
-+#config LRNG_RUNTIME_FORCE_SEEDING_DISABLE
-+#	bool "Enable runtime configuration of force seeding"
-+#	help
-+#	  When enabling this option, the LRNG provides an interface
-+#	  allowing the disabling of the force seeding when the DRNG
-+#	  is not fully seeded but entropy is available.
-+#
 +# config LRNG_TEST_CPU_ES_COMPRESSION
 +# 	bool "Force CPU ES compression operation"
 +# 	help
@@ -1206,13 +1179,13 @@ index 000000000000..809e1911d370
 +obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 diff --git a/drivers/char/lrng/lrng_definitions.h b/drivers/char/lrng/lrng_definitions.h
 new file mode 100644
-index 000000000000..f6eb48e285cc
+index 000000000000..c0d2fcff8e67
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_definitions.h
-@@ -0,0 +1,163 @@
+@@ -0,0 +1,154 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
 +/*
-+ * Copyright (C) 2022 - 2023, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +#ifndef _LRNG_DEFINITIONS_H
@@ -1333,15 +1306,6 @@ index 000000000000..f6eb48e285cc
 + */
 +#define LRNG_POOL_SIZE	(sizeof(struct shash_desc) + HASH_MAX_DESCSIZE)
 +
-+/*
-+ * Identification of a permanent health falure.
-+ *
-+ * Allow the given number of back-to-back health failures until incuring a
-+ * permanent health failure. The chosen value implies an alpha of 2^-60
-+ * considering that the alpha of one health failure is 2^-30
-+ */
-+#define LRNG_PERMANENT_HEALTH_FAILURES	2
-+
 +/****************************** Helper code ***********************************/
 +
 +static inline u32 lrng_fast_noise_entropylevel(u32 ent_bits, u32 requested_bits)
@@ -1375,7 +1339,7 @@ index 000000000000..f6eb48e285cc
 +#endif /* _LRNG_DEFINITIONS_H */
 diff --git a/drivers/char/lrng/lrng_drng_atomic.h b/drivers/char/lrng/lrng_drng_atomic.h
 new file mode 100644
-index 000000000000..7ae10f20b4b8
+index 000000000000..d5d24fc94f2e
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng_atomic.h
 @@ -0,0 +1,23 @@
@@ -1392,13 +1356,13 @@ index 000000000000..7ae10f20b4b8
 +#ifdef CONFIG_LRNG_DRNG_ATOMIC
 +void lrng_drng_atomic_reset(void);
 +void lrng_drng_atomic_seed_drng(struct lrng_drng *drng);
++void lrng_drng_atomic_seed_es(void);
 +void lrng_drng_atomic_force_reseed(void);
-+struct lrng_drng *lrng_get_atomic(void);
 +#else /* CONFIG_LRNG_DRNG_ATOMIC */
 +static inline void lrng_drng_atomic_reset(void) { }
 +static inline void lrng_drng_atomic_seed_drng(struct lrng_drng *drng) { }
++static inline void lrng_drng_atomic_seed_es(void) { }
 +static inline void lrng_drng_atomic_force_reseed(void) { }
-+static inline struct lrng_drng *lrng_get_atomic(void) { return NULL; }
 +#endif /* CONFIG_LRNG_DRNG_ATOMIC */
 +
 +#endif /* _LRNG_DRNG_ATOMIC_H */
@@ -1691,10 +1655,10 @@ index 000000000000..5db25aaf830c
 +#endif /* _LRNG_KCAPI_DRNG_H */
 diff --git a/drivers/char/lrng/lrng_drng_mgr.c b/drivers/char/lrng/lrng_drng_mgr.c
 new file mode 100644
-index 000000000000..3d9ed60a735b
+index 000000000000..7ac03fc0718c
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng_mgr.c
-@@ -0,0 +1,742 @@
+@@ -0,0 +1,651 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG DRNG management
@@ -1782,13 +1746,6 @@ index 000000000000..3d9ed60a735b
 +		 "Maximum number of DRNG generate operation without full reseed\n");
 +#endif
 +
-+static bool force_seeding = true;
-+#ifdef CONFIG_LRNG_RUNTIME_FORCE_SEEDING_DISABLE
-+module_param(force_seeding, bool, 0444);
-+MODULE_PARM_DESC(force_seeding,
-+		 "Allow disabling of the forced seeding when insufficient entropy is availabe\n");
-+#endif
-+
 +/* Wait queue to wait until the LRNG is initialized - can freely be used */
 +DECLARE_WAIT_QUEUE_HEAD(lrng_init_wait);
 +
@@ -1822,13 +1779,11 @@ index 000000000000..3d9ed60a735b
 +
 +void lrng_drng_reset(struct lrng_drng *drng)
 +{
-+	/* Ensure reseed during next call */
-+	atomic_set(&drng->requests, 1);
++	atomic_set(&drng->requests, LRNG_DRNG_RESEED_THRESH);
 +	atomic_set(&drng->requests_since_fully_seeded, 0);
 +	drng->last_seeded = jiffies;
 +	drng->fully_seeded = false;
-+	/* Do not set force, as this flag is used for the emergency reseeding */
-+	drng->force_reseed = false;
++	drng->force_reseed = true;
 +	pr_debug("reset DRNG\n");
 +}
 +
@@ -1844,7 +1799,7 @@ index 000000000000..3d9ed60a735b
 +	drng->drng_cb = drng_cb;
 +	drng->drng = drng_cb->drng_alloc(LRNG_DRNG_SECURITY_STRENGTH_BYTES);
 +	if (IS_ERR(drng->drng))
-+		return -PTR_ERR(drng->drng);
++		return PTR_ERR(drng->drng);
 +
 +	lrng_drng_reset(drng);
 +	return 0;
@@ -1948,68 +1903,22 @@ index 000000000000..3d9ed60a735b
 + * Perform the seeding of the DRNG with data from entropy source.
 + * The function returns the entropy injected into the DRNG in bits.
 + */
-+static u32 lrng_drng_seed_es_nolock(struct lrng_drng *drng, bool init_ops,
-+				    const char *drng_type)
++static u32 lrng_drng_seed_es_nolock(struct lrng_drng *drng)
 +{
-+	struct entropy_buf seedbuf __aligned(LRNG_KCAPI_ALIGN),
-+			   collected_seedbuf;
-+	u32 collected_entropy = 0;
-+	unsigned int i, num_es_delivered = 0;
-+	bool forced = drng->force_reseed;
++	struct entropy_buf seedbuf __aligned(LRNG_KCAPI_ALIGN);
++	u32 collected_entropy;
 +
-+	for_each_lrng_es(i)
-+		collected_seedbuf.e_bits[i] = 0;
++	lrng_fill_seed_buffer(&seedbuf,
++			      lrng_get_seed_entropy_osr(drng->fully_seeded));
 +
-+	do {
-+		/* Count the number of ES which delivered entropy */
-+		num_es_delivered = 0;
++	collected_entropy = lrng_entropy_rate_eb(&seedbuf);
++	lrng_drng_inject(drng, (u8 *)&seedbuf, sizeof(seedbuf),
++			 lrng_fully_seeded(drng->fully_seeded,
++					   collected_entropy, &seedbuf),
++			 "regular");
 +
-+		if (collected_entropy)
-+			pr_debug("Force fully seeding level for %s DRNG by repeatedly pull entropy from available entropy sources\n",
-+				 drng_type);
-+
-+		lrng_fill_seed_buffer(&seedbuf,
-+			lrng_get_seed_entropy_osr(drng->fully_seeded),
-+				      forced && !drng->fully_seeded);
-+
-+		collected_entropy += lrng_entropy_rate_eb(&seedbuf);
-+
-+		/* Sum iterations up. */
-+		for_each_lrng_es(i) {
-+			collected_seedbuf.e_bits[i] += seedbuf.e_bits[i];
-+			num_es_delivered += !!seedbuf.e_bits[i];
-+		}
-+
-+		lrng_drng_inject(drng, (u8 *)&seedbuf, sizeof(seedbuf),
-+				 lrng_fully_seeded(drng->fully_seeded,
-+						   collected_entropy,
-+						   &collected_seedbuf),
-+				 drng_type);
-+
-+		/*
-+		 * Set the seeding state of the LRNG
-+		 *
-+		 * Do not call lrng_init_ops(seedbuf) here as the atomic DRNG
-+		 * does not serve common users.
-+		 */
-+		if (init_ops)
-+			lrng_init_ops(&collected_seedbuf);
-+
-+	/*
-+	 * Emergency reseeding: If we reached the min seed threshold now
-+	 * multiple times but never reached fully seeded level and we collect
-+	 * entropy, keep doing it until we reached fully seeded level for
-+	 * at least one DRNG. This operation is not continued if the
-+	 * ES do not deliver entropy such that we cannot reach the fully seeded
-+	 * level.
-+	 *
-+	 * The emergency reseeding implies that the consecutively injected
-+	 * entropy can be added up. This is applicable due to the fact that
-+	 * the entire operation is atomic which means that the DRNG is not
-+	 * producing data while this is ongoing.
-+	 */
-+	} while (force_seeding && forced && !drng->fully_seeded &&
-+		 num_es_delivered >= (lrng_ntg1_2022_compliant() ? 2 : 1));
++	/* Set the seeding state of the LRNG */
++	lrng_init_ops(&seedbuf);
 +
 +	memzero_explicit(&seedbuf, sizeof(seedbuf));
 +
@@ -2019,7 +1928,7 @@ index 000000000000..3d9ed60a735b
 +static void lrng_drng_seed_es(struct lrng_drng *drng)
 +{
 +	mutex_lock(&drng->lock);
-+	lrng_drng_seed_es_nolock(drng, true, "regular");
++	lrng_drng_seed_es_nolock(drng);
 +	mutex_unlock(&drng->lock);
 +}
 +
@@ -2028,13 +1937,24 @@ index 000000000000..3d9ed60a735b
 +	BUILD_BUG_ON(LRNG_MIN_SEED_ENTROPY_BITS >
 +		     LRNG_DRNG_SECURITY_STRENGTH_BITS);
 +
-+	/* (Re-)Seed DRNG */
-+	lrng_drng_seed_es(drng);
-+	/* (Re-)Seed atomic DRNG from regular DRNG */
-+	lrng_drng_atomic_seed_drng(drng);
++	if (lrng_get_available()) {
++		/* (Re-)Seed DRNG */
++		lrng_drng_seed_es(drng);
++		/* (Re-)Seed atomic DRNG from regular DRNG */
++		lrng_drng_atomic_seed_drng(drng);
++	} else {
++		/*
++		 * If no-one is waiting for the DRNG, seed the atomic DRNG
++		 * directly from the entropy sources.
++		 */
++		if (!wq_has_sleeper(&lrng_init_wait))
++			lrng_drng_atomic_seed_es();
++		else
++			lrng_init_ops(NULL);
++	}
 +}
 +
-+static void lrng_drng_seed_work_one(struct lrng_drng *drng, u32 node)
++static void _lrng_drng_seed_work(struct lrng_drng *drng, u32 node)
 +{
 +	pr_debug("reseed triggered by system events for DRNG on NUMA node %d\n",
 +		 node);
@@ -2048,67 +1968,35 @@ index 000000000000..3d9ed60a735b
 +/*
 + * DRNG reseed trigger: Kernel thread handler triggered by the schedule_work()
 + */
-+static void __lrng_drng_seed_work(bool force)
++void lrng_drng_seed_work(struct work_struct *dummy)
 +{
-+	struct lrng_drng **lrng_drng;
++	struct lrng_drng **lrng_drng = lrng_drng_instances();
 +	u32 node;
 +
-+	/*
-+	 * If the DRNG is not yet initialized, let us try to seed the atomic
-+	 * DRNG.
-+	 */
-+	if (!lrng_get_available()) {
-+		struct lrng_drng *atomic;
-+		unsigned long flags;
-+
-+		if (wq_has_sleeper(&lrng_init_wait)) {
-+			lrng_init_ops(NULL);
-+			return;
-+		}
-+		atomic = lrng_get_atomic();
-+		if (!atomic || atomic->fully_seeded)
-+			return;
-+
-+		atomic->force_reseed |= force;
-+		spin_lock_irqsave(&atomic->spin_lock, flags);
-+		lrng_drng_seed_es_nolock(atomic, false, "atomic");
-+		spin_unlock_irqrestore(&atomic->spin_lock, flags);
-+
-+		return;
-+	}
-+
-+	lrng_drng = lrng_drng_instances();
 +	if (lrng_drng) {
 +		for_each_online_node(node) {
 +			struct lrng_drng *drng = lrng_drng[node];
 +
 +			if (drng && !drng->fully_seeded) {
-+				drng->force_reseed |= force;
-+				lrng_drng_seed_work_one(drng, node);
-+				return;
++				_lrng_drng_seed_work(drng, node);
++				goto out;
 +			}
 +		}
 +	} else {
 +		if (!lrng_drng_init.fully_seeded) {
-+			lrng_drng_init.force_reseed |= force;
-+			lrng_drng_seed_work_one(&lrng_drng_init, 0);
-+			return;
++			_lrng_drng_seed_work(&lrng_drng_init, 0);
++			goto out;
 +		}
 +	}
 +
 +	if (!lrng_drng_pr.fully_seeded) {
-+		lrng_drng_pr.force_reseed |= force;
-+		lrng_drng_seed_work_one(&lrng_drng_pr, 0);
-+		return;
++		_lrng_drng_seed_work(&lrng_drng_pr, 0);
++		goto out;
 +	}
 +
 +	lrng_pool_all_numa_nodes_seeded(true);
-+}
 +
-+void lrng_drng_seed_work(struct work_struct *dummy)
-+{
-+	__lrng_drng_seed_work(false);
-+
++out:
 +	/* Allow the seeding operation to be called again */
 +	lrng_pool_unlock();
 +}
@@ -2209,8 +2097,7 @@ index 000000000000..3d9ed60a735b
 +					continue;
 +				}
 +
-+				coll_ent_bits = lrng_drng_seed_es_nolock(
-+							drng, true, "regular");
++				coll_ent_bits = lrng_drng_seed_es_nolock(drng);
 +
 +				lrng_pool_unlock();
 +
@@ -2313,19 +2200,8 @@ index 000000000000..3d9ed60a735b
 +
 +/******************* Generic LRNG kernel output interfaces ********************/
 +
-+void lrng_force_fully_seeded(void)
-+{
-+	if (lrng_pool_all_numa_nodes_seeded_get())
-+		return;
-+
-+	lrng_pool_lock();
-+	__lrng_drng_seed_work(true);
-+	lrng_pool_unlock();
-+}
-+
 +static int lrng_drng_sleep_while_not_all_nodes_seeded(unsigned int nonblock)
 +{
-+	lrng_force_fully_seeded();
 +	if (lrng_pool_all_numa_nodes_seeded_get())
 +		return 0;
 +	if (nonblock)
@@ -2337,7 +2213,6 @@ index 000000000000..3d9ed60a735b
 +
 +int lrng_drng_sleep_while_nonoperational(int nonblock)
 +{
-+	lrng_force_fully_seeded();
 +	if (likely(lrng_state_operational()))
 +		return 0;
 +	if (nonblock)
@@ -2348,7 +2223,6 @@ index 000000000000..3d9ed60a735b
 +
 +int lrng_drng_sleep_while_non_min_seeded(void)
 +{
-+	lrng_force_fully_seeded();
 +	if (likely(lrng_state_min_seeded()))
 +		return 0;
 +	return wait_event_interruptible(lrng_init_wait,
@@ -2363,7 +2237,7 @@ index 000000000000..3d9ed60a735b
 +	int ret;
 +
 +	/* Ensure buffer is aligned as required */
-+	BUILD_BUG_ON(sizeof(buflen) > LRNG_KCAPI_ALIGN);
++	BUILD_BUG_ON(sizeof(buflen) < LRNG_KCAPI_ALIGN);
 +	if (nbytes < sizeof(buflen))
 +		return -EINVAL;
 +
@@ -2394,8 +2268,7 @@ index 000000000000..3d9ed60a735b
 +	for (;;) {
 +		lrng_fill_seed_buffer(eb,
 +			lrng_get_seed_entropy_osr(flags &
-+						  LRNG_GET_SEED_FULLY_SEEDED),
-+						  false);
++						  LRNG_GET_SEED_FULLY_SEEDED));
 +		collected_bits = lrng_entropy_rate_eb(eb);
 +
 +		/* Break the collection loop if we got entropy, ... */
@@ -2439,10 +2312,10 @@ index 000000000000..3d9ed60a735b
 +EXPORT_SYMBOL(lrng_get_random_bytes_pr);
 diff --git a/drivers/char/lrng/lrng_drng_mgr.h b/drivers/char/lrng/lrng_drng_mgr.h
 new file mode 100644
-index 000000000000..8b1de38275cd
+index 000000000000..b15ec880b554
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng_mgr.h
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,85 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
 +/*
 + * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
@@ -2514,7 +2387,6 @@ index 000000000000..8b1de38275cd
 +int lrng_drng_get_sleep(u8 *outbuf, u32 outbuflen, bool pr);
 +void lrng_drng_seed_work(struct work_struct *dummy);
 +void lrng_drng_force_reseed(void);
-+void lrng_force_fully_seeded(void);
 +
 +static inline u32 lrng_compress_osr(void)
 +{
@@ -3021,15 +2893,15 @@ index 000000000000..cf982b9eea05
 +#endif /* _LRNG_ES_RANDOM_H */
 diff --git a/drivers/char/lrng/lrng_es_mgr.c b/drivers/char/lrng/lrng_es_mgr.c
 new file mode 100644
-index 000000000000..bb95296934ea
+index 000000000000..9bfcae617c31
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_mgr.c
-@@ -0,0 +1,506 @@
+@@ -0,0 +1,489 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Entropy sources management
 + *
-+ * Copyright (C) 2022 - 2023, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -3038,9 +2910,7 @@ index 000000000000..bb95296934ea
 +#include <linux/random.h>
 +#include <linux/utsname.h>
 +#include <linux/workqueue.h>
-+#include <asm/archrandom.h>
 +
-+#include "lrng_drng_atomic.h"
 +#include "lrng_drng_mgr.h"
 +#include "lrng_es_aux.h"
 +#include "lrng_es_cpu.h"
@@ -3117,19 +2987,9 @@ index 000000000000..bb95296934ea
 +MODULE_PARM_DESC(ntg1, "Enable AIS20/31 NTG.1 compliant seeding strategy\n");
 +#endif
 +
-+/* Only panic the kernel on permanent health failure if this variable is true */
-+static bool lrng_panic_on_permanent_health_failure = false;
-+module_param(lrng_panic_on_permanent_health_failure, bool, 0444);
-+MODULE_PARM_DESC(lrng_panic_on_permanent_health_failure, "Panic on reaching permanent health failure - only required if LRNG is part of a FIPS 140-3 module\n");
-+
 +/********************************** Helper ***********************************/
 +
-+bool lrng_enforce_panic_on_permanent_health_failure(void)
-+{
-+	return lrng_panic_on_permanent_health_failure;
-+}
-+
-+bool lrng_ntg1_2022_compliant(void)
++bool lrng_ntg1_compliant(void)
 +{
 +	/* Implies use of /dev/random w/ O_SYNC / getrandom w/ GRND_RANDOM */
 +	return ntg1;
@@ -3140,12 +3000,11 @@ index 000000000000..bb95296934ea
 +#ifdef CONFIG_WARN_ALL_UNSEEDED_RANDOM
 +	static void *previous = NULL;
 +	void *caller = (void *) _RET_IP_;
-+	struct lrng_drng *atomic = lrng_get_atomic();
 +
 +	if (READ_ONCE(previous) == caller)
 +		return;
 +
-+	if (atomic && !atomic->fully_seeded)
++	if (!lrng_state_min_seeded())
 +		pr_notice("%pS %s called without reaching minimally seeded level (available entropy %u)\n",
 +			  caller, name, lrng_avail_entropy());
 +
@@ -3234,7 +3093,6 @@ index 000000000000..bb95296934ea
 +{
 +	wake_up_all(&lrng_init_wait);
 +	lrng_init_wakeup_dev();
-+	lrng_kick_random_ready();
 +}
 +
 +static u32 lrng_avail_entropy_thresh(void)
@@ -3408,9 +3266,10 @@ index 000000000000..bb95296934ea
 +	}
 +}
 +
-+void __init lrng_rand_initialize_early(void)
++int __init lrng_rand_initialize(void)
 +{
 +	struct seed {
++		ktime_t time;
 +		unsigned long data[((LRNG_MAX_DIGESTSIZE +
 +				     sizeof(unsigned long) - 1) /
 +				    sizeof(unsigned long))];
@@ -3419,7 +3278,19 @@ index 000000000000..bb95296934ea
 +	size_t longs = 0;
 +	unsigned int i;
 +
++	seed.time = ktime_get_real();
++
 +	for (i = 0; i < ARRAY_SIZE(seed.data); i += longs) {
++#ifdef CONFIG_LRNG_RANDOM_IF
++		longs = arch_get_random_seed_longs_early(
++			seed.data + i, ARRAY_SIZE(seed.data) - i);
++		if (longs)
++			continue;
++		longs = arch_get_random_longs_early(seed.data + i,
++						    ARRAY_SIZE(seed.data) - i);
++		if (longs)
++			continue;
++#else
 +		longs = arch_get_random_seed_longs(seed.data + i,
 +						   ARRAY_SIZE(seed.data) - i);
 +		if (longs)
@@ -3428,23 +3299,14 @@ index 000000000000..bb95296934ea
 +					      ARRAY_SIZE(seed.data) - i);
 +		if (longs)
 +			continue;
++#endif
++		seed.data[i] = random_get_entropy();
 +		longs = 1;
 +	}
-+	memcpy(&seed.utsname, init_utsname(), sizeof(*(init_utsname())));
++	memcpy(&seed.utsname, utsname(), sizeof(*(utsname())));
 +
 +	lrng_pool_insert_aux((u8 *)&seed, sizeof(seed), 0);
 +	memzero_explicit(&seed, sizeof(seed));
-+
-+	lrng_force_fully_seeded();
-+}
-+
-+void __init lrng_rand_initialize(void)
-+{
-+	unsigned long entropy = random_get_entropy();
-+	ktime_t time = ktime_get_real();
-+
-+	lrng_pool_insert_aux((u8 *)&entropy, sizeof(entropy), 0);
-+	lrng_pool_insert_aux((u8 *)&time, sizeof(time), 0);
 +
 +	/* Initialize the seed work queue */
 +	INIT_WORK(&lrng_state.lrng_seed_work, lrng_drng_seed_work);
@@ -3453,17 +3315,12 @@ index 000000000000..bb95296934ea
 +	invalidate_batched_entropy();
 +
 +	lrng_state.can_invalidate = true;
-+}
 +
-+#ifndef CONFIG_LRNG_RANDOM_IF
-+static int __init lrng_rand_initialize_call(void)
-+{
-+	lrng_rand_initialize_early();
-+	lrng_rand_initialize();
 +	return 0;
 +}
 +
-+early_initcall(lrng_rand_initialize_call);
++#ifndef CONFIG_LRNG_RANDOM_IF
++early_initcall(lrng_rand_initialize);
 +#endif
 +
 +/* Interface requesting a reseed of the DRNG */
@@ -3493,8 +3350,7 @@ index 000000000000..bb95296934ea
 +}
 +
 +/* Fill the seed buffer with data from the noise sources */
-+void lrng_fill_seed_buffer(struct entropy_buf *eb, u32 requested_bits,
-+			   bool force)
++void lrng_fill_seed_buffer(struct entropy_buf *eb, u32 requested_bits)
 +{
 +	struct lrng_state *state = &lrng_state;
 +	u32 i, req_ent = lrng_sp80090c_compliant() ?
@@ -3511,8 +3367,7 @@ index 000000000000..bb95296934ea
 +	 * operated SP800-90C compliant we want to comply with SP800-90A section
 +	 * 9.2 mandating that DRNG is reseeded with the security strength.
 +	 */
-+	if (!force &&
-+	    state->lrng_fully_seeded && (lrng_avail_entropy() < req_ent)) {
++	if (state->lrng_fully_seeded && (lrng_avail_entropy() < req_ent)) {
 +		for_each_lrng_es(i)
 +			eb->e_bits[i] = 0;
 +
@@ -3533,10 +3388,10 @@ index 000000000000..bb95296934ea
 +}
 diff --git a/drivers/char/lrng/lrng_es_mgr.h b/drivers/char/lrng/lrng_es_mgr.h
 new file mode 100644
-index 000000000000..7c4fbcb595f4
+index 000000000000..8fa24ebbd178
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_mgr.h
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,53 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
 +/*
 + * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
@@ -3562,13 +3417,11 @@ index 000000000000..7c4fbcb595f4
 +#define for_each_lrng_es(ctr)		\
 +	for ((ctr) = 0; (ctr) < lrng_ext_es_last; (ctr)++)
 +
-+bool lrng_enforce_panic_on_permanent_health_failure(void);
-+bool lrng_ntg1_2022_compliant(void);
++bool lrng_ntg1_compliant(void);
 +bool lrng_pool_all_numa_nodes_seeded_get(void);
 +bool lrng_state_min_seeded(void);
 +void lrng_debug_report_seedlevel(const char *name);
-+void lrng_rand_initialize_early(void);
-+void lrng_rand_initialize(void);
++int lrng_rand_initialize(void);
 +bool lrng_state_operational(void);
 +
 +extern u32 lrng_write_wakeup_bits;
@@ -3588,8 +3441,7 @@ index 000000000000..7c4fbcb595f4
 +		       struct entropy_buf *eb);
 +u32 lrng_entropy_rate_eb(struct entropy_buf *eb);
 +void lrng_unset_fully_seeded(struct lrng_drng *drng);
-+void lrng_fill_seed_buffer(struct entropy_buf *eb, u32 requested_bits,
-+			   bool force);
++void lrng_fill_seed_buffer(struct entropy_buf *eb, u32 requested_bits);
 +void lrng_init_ops(struct entropy_buf *eb);
 +
 +#endif /* _LRNG_ES_MGR_H */
@@ -3861,10 +3713,10 @@ index 000000000000..9e6603ad8af4
 +#endif /* _LRNG_INTERFACE_DEV_COMMON_H */
 diff --git a/drivers/char/lrng/lrng_interface_random_kernel.h b/drivers/char/lrng/lrng_interface_random_kernel.h
 new file mode 100644
-index 000000000000..ea2b5be8d7f3
+index 000000000000..f4d09d1fbb14
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_kernel.h
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,15 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
 +/*
 + * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
@@ -3875,10 +3727,8 @@ index 000000000000..ea2b5be8d7f3
 +
 +#ifdef CONFIG_LRNG_RANDOM_IF
 +void invalidate_batched_entropy(void);
-+void lrng_kick_random_ready(void);
 +#else /* CONFIG_LRNG_RANDOM_IF */
 +static inline void invalidate_batched_entropy(void) { }
-+static inline void lrng_kick_random_ready(void) { }
 +#endif /* CONFIG_LRNG_RANDOM_IF */
 +
 +#endif /* _LRNG_INTERFACE_RANDOM_H */
@@ -4370,5 +4220,5 @@ index 000000000000..c0d31a03d51f
 +
 +#endif /* _LRNG_H */
 -- 
-2.40.0
+2.37.3
 

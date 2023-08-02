@@ -1,7 +1,7 @@
-From d138b9cc0aa36579a4af2ede6dcb38f220b4028d Mon Sep 17 00:00:00 2001
+From 72676c52711ed936d0cc2c00cffe7bf30740d3e3 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Wed, 22 Feb 2023 07:05:59 +0100
-Subject: [PATCH v50 13/25] LRNG - add scheduler-based entropy source
+Date: Sun, 31 Jul 2022 22:27:27 +0200
+Subject: [PATCH v47 13/26] LRNG - add scheduler-based entropy source
 
 The scheduler-based entropy source (ES) consumes the events triggered by
 the kernel invoked with the add_sched_randomness. Its main goal is:
@@ -50,19 +50,19 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Kconfig         | 122 +++----
  drivers/char/lrng/Makefile        |   1 +
- drivers/char/lrng/lrng_es_sched.c | 566 ++++++++++++++++++++++++++++++
+ drivers/char/lrng/lrng_es_sched.c | 562 ++++++++++++++++++++++++++++++
  drivers/char/lrng/lrng_health.h   |  42 +++
  drivers/char/lrng/lrng_testing.h  |  85 +++++
- 5 files changed, 755 insertions(+), 61 deletions(-)
+ 5 files changed, 751 insertions(+), 61 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_sched.c
  create mode 100644 drivers/char/lrng/lrng_health.h
  create mode 100644 drivers/char/lrng/lrng_testing.h
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index b5f4f6703d87..3d167659c8e0 100644
+index 54512c65e51c..a4b531a4553b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -141,9 +141,9 @@ comment "Common Timer-based Entropy Source Configuration"
+@@ -135,9 +135,9 @@ comment "Common Timer-based Entropy Source Configuration"
  config LRNG_IRQ_DFLT_TIMER_ES
  	bool
  
@@ -75,7 +75,7 @@ index b5f4f6703d87..3d167659c8e0 100644
  config LRNG_TIMER_COMMON
  	bool
  
-@@ -164,12 +164,12 @@ choice
+@@ -158,12 +158,12 @@ choice
  	  The interrupt entropy source is selected as a timer-based
  	  entropy source to provide entropy.
  
@@ -94,7 +94,7 @@ index b5f4f6703d87..3d167659c8e0 100644
  endchoice
  
  choice
-@@ -477,58 +477,58 @@ config LRNG_IRQ_ENTROPY_RATE
+@@ -459,58 +459,58 @@ config LRNG_IRQ_ENTROPY_RATE
  # 	  Note, this option is overwritten when the option
  # 	  CONFIG_RANDOM_TRUST_CPU is set.
  #
@@ -216,10 +216,10 @@ index a64075c8fee5..c14a056fea95 100644
 +obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
 diff --git a/drivers/char/lrng/lrng_es_sched.c b/drivers/char/lrng/lrng_es_sched.c
 new file mode 100644
-index 000000000000..333c5b1ff4ea
+index 000000000000..c3abaa7ff310
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_sched.c
-@@ -0,0 +1,566 @@
+@@ -0,0 +1,562 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Slow Entropy Source: Scheduler-based data collection
@@ -765,16 +765,12 @@ index 000000000000..333c5b1ff4ea
 +		 " Available entropy: %u\n"
 +		 " per-CPU scheduler event collection size: %u\n"
 +		 " Standards compliance: %s\n"
-+		 " High-resolution timer: %s\n"
-+		 " Health test passed: %s\n",
++		 " High-resolution timer: %s\n",
 +		 lrng_drng_init->hash_cb->hash_name(),
 +		 lrng_sched_avail_entropy(0),
 +		 LRNG_DATA_NUM_VALUES,
 +		 lrng_sp80090b_compliant(lrng_int_es_sched) ? "SP800-90B " : "",
-+		 lrng_highres_timer() ? "true" : "false",
-+		 lrng_sp80090b_startup_complete_es(lrng_int_es_sched) ?
-+								      "true" :
-+								      "false");
++		 lrng_highres_timer() ? "true" : "false");
 +}
 +
 +struct lrng_es_cb lrng_es_sched = {
@@ -926,5 +922,5 @@ index 000000000000..672a7fca4595
 +
 +#endif /* _LRNG_TESTING_H */
 -- 
-2.40.0
+2.37.3
 

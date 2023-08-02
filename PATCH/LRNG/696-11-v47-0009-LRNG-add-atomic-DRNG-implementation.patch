@@ -1,7 +1,7 @@
-From 41d97ea070358f479549f77ae350782b8aa0676c Mon Sep 17 00:00:00 2001
+From 5aa0798f5aa8990341c55d6fa9e5a78a7e20ed47 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 20 Feb 2023 22:05:24 +0100
-Subject: [PATCH v50 09/25] LRNG - add atomic DRNG implementation
+Date: Sun, 9 Oct 2022 10:11:56 +0200
+Subject: [PATCH v47 09/26] LRNG - add atomic DRNG implementation
 
 The atomic DRNG implementation supports the in-kernel use cases which
 request random numbers in atomic contexts. It uses the ChaCha20 DRNG
@@ -13,8 +13,8 @@ random.c code base.
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Makefile           |   1 +
- drivers/char/lrng/lrng_drng_atomic.c | 130 +++++++++++++++++++++++++++
- 2 files changed, 131 insertions(+)
+ drivers/char/lrng/lrng_drng_atomic.c | 172 +++++++++++++++++++++++++++
+ 2 files changed, 173 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_drng_atomic.c
 
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
@@ -28,10 +28,10 @@ index 099d366500e5..fa0821917ca2 100644
 +obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
 diff --git a/drivers/char/lrng/lrng_drng_atomic.c b/drivers/char/lrng/lrng_drng_atomic.c
 new file mode 100644
-index 000000000000..290d346ea128
+index 000000000000..b58a32017e40
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng_atomic.c
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,172 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG DRNG for atomic contexts
@@ -67,11 +67,6 @@ index 000000000000..290d346ea128
 +			     &lrng_cc20_drng_cb, &lrng_sha_hash_cb),
 +	.spin_lock	= __SPIN_LOCK_UNLOCKED(lrng_drng_atomic.spin_lock)
 +};
-+
-+struct lrng_drng *lrng_get_atomic(void)
-+{
-+	return &lrng_drng_atomic;
-+}
 +
 +void lrng_drng_atomic_reset(void)
 +{
@@ -127,6 +122,53 @@ index 000000000000..290d346ea128
 +	memzero_explicit(&seedbuf, sizeof(seedbuf));
 +}
 +
++void lrng_drng_atomic_seed_es(void)
++{
++	struct entropy_buf seedbuf __aligned(LRNG_KCAPI_ALIGN);
++	struct lrng_drng *drng = &lrng_drng_atomic;
++	unsigned long flags;
++	u32 requested_bits = LRNG_MIN_SEED_ENTROPY_BITS;
++
++	if (lrng_drng_atomic.fully_seeded)
++		return;
++
++	/*
++	 * When the LRNG reached the minimally seeded level, leave 256 bits of
++	 * entropy for the regular DRNG. In addition ensure that additional
++	 * 256 bits are available for the atomic DRNG to get to the fully
++	 * seeded stage of the LRNG.
++	 */
++	if (lrng_state_min_seeded()) {
++		u32 avail_bits = lrng_avail_entropy();
++
++		requested_bits =
++			(avail_bits >= 2 * LRNG_FULL_SEED_ENTROPY_BITS) ?
++			LRNG_FULL_SEED_ENTROPY_BITS : 0;
++
++		if (!requested_bits)
++			return;
++	}
++
++	pr_debug("atomic DRNG seeding attempt to pull %u bits of entropy directly from entropy sources\n",
++		 requested_bits);
++
++	lrng_fill_seed_buffer(&seedbuf, requested_bits);
++	spin_lock_irqsave(&drng->spin_lock, flags);
++	lrng_drng_inject(&lrng_drng_atomic, (u8 *)&seedbuf, sizeof(seedbuf),
++			 lrng_fully_seeded(drng->fully_seeded,
++					   lrng_entropy_rate_eb(&seedbuf),
++					   &seedbuf),
++			 "atomic");
++	spin_unlock_irqrestore(&drng->spin_lock, flags);
++	lrng_init_ops(&seedbuf);
++
++	/*
++	 * Do not call lrng_init_ops(seedbuf) here as the atomic DRNG does not
++	 * serve common users.
++	 */
++	memzero_explicit(&seedbuf, sizeof(seedbuf));
++}
++
 +static void lrng_drng_atomic_get(u8 *outbuf, u32 outbuflen)
 +{
 +	struct lrng_drng *drng = &lrng_drng_atomic;
@@ -163,5 +205,5 @@ index 000000000000..290d346ea128
 +}
 +EXPORT_SYMBOL(lrng_get_random_bytes);
 -- 
-2.40.0
+2.37.3
 

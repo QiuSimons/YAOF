@@ -1,7 +1,7 @@
-From 8490259192adb607b97d74aea960c76e17fa921c Mon Sep 17 00:00:00 2001
+From a5eea1b895793cd2d5a9df9b4057ed5210495f4f Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Tue, 15 Sep 2020 22:17:43 +0200
-Subject: [PATCH v50 06/25] crypto: DRBG - externalize DRBG functions for LRNG
+Subject: [PATCH v47 06/26] crypto: DRBG - externalize DRBG functions for LRNG
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -41,7 +41,7 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  2 files changed, 17 insertions(+), 6 deletions(-)
 
 diff --git a/crypto/drbg.c b/crypto/drbg.c
-index 982d4ca4526d..af571948e80e 100644
+index 177983b6ae38..ea79a31014a4 100644
 --- a/crypto/drbg.c
 +++ b/crypto/drbg.c
 @@ -115,7 +115,7 @@
@@ -110,7 +110,7 @@ index 982d4ca4526d..af571948e80e 100644
  
  /*************************************************************************
   * DRBG interface functions
-@@ -1893,8 +1897,7 @@ static int drbg_kcapi_sym_ctr(struct drbg_state *drbg,
+@@ -1895,8 +1899,7 @@ static int drbg_kcapi_sym_ctr(struct drbg_state *drbg,
   *
   * return: flags
   */
@@ -120,7 +120,7 @@ index 982d4ca4526d..af571948e80e 100644
  {
  	int i = 0;
  	size_t start = 0;
-@@ -1921,6 +1924,7 @@ static inline void drbg_convert_tfm_core(const char *cra_driver_name,
+@@ -1923,6 +1926,7 @@ static inline void drbg_convert_tfm_core(const char *cra_driver_name,
  		}
  	}
  }
@@ -145,5 +145,5 @@ index af5ad51d3eef..b12ae9bdebf4 100644
 +
  #endif /* _DRBG_H */
 -- 
-2.40.0
+2.37.3
 

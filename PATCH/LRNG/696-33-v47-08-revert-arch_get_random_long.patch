@@ -40,16 +40,33 @@ index f982cc31df4e..3910108cfd08 100644
  		/*
  		 * Intel SPEC: pulling 512 blocks from RDRAND ensures
  		 * one reseed making it logically equivalent to RDSEED.
---- linux-5.15.86/drivers/char/lrng/lrng_es_mgr.c.orig2	2023-01-07 21:18:49.376364123 +0100
-+++ linux-5.15.86/drivers/char/lrng/lrng_es_mgr.c	2023-01-07 21:19:44.168291522 +0100
-@@ -376,19 +376,12 @@ void __init lrng_rand_initialize_early(v
+diff --git a/drivers/char/lrng/lrng_es_mgr.c b/drivers/char/lrng/lrng_es_mgr.c
+index 9bfcae617c31..ffbaa98a39a8 100644
+--- a/drivers/char/lrng/lrng_es_mgr.c
++++ b/drivers/char/lrng/lrng_es_mgr.c
+@@ -376,33 +376,19 @@ int __init lrng_rand_initialize(void)
  				    sizeof(unsigned long))];
  		struct new_utsname utsname;
  	} seed __aligned(LRNG_KCAPI_ALIGN);
 -	size_t longs = 0;
  	unsigned int i;
  
+ 	seed.time = ktime_get_real();
+ 
 -	for (i = 0; i < ARRAY_SIZE(seed.data); i += longs) {
++	for (i = 0; i < ARRAY_SIZE(seed.data); i++) {
+ #ifdef CONFIG_LRNG_RANDOM_IF
+-		longs = arch_get_random_seed_longs_early(
+-			seed.data + i, ARRAY_SIZE(seed.data) - i);
+-		if (longs)
+-			continue;
+-		longs = arch_get_random_longs_early(seed.data + i,
+-						    ARRAY_SIZE(seed.data) - i);
+-		if (longs)
+-			continue;
++		if (!arch_get_random_seed_long_early(&(seed.data[i])) &&
++		    !arch_get_random_long_early(&seed.data[i]))
+ #else
 -		longs = arch_get_random_seed_longs(seed.data + i,
 -						   ARRAY_SIZE(seed.data) - i);
 -		if (longs)
@@ -58,11 +75,12 @@ index f982cc31df4e..3910108cfd08 100644
 -					      ARRAY_SIZE(seed.data) - i);
 -		if (longs)
 -			continue;
++		if (!arch_get_random_seed_long(&(seed.data[i])) &&
++		    !arch_get_random_long(&seed.data[i]))
+ #endif
+-		seed.data[i] = random_get_entropy();
 -		longs = 1;
-+	for (i = 0; i < ARRAY_SIZE(seed.data); i++) {
-+		if (!arch_get_random_seed_long_early(&(seed.data[i])) &&
-+		    !arch_get_random_long_early(&seed.data[i]))
 +			seed.data[i] = random_get_entropy();
  	}
- 	memcpy(&seed.utsname, init_utsname(), sizeof(*(init_utsname())));
+ 	memcpy(&seed.utsname, utsname(), sizeof(*(utsname())));
  

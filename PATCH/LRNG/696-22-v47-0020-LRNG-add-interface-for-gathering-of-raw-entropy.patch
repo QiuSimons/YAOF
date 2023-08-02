@@ -1,7 +1,7 @@
-From 9dc158a441869e9ab0286dfbd747aeb6b3883d14 Mon Sep 17 00:00:00 2001
+From 3210dd3d86bcc7a6ff1fdad309536259bf14420c Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 18 Dec 2022 21:22:36 +0100
-Subject: [PATCH v50 19/25] LRNG - add interface for gathering of raw entropy
+Date: Sun, 15 May 2022 18:05:58 +0200
+Subject: [PATCH v47 20/26] LRNG - add interface for gathering of raw entropy
 
 The test interface allows a privileged process to capture the raw
 unconditioned noise that is collected by the LRNG for statistical
@@ -71,17 +71,17 @@ impact on the performance.
 
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig        | 534 +++++++++---------
+ drivers/char/lrng/Kconfig        | 520 +++++++++---------
  drivers/char/lrng/Makefile       |   1 +
  drivers/char/lrng/lrng_testing.c | 901 +++++++++++++++++++++++++++++++
- 3 files changed, 1169 insertions(+), 267 deletions(-)
+ 3 files changed, 1162 insertions(+), 260 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_testing.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index f2889f7c32cf..e9b5f78afa0b 100644
+index 1e182d426247..7873b4533f6b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -661,273 +661,273 @@ choice
+@@ -641,266 +641,266 @@ choice
  		select LRNG_DRNG_KCAPI
  endchoice
  
@@ -333,13 +333,6 @@ index f2889f7c32cf..e9b5f78afa0b 100644
 -# 	  allowing the setting of the maximum number of DRNG generate
 -# 	  operations without a reseed that has full entropy. The
 -# 	  interface is lrng_drng.max_wo_reseed.
--#
--#config LRNG_RUNTIME_FORCE_SEEDING_DISABLE
--#	bool "Enable runtime configuration of force seeding"
--#	help
--#	  When enabling this option, the LRNG provides an interface
--#	  allowing the disabling of the force seeding when the DRNG
--#	  is not fully seeded but entropy is available.
 -#
 -# config LRNG_TEST_CPU_ES_COMPRESSION
 -# 	bool "Force CPU ES compression operation"
@@ -600,13 +593,6 @@ index f2889f7c32cf..e9b5f78afa0b 100644
 +	  allowing the setting of the maximum number of DRNG generate
 +	  operations without a reseed that has full entropy. The
 +	  interface is lrng_drng.max_wo_reseed.
-+
-+config LRNG_RUNTIME_FORCE_SEEDING_DISABLE
-+	bool "Enable runtime configuration of force seeding"
-+	help
-+	  When enabling this option, the LRNG provides an interface
-+	  allowing the disabling of the force seeding when the DRNG
-+	  is not fully seeded but entropy is available.
 +
 +config LRNG_TEST_CPU_ES_COMPRESSION
 +	bool "Force CPU ES compression operation"
@@ -1539,5 +1525,5 @@ index 000000000000..101140085d81
 +
 +module_init(lrng_raw_init);
 -- 
-2.40.0
+2.37.3
 

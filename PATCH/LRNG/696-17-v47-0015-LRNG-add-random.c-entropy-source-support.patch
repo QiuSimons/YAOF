@@ -1,7 +1,7 @@
-From 9234b168501f314390553bb158a6a10056217aaa Mon Sep 17 00:00:00 2001
+From 71f7daa45b90954a0e1e549ddd7b4c0be7ee6da1 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 20 Feb 2023 22:07:27 +0100
-Subject: [PATCH v50 15/25] LRNG - add random.c entropy source support
+Date: Sun, 9 Oct 2022 10:15:35 +0200
+Subject: [PATCH v47 15/26] LRNG - add random.c entropy source support
 
 The random.c implementation can be used as an entropy source by the
 LRNG. This support can be enabled at compile time.
@@ -28,10 +28,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_es_krng.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 22a224bc8b52..573c3bf88a11 100644
+index b3f6beb761bc..a719d7f10a74 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -529,34 +529,34 @@ config LRNG_SCHED_ENTROPY_RATE
+@@ -511,34 +511,34 @@ config LRNG_SCHED_ENTROPY_RATE
  	  scheduler entropy source will still deliver data but without
  	  being credited with entropy.
  
@@ -213,5 +213,5 @@ index 000000000000..519ba640cc75
 +	.switch_hash		= NULL,
 +};
 -- 
-2.40.0
+2.37.3
 

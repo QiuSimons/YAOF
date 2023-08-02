@@ -1,7 +1,7 @@
-From db06188464271ea9b760d00a9311d2e998708214 Mon Sep 17 00:00:00 2001
+From ace10dd4eed2a577602a4bb1d6051f07f337c0ad Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 20 Feb 2023 22:23:59 +0100
-Subject: [PATCH v50 08/25] LRNG - add kernel crypto API PRNG extension
+Date: Sun, 15 May 2022 16:13:37 +0200
+Subject: [PATCH v47 08/26] LRNG - add kernel crypto API PRNG extension
 
 Add runtime-pluggable support for all PRNGs that are accessible via
 the kernel crypto API, including hardware PRNGs. The PRNG is selected
@@ -18,17 +18,17 @@ complies with the seedsize of the PRNG.
 
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig           |  38 ++---
+ drivers/char/lrng/Kconfig           |  36 ++---
  drivers/char/lrng/Makefile          |   1 +
  drivers/char/lrng/lrng_drng_kcapi.c | 208 ++++++++++++++++++++++++++++
- 3 files changed, 228 insertions(+), 19 deletions(-)
+ 3 files changed, 227 insertions(+), 18 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_drng_kcapi.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 4f0c13841eaf..5551139a05d3 100644
+index d686cf842f6a..d0588a1fd81c 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -568,10 +568,10 @@ config LRNG_DRBG
+@@ -550,10 +550,10 @@ config LRNG_DRBG
  	depends on CRYPTO
  	select CRYPTO_DRBG_MENU
  
@@ -43,7 +43,7 @@ index 4f0c13841eaf..5551139a05d3 100644
  
  config LRNG_SWITCH
  	bool
-@@ -623,17 +623,17 @@ config LRNG_SWITCH_DRBG
+@@ -605,17 +605,17 @@ config LRNG_SWITCH_DRBG
  	  module is loaded, output from /dev/random, /dev/urandom,
  	  getrandom(2), or get_random_bytes_full is provided by a DRBG.
  
@@ -72,16 +72,14 @@ index 4f0c13841eaf..5551139a05d3 100644
  
  endif # LRNG_SWITCH_DRNG
  
-@@ -655,10 +655,10 @@ choice
+@@ -636,9 +636,9 @@ choice
  		bool "SP800-90A DRBG"
  		select LRNG_DRBG
  
 -# 	config LRNG_DFLT_DRNG_KCAPI
--# 		depends on RANDOM_DEFAULT_IMPL
 -# 		bool "Kernel Crypto API DRNG"
 -# 		select LRNG_DRNG_KCAPI
 +	config LRNG_DFLT_DRNG_KCAPI
-+		depends on RANDOM_DEFAULT_IMPL
 +		bool "Kernel Crypto API DRNG"
 +		select LRNG_DRNG_KCAPI
  endchoice
@@ -311,5 +309,5 @@ index 000000000000..a204bcf52a9a
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - kernel crypto API DRNG backend");
 +#endif /* CONFIG_LRNG_DFLT_DRNG_KCAPI */
 -- 
-2.40.0
+2.37.3
 

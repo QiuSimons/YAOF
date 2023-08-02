@@ -1,7 +1,7 @@
-From 45c2b2320e9898edec8ca62c176a93aa8b4eca89 Mon Sep 17 00:00:00 2001
+From 2b798627b9c15a9ed74e6440f6c99e58725cbe9c Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Mon, 20 Feb 2023 22:12:04 +0100
-Subject: [PATCH v50 22/25] LRMG - add drop-in replacement random(4) API
+Date: Sun, 9 Oct 2022 10:21:13 +0200
+Subject: [PATCH v47 23/26] LRMG - add drop-in replacement random(4) API
 
 The LRNG is intended to be a full replacement of the existing random.c.
 This also includes the providing of a full API and ABI compliant drop-in
@@ -14,11 +14,11 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/Makefile                         |   3 +-
  drivers/char/lrng/Makefile                    |   5 +
- drivers/char/lrng/lrng_interface_aux.c        | 209 ++++++++++++
- drivers/char/lrng/lrng_interface_dev_common.c | 315 ++++++++++++++++++
- .../char/lrng/lrng_interface_random_kernel.c  | 248 ++++++++++++++
+ drivers/char/lrng/lrng_interface_aux.c        | 126 +++++++
+ drivers/char/lrng/lrng_interface_dev_common.c | 314 ++++++++++++++++++
+ .../char/lrng/lrng_interface_random_kernel.c  | 214 ++++++++++++
  .../char/lrng/lrng_interface_random_user.c    | 104 ++++++
- 6 files changed, 883 insertions(+), 1 deletion(-)
+ 6 files changed, 765 insertions(+), 1 deletion(-)
  create mode 100644 drivers/char/lrng/lrng_interface_aux.c
  create mode 100644 drivers/char/lrng/lrng_interface_dev_common.c
  create mode 100644 drivers/char/lrng/lrng_interface_random_kernel.c
@@ -53,10 +53,10 @@ index 52b4625a0760..6242262d577e 100644
 +					   lrng_interface_aux.o
 diff --git a/drivers/char/lrng/lrng_interface_aux.c b/drivers/char/lrng/lrng_interface_aux.c
 new file mode 100644
-index 000000000000..84f3ce38f332
+index 000000000000..0eb49bd6b48f
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_aux.c
-@@ -0,0 +1,209 @@
+@@ -0,0 +1,126 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG auxiliary interfaces
@@ -74,20 +74,10 @@ index 000000000000..84f3ce38f332
 +#include "lrng_es_mgr.h"
 +#include "lrng_interface_random_kernel.h"
 +
-+/*
-+ * Fill a buffer with random numbers and tokenize it to provide random numbers
-+ * to callers in fixed chunks. This approach is provided to be consistent with
-+ * the Linux kernel interface requirements. Yet, this approach violate the
-+ * backtracking resistance of the random number generator. Thus, the provided
-+ * random numbers are not considered to be as strong as those requested directly
-+ * from the LRNG.
-+ */
 +struct batched_entropy {
 +	union {
 +		u64 entropy_u64[LRNG_DRNG_BLOCKSIZE / sizeof(u64)];
 +		u32 entropy_u32[LRNG_DRNG_BLOCKSIZE / sizeof(u32)];
-+		u16 entropy_u16[LRNG_DRNG_BLOCKSIZE / sizeof(u16)];
-+		u8 entropy_u8[LRNG_DRNG_BLOCKSIZE / sizeof(u8)];
 +	};
 +	unsigned int position;
 +	spinlock_t batch_lock;
@@ -146,67 +136,6 @@ index 000000000000..84f3ce38f332
 +}
 +EXPORT_SYMBOL(get_random_u32);
 +
-+static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_u16) = {
-+	.batch_lock	= __SPIN_LOCK_UNLOCKED(batched_entropy_u16.lock),
-+};
-+
-+u16 get_random_u16(void)
-+{
-+	u16 ret;
-+	unsigned long flags;
-+	struct batched_entropy *batch;
-+
-+	lrng_debug_report_seedlevel("get_random_u16");
-+
-+	batch = raw_cpu_ptr(&batched_entropy_u16);
-+	spin_lock_irqsave(&batch->batch_lock, flags);
-+	if (batch->position % ARRAY_SIZE(batch->entropy_u16) == 0) {
-+		lrng_get_random_bytes(batch->entropy_u16, LRNG_DRNG_BLOCKSIZE);
-+		batch->position = 0;
-+	}
-+	ret = batch->entropy_u16[batch->position++];
-+	spin_unlock_irqrestore(&batch->batch_lock, flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL(get_random_u16);
-+
-+static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_u8) = {
-+	.batch_lock	= __SPIN_LOCK_UNLOCKED(batched_entropy_u8.lock),
-+};
-+
-+u8 get_random_u8(void)
-+{
-+	u8 ret;
-+	unsigned long flags;
-+	struct batched_entropy *batch;
-+
-+	lrng_debug_report_seedlevel("get_random_u8");
-+
-+	batch = raw_cpu_ptr(&batched_entropy_u8);
-+	spin_lock_irqsave(&batch->batch_lock, flags);
-+	if (batch->position % ARRAY_SIZE(batch->entropy_u8) == 0) {
-+		lrng_get_random_bytes(batch->entropy_u8, LRNG_DRNG_BLOCKSIZE);
-+		batch->position = 0;
-+	}
-+	ret = batch->entropy_u8[batch->position++];
-+	spin_unlock_irqrestore(&batch->batch_lock, flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL(get_random_u8);
-+
-+/* Taken directly from random.c */
-+u32 __get_random_u32_below(u32 ceil)
-+{
-+	u64 mult = (u64)ceil * get_random_u32();
-+	if (unlikely((u32)mult < ceil)) {
-+		u32 bound = -ceil % ceil;
-+		while (unlikely((u32)mult < bound))
-+			mult = (u64)ceil * get_random_u32();
-+	}
-+	return mult >> 32;
-+}
-+EXPORT_SYMBOL(__get_random_u32_below);
-+
 +#ifdef CONFIG_SMP
 +/*
 + * This function is called when the CPU is coming up, with entry
@@ -218,8 +147,6 @@ index 000000000000..84f3ce38f332
 +	 * When the cpu comes back online, immediately invalidate all batches,
 +	 * so that we serve fresh randomness.
 +	 */
-+	per_cpu_ptr(&batched_entropy_u8, cpu)->position = 0;
-+	per_cpu_ptr(&batched_entropy_u16, cpu)->position = 0;
 +	per_cpu_ptr(&batched_entropy_u32, cpu)->position = 0;
 +	per_cpu_ptr(&batched_entropy_u64, cpu)->position = 0;
 +	return 0;
@@ -245,20 +172,10 @@ index 000000000000..84f3ce38f332
 +	for_each_possible_cpu(cpu) {
 +		struct batched_entropy *batched_entropy;
 +
-+		batched_entropy = per_cpu_ptr(&batched_entropy_u8, cpu);
-+		spin_lock_irqsave(&batched_entropy->batch_lock, flags);
-+		batched_entropy->position = 0;
-+		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
-+
-+		batched_entropy = per_cpu_ptr(&batched_entropy_u16, cpu);
-+		spin_lock_irqsave(&batched_entropy->batch_lock, flags);
-+		batched_entropy->position = 0;
-+		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
-+
 +		batched_entropy = per_cpu_ptr(&batched_entropy_u32, cpu);
 +		spin_lock_irqsave(&batched_entropy->batch_lock, flags);
 +		batched_entropy->position = 0;
-+		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
++		spin_unlock(&batched_entropy->batch_lock);
 +
 +		batched_entropy = per_cpu_ptr(&batched_entropy_u64, cpu);
 +		spin_lock(&batched_entropy->batch_lock);
@@ -268,10 +185,10 @@ index 000000000000..84f3ce38f332
 +}
 diff --git a/drivers/char/lrng/lrng_interface_dev_common.c b/drivers/char/lrng/lrng_interface_dev_common.c
 new file mode 100644
-index 000000000000..a2845e278c6d
+index 000000000000..09d0563074a4
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_dev_common.c
-@@ -0,0 +1,315 @@
+@@ -0,0 +1,314 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG User and kernel space interfaces
@@ -520,7 +437,7 @@ index 000000000000..a2845e278c6d
 +long lrng_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 +{
 +	u32 digestsize_bits;
-+	int size, ent_count_bits, ret;
++	int size, ent_count_bits;
 +	int __user *p = (int __user *)arg;
 +
 +	switch (cmd) {
@@ -555,9 +472,8 @@ index 000000000000..a2845e278c6d
 +			return -EINVAL;
 +		/* there cannot be more entropy than data */
 +		ent_count_bits = min(ent_count_bits, size<<3);
-+		ret = lrng_drng_write_common((const char __user *)p, size,
-+					     ent_count_bits);
-+		return (ret < 0) ? ret : 0;
++		return lrng_drng_write_common((const char __user *)p, size,
++					      ent_count_bits);
 +	case RNDZAPENTCNT:
 +	case RNDCLEARPOOL:
 +		/* Clear the entropy pool counter. */
@@ -589,10 +505,10 @@ index 000000000000..a2845e278c6d
 +}
 diff --git a/drivers/char/lrng/lrng_interface_random_kernel.c b/drivers/char/lrng/lrng_interface_random_kernel.c
 new file mode 100644
-index 000000000000..fabf2109ceaf
+index 000000000000..471390bfd70c
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_kernel.c
-@@ -0,0 +1,248 @@
+@@ -0,0 +1,214 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Kernel space interfaces API/ABI compliant to linux/random.h
@@ -614,8 +530,6 @@ index 000000000000..fabf2109ceaf
 +#include "lrng_interface_dev_common.h"
 +#include "lrng_interface_random_kernel.h"
 +
-+static ATOMIC_NOTIFIER_HEAD(random_ready_notifier);
-+
 +/********************************** Helper ***********************************/
 +
 +static bool lrng_trust_bootloader __initdata =
@@ -627,42 +541,12 @@ index 000000000000..fabf2109ceaf
 +}
 +early_param("random.trust_bootloader", lrng_parse_trust_bootloader);
 +
-+void __init random_init_early(const char *command_line)
++int __init random_init(const char *command_line)
 +{
-+	lrng_rand_initialize_early();
++	int ret = lrng_rand_initialize();
++
 +	lrng_pool_insert_aux(command_line, strlen(command_line), 0);
-+}
-+
-+void __init random_init(void)
-+{
-+	lrng_rand_initialize();
-+}
-+
-+/*
-+ * Add a callback function that will be invoked when the LRNG is initialised,
-+ * or immediately if it already has been. Only use this is you are absolutely
-+ * sure it is required. Most users should instead be able to test
-+ * `rng_is_initialized()` on demand, or make use of `get_random_bytes_wait()`.
-+ */
-+int __cold execute_with_initialized_rng(struct notifier_block *nb)
-+{
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&random_ready_notifier.lock, flags);
-+	if (rng_is_initialized())
-+		nb->notifier_call(nb, 0, NULL);
-+	else
-+		ret = raw_notifier_chain_register(
-+			(struct raw_notifier_head *)&random_ready_notifier.head,
-+			nb);
-+	spin_unlock_irqrestore(&random_ready_notifier.lock, flags);
 +	return ret;
-+}
-+
-+void lrng_kick_random_ready(void)
-+{
-+	atomic_notifier_call_chain(&random_ready_notifier, 0, NULL);
 +}
 +
 +/************************ LRNG kernel input interfaces ************************/
@@ -680,18 +564,16 @@ index 000000000000..fabf2109ceaf
 + * @entropy_bits: amount of entropy in buffer (value is in bits)
 + */
 +void add_hwgenerator_randomness(const void *buffer, size_t count,
-+				size_t entropy_bits, bool sleep_after)
++				size_t entropy_bits)
 +{
 +	/*
-+	 * Suspend writing if we are fully loaded with entropy or if caller
-+	 * did not provide any entropy. We'll be woken up again once below
-+	 * lrng_write_wakeup_thresh, or when the calling thread is about to
-+	 * terminate.
++	 * Suspend writing if we are fully loaded with entropy.
++	 * We'll be woken up again once below lrng_write_wakeup_thresh,
++	 * or when the calling thread is about to terminate.
 +	 */
 +	wait_event_interruptible(lrng_write_wait,
-+				(lrng_need_entropy() && entropy_bits) ||
++				lrng_need_entropy() ||
 +				lrng_state_exseed_allow(lrng_noise_source_hw) ||
-+				!sleep_after ||
 +				kthread_should_stop());
 +	lrng_state_exseed_set(lrng_noise_source_hw, false);
 +	lrng_pool_insert_aux(buffer, count, entropy_bits);
@@ -952,5 +834,5 @@ index 000000000000..d12e883804d9
 +				      flags & GRND_RANDOM, buf, count);
 +}
 -- 
-2.40.0
+2.37.3
 
