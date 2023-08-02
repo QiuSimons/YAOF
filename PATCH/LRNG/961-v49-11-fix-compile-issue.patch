@@ -1,0 +1,13 @@
+diff --git a/drivers/char/lrng/lrng_drng_atomic.h b/drivers/char/lrng/lrng_drng_atomic.h
+index 220b24daf..7ae10f20b 100644
+--- a/drivers/char/lrng/lrng_drng_atomic.h
++++ b/drivers/char/lrng/lrng_drng_atomic.h
+@@ -17,7 +17,7 @@ struct lrng_drng *lrng_get_atomic(void);
+ static inline void lrng_drng_atomic_reset(void) { }
+ static inline void lrng_drng_atomic_seed_drng(struct lrng_drng *drng) { }
+ static inline void lrng_drng_atomic_force_reseed(void) { }
+-static inline struct lrng_drng *lrng_get_atomic(void) { return NULL }
++static inline struct lrng_drng *lrng_get_atomic(void) { return NULL; }
+ #endif /* CONFIG_LRNG_DRNG_ATOMIC */
+ 
+ #endif /* _LRNG_DRNG_ATOMIC_H */
