@@ -122,7 +122,7 @@ CONFIG_PACKAGE_zerotier=y
 CONFIG_PACKAGE_coremark=y
 CONFIG_PACKAGE_htop=y
 CONFIG_PACKAGE_subconverter=y
-CONFIG_PACKAGE_kmod-shortcut-fe-cm=y
+CONFIG_PACKAGE_kmod-fast-classifier=y
 
 ### SSRP ###
 CONFIG_PACKAGE_luci-app-ssr-plus=y
