@@ -1,7 +1,7 @@
-From 1f9f2d7c5c75a17bf7f36a0e0f2e87ba136765d7 Mon Sep 17 00:00:00 2001
+From 9e50ad164845985153a718cb40155c00792f982a Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 15 May 2022 16:51:02 +0200
-Subject: [PATCH v45 11/26] LRNG - add interrupt entropy source
+Date: Sun, 31 Jul 2022 22:25:11 +0200
+Subject: [PATCH v46 11/26] LRNG - add interrupt entropy source
 
 The interrupt entropy source (ES) consumes the events triggered by the
 kernel invoked with the add_interrupt_randomness. Its main goal is:
@@ -44,8 +44,8 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Kconfig       | 386 ++++++++---------
  drivers/char/lrng/Makefile      |   1 +
- drivers/char/lrng/lrng_es_irq.c | 728 ++++++++++++++++++++++++++++++++
- 3 files changed, 922 insertions(+), 193 deletions(-)
+ drivers/char/lrng/lrng_es_irq.c | 727 ++++++++++++++++++++++++++++++++
+ 3 files changed, 921 insertions(+), 193 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_irq.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
@@ -489,10 +489,10 @@ index 3cfbf21271e2..a64075c8fee5 100644
 +obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
 diff --git a/drivers/char/lrng/lrng_es_irq.c b/drivers/char/lrng/lrng_es_irq.c
 new file mode 100644
-index 000000000000..9336d0045e06
+index 000000000000..97c5c1d26447
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.c
-@@ -0,0 +1,728 @@
+@@ -0,0 +1,727 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Slow Entropy Source: Interrupt data collection
@@ -744,8 +744,7 @@ index 000000000000..9336d0045e06
 +		       * considered no issue and even good as we have some more
 +		       * uncertainty here.
 +		       */
-+		      new_cb->hash_update(pcpu_shash, digest,
-+					       sizeof(digest));
++		      new_cb->hash_update(pcpu_shash, digest, sizeof(digest));
 +		if (ret)
 +			goto out;
 +
@@ -760,7 +759,7 @@ index 000000000000..9336d0045e06
 +		atomic_add_return_relaxed(found_irqs,
 +				per_cpu_ptr(&lrng_irq_array_irqs, cpu));
 +
-+		pr_debug("Re-initialize per-CPU entropy pool for CPU %d on NUMA node %d with hash %s\n",
++		pr_debug("Re-initialize per-CPU interrupt entropy pool for CPU %d on NUMA node %d with hash %s\n",
 +			 cpu, node, new_cb->hash_name());
 +	}
 +
@@ -1222,5 +1221,5 @@ index 000000000000..9336d0045e06
 +	.switch_hash		= lrng_irq_switch_hash,
 +};
 --
-2.36.1
+2.37.1
 

@@ -1,7 +1,7 @@
-From 63624fa577610debe48fa3d11e203b5d32c57b29 Mon Sep 17 00:00:00 2001
+From 3da117bed0bfc9d64eeafccd155ecee282ae1bc3 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 17:45:45 +0200
-Subject: [PATCH v45 16/26] LRNG - CPU entropy source
+Subject: [PATCH v46 16/26] LRNG - CPU entropy source
 
 Certain CPUs provide instructions giving access to an entropy source
 (e.g. RDSEED on Intel/AMD, DARN on POWER, etc.). The LRNG can utilize
@@ -401,5 +401,5 @@ index 000000000000..3910108cfd08
 +	.switch_hash		= lrng_cpu_switch_hash,
 +};
 --
-2.36.1
+2.37.1
 

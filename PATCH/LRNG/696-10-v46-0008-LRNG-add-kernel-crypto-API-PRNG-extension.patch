@@ -1,7 +1,7 @@
-From b8771baac603b17cf26a7a7b55b4070f23fe0a43 Mon Sep 17 00:00:00 2001
+From dcb21cf4bb46dd558919acaac5c344ff34c74a70 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:13:37 +0200
-Subject: [PATCH v45 08/26] LRNG - add kernel crypto API PRNG extension
+Subject: [PATCH v46 08/26] LRNG - add kernel crypto API PRNG extension
 
 Add runtime-pluggable support for all PRNGs that are accessible via
 the kernel crypto API, including hardware PRNGs. The PRNG is selected
@@ -309,5 +309,5 @@ index 000000000000..a204bcf52a9a
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - kernel crypto API DRNG backend");
 +#endif /* CONFIG_LRNG_DFLT_DRNG_KCAPI */
 --
-2.36.1
+2.37.1
 

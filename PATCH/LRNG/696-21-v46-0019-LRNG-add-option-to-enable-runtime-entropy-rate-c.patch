@@ -1,7 +1,7 @@
-From 09ed8a04b95cf54758e029c07c8a9370b76d5fdb Mon Sep 17 00:00:00 2001
+From 1687f0f9df94c3a7dda322827d289fdd4186daaf Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 17:56:56 +0200
-Subject: [PATCH v45 19/26] LRNG - add option to enable runtime entropy rate
+Subject: [PATCH v46 19/26] LRNG - add option to enable runtime entropy rate
  configuration
 
 The entropy rate for the different entropy sources is configured at
@@ -61,5 +61,5 @@ index 797f6001f17b..d7e87dc26850 100644
  comment "Common Timer-based Entropy Source Configuration"
 
 --
-2.36.1
+2.37.1
 

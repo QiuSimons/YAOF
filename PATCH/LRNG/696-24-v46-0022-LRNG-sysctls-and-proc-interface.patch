@@ -1,7 +1,7 @@
-From 4ddf61b43a7af026eeb4efef48fd25bfd7e8f7d9 Mon Sep 17 00:00:00 2001
+From 6103eb7acba94a9fb80bec358748eda414b9f6e5 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 15 May 2022 18:17:03 +0200
-Subject: [PATCH v45 22/26] LRNG - sysctls and /proc interface
+Date: Sun, 31 Jul 2022 22:34:51 +0200
+Subject: [PATCH v46 22/26] LRNG - sysctls and /proc interface
 
 The LRNG sysctl interface provides the same controls as the existing
 /dev/random implementation. These sysctls behave identically and are
@@ -13,13 +13,11 @@ sysctls are documented at [1].
 The sysctl implementation is only enabled if the existing random.c file
 is not compiled.
 
-[1] https://www.chronox.de/lrng.html
-
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Makefile      |   1 +
- drivers/char/lrng/lrng_sysctl.c | 145 ++++++++++++++++++++++++++++++++
- 2 files changed, 146 insertions(+)
+ drivers/char/lrng/lrng_sysctl.c | 140 ++++++++++++++++++++++++++++++++
+ 2 files changed, 141 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_sysctl.c
 
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
@@ -36,10 +34,10 @@ index 0a61a2c9ec6e..52b4625a0760 100644
  obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
 diff --git a/drivers/char/lrng/lrng_sysctl.c b/drivers/char/lrng/lrng_sysctl.c
 new file mode 100644
-index 000000000000..0f657d01bf62
+index 000000000000..ecdd96a842b4
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_sysctl.c
-@@ -0,0 +1,145 @@
+@@ -0,0 +1,140 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG sysctl interfaces
@@ -96,9 +94,7 @@ index 000000000000..0f657d01bf62
 +				void *buffer, size_t *lenp, loff_t *ppos)
 +{
 +	struct ctl_table fake_table;
-+	int entropy_count;
-+
-+	entropy_count = lrng_avail_entropy();
++	int entropy_count = lrng_avail_entropy_aux();
 +
 +	fake_table.data = &entropy_count;
 +	fake_table.maxlen = sizeof(entropy_count);
@@ -110,10 +106,7 @@ index 000000000000..0f657d01bf62
 +				   void *buffer, size_t *lenp, loff_t *ppos)
 +{
 +	struct ctl_table fake_table;
-+	u32 i, entropy_count = 0;
-+
-+	for_each_lrng_es(i)
-+		entropy_count += lrng_es[i]->max_entropy();
++	u32 entropy_count = lrng_es[lrng_ext_es_aux]->max_entropy();
 +
 +	fake_table.data = &entropy_count;
 +	fake_table.maxlen = sizeof(entropy_count);
@@ -186,5 +179,5 @@ index 000000000000..0f657d01bf62
 +}
 +device_initcall(random_sysctls_init);
 --
-2.36.1
+2.37.1
 

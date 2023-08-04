@@ -1,7 +1,7 @@
-From e64c9f8a53af273722115f75cb86f0f0f03a10af Mon Sep 17 00:00:00 2001
+From 212271c342942d30e78a441feca4089d9811f98d Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 17:47:58 +0200
-Subject: [PATCH v45 17/26] crypto: move Jitter RNG header include dir
+Subject: [PATCH v46 17/26] crypto: move Jitter RNG header include dir
 
 To support the LRNG operation which uses the Jitter RNG separately
 from the kernel crypto API, the header file must be accessible to
@@ -47,5 +47,5 @@ similarity index 100%
 rename from crypto/jitterentropy.h
 rename to include/crypto/internal/jitterentropy.h
 --
-2.36.1
+2.37.1
 
