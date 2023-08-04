@@ -1,7 +1,7 @@
-From 49d1c361f9fb72d87281faa604d5627f5aa7c16e Mon Sep 17 00:00:00 2001
+From 31e783978f75d7510172d5dec044551755e5c5ab Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:13:56 +0200
-Subject: [PATCH v46 21/26] LRNG - add power-on and runtime self-tests
+Subject: [PATCH v45 21/26] LRNG - add power-on and runtime self-tests
 
 Parts of the LRNG are already covered by self-tests, including:
 
@@ -529,5 +529,5 @@ index 000000000000..15f1e4a2a719
 +
 +module_init(lrng_selftest_init);
 --
-2.37.1
+2.36.1
 

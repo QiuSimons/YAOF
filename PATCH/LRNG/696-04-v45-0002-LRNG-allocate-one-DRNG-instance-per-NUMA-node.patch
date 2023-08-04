@@ -1,7 +1,7 @@
-From 7f2635061efbb7b13b13a984a49d16b035cd3585 Mon Sep 17 00:00:00 2001
+From a439e463bddc58e9d5d94417fd87e02da136a4c4 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 15:40:46 +0200
-Subject: [PATCH v46 02/26] LRNG - allocate one DRNG instance per NUMA node
+Subject: [PATCH v45 02/26] LRNG - allocate one DRNG instance per NUMA node
 
 In order to improve NUMA-locality when serving getrandom(2) requests,
 allocate one DRNG instance per node.
@@ -203,5 +203,5 @@ index 000000000000..e8097abe7fbd
 +
 +#endif /* _LRNG_PROC_H */
 --
-2.37.1
+2.36.1
 

@@ -1,7 +1,7 @@
-From fd3b0b0872eba0f35abe66bcfa88ce7f7ff69435 Mon Sep 17 00:00:00 2001
+From bed0e9e2b0a16a316d3595c5ed848e5d92d2e7ed Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:05:58 +0200
-Subject: [PATCH v46 20/26] LRNG - add interface for gathering of raw entropy
+Subject: [PATCH v45 20/26] LRNG - add interface for gathering of raw entropy
 
 The test interface allows a privileged process to capture the raw
 unconditioned noise that is collected by the LRNG for statistical
@@ -1525,5 +1525,5 @@ index 000000000000..101140085d81
 +
 +module_init(lrng_raw_init);
 --
-2.37.1
+2.36.1
 

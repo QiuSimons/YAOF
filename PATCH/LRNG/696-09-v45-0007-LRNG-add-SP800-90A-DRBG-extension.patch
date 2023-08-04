@@ -1,7 +1,7 @@
-From c10f361f3078114da5114b1fb930e771278fda18 Mon Sep 17 00:00:00 2001
+From dac167428616c559ab6d4178a26ec92e65974368 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:09:02 +0200
-Subject: [PATCH v46 07/26] LRNG - add SP800-90A DRBG extension
+Subject: [PATCH v45 07/26] LRNG - add SP800-90A DRBG extension
 
 Using the LRNG switchable DRNG support, the SP800-90A DRBG extension is
 implemented.
@@ -331,5 +331,5 @@ index 000000000000..1feec2c095a5
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - SP800-90A DRBG backend");
 +#endif /* CONFIG_LRNG_DFLT_DRNG_DRBG */
 --
-2.37.1
+2.36.1
 

@@ -1,7 +1,7 @@
-From 47250cbeca71460707d86c73c0c5d3e15774f236 Mon Sep 17 00:00:00 2001
+From ba2bd992437af7adc8c1c1a2881db8b8aa0ee914 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:01:44 +0200
-Subject: [PATCH v46 05/26] LRNG - add common generic hash support
+Subject: [PATCH v45 05/26] LRNG - add common generic hash support
 
 The LRNG switchable DRNG support also allows the replacement of the hash
 implementation used as conditioning component. The common generic hash
@@ -227,5 +227,5 @@ index 000000000000..13e62db9b6c8
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - Kernel crypto API hash backend");
 --
-2.37.1
+2.36.1
 

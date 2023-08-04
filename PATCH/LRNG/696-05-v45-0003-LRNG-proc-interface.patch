@@ -1,7 +1,7 @@
-From 385136329ef5008263938ff2ef5413b67c63005a Mon Sep 17 00:00:00 2001
+From b77498aab0eff7c5dfab5db5ecfb2ea5c9f733d0 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 31 Jul 2022 22:16:44 +0200
-Subject: [PATCH v46 03/26] LRNG - /proc interface
+Date: Sun, 15 May 2022 15:44:04 +0200
+Subject: [PATCH v45 03/26] LRNG - /proc interface
 
 The patch adds the file lrng_type which provides details about
 the LRNG:
@@ -28,9 +28,9 @@ secondary DRNG seeded with at least 256 bits of entropy)
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/lrng/Makefile    |  1 +
- drivers/char/lrng/lrng_proc.c | 74 +++++++++++++++++++++++++++++++++++
+ drivers/char/lrng/lrng_proc.c | 71 +++++++++++++++++++++++++++++++++++
  drivers/char/lrng/lrng_proc.h |  4 ++
- 3 files changed, 79 insertions(+)
+ 3 files changed, 76 insertions(+)
  create mode 100644 drivers/char/lrng/lrng_proc.c
 
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
@@ -47,10 +47,10 @@ index 60effabb1372..dafa6299972d 100644
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
 new file mode 100644
-index 000000000000..92329cc6ef28
+index 000000000000..6e3e0699a840
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,71 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG proc interfaces
@@ -79,7 +79,7 @@ index 000000000000..92329cc6ef28
 +static int lrng_proc_type_show(struct seq_file *m, void *v)
 +{
 +	struct lrng_drng *lrng_drng_init = lrng_drng_init_instance();
-+	unsigned char buf[270];
++	unsigned char buf[250];
 +	u32 i;
 +
 +	mutex_lock(&lrng_drng_init->lock);
@@ -87,18 +87,15 @@ index 000000000000..92329cc6ef28
 +		 "DRNG name: %s\n"
 +		 "LRNG security strength in bits: %d\n"
 +		 "Number of DRNG instances: %u\n"
-+		 "Standards compliance: %s%s\n"
++		 "Standards compliance: %s\n"
 +		 "LRNG minimally seeded: %s\n"
-+		 "LRNG fully seeded: %s\n"
-+		 "LRNG entropy level: %u\n",
++		 "LRNG fully seeded: %s\n",
 +		 lrng_drng_init->drng_cb->drng_name(),
 +		 lrng_security_strength(),
 +		 numa_drngs,
 +		 lrng_sp80090c_compliant() ? "SP800-90C " : "",
-+		 lrng_ntg1_compliant() ? "NTG.1 " : "",
 +		 lrng_state_min_seeded() ? "true" : "false",
-+		 lrng_state_fully_seeded() ? "true" : "false",
-+		 lrng_avail_entropy());
++		 lrng_state_fully_seeded() ? "true" : "false");
 +	seq_write(m, buf, strlen(buf));
 +
 +	for_each_lrng_es(i) {
@@ -141,5 +138,5 @@ index e8097abe7fbd..c653274f1954 100644
 
  #endif /* _LRNG_PROC_H */
 --
-2.37.1
+2.36.1
 

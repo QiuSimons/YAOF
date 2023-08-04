@@ -1,7 +1,7 @@
-From a3ad1c52622196d38af92feb0970ae474e6ec680 Mon Sep 17 00:00:00 2001
+From 2edb318d4d32f0bc17aead10e633a44fc965e4ff Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Tue, 15 Sep 2020 22:17:43 +0200
-Subject: [PATCH v46 06/26] crypto: DRBG - externalize DRBG functions for LRNG
+Subject: [PATCH v45 06/26] crypto: DRBG - externalize DRBG functions for LRNG
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -145,5 +145,5 @@ index af5ad51d3eef..b12ae9bdebf4 100644
 +
  #endif /* _DRBG_H */
 --
-2.37.1
+2.36.1
 

@@ -1,7 +1,7 @@
-From cb71dc431aa3c7eb56ea2befa15fd688ad60960b Mon Sep 17 00:00:00 2001
+From d19ba5ae15e7508a9c1c804210deb3496f9494ae Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 31 Jul 2022 22:35:54 +0200
-Subject: [PATCH v46 23/26] LRMG - add drop-in replacement random(4) API
+Date: Sun, 15 May 2022 18:29:08 +0200
+Subject: [PATCH v45 23/26] LRMG - add drop-in replacement random(4) API
 
 The LRNG is intended to be a full replacement of the existing random.c.
 This also includes the providing of a full API and ABI compliant drop-in
@@ -14,11 +14,11 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/Makefile                         |   3 +-
  drivers/char/lrng/Makefile                    |   5 +
- drivers/char/lrng/lrng_interface_aux.c        | 126 ++++++++
- drivers/char/lrng/lrng_interface_dev_common.c | 297 ++++++++++++++++++
- .../char/lrng/lrng_interface_random_kernel.c  | 207 ++++++++++++
- .../char/lrng/lrng_interface_random_user.c    |  70 +++++
- 6 files changed, 707 insertions(+), 1 deletion(-)
+ drivers/char/lrng/lrng_interface_aux.c        | 158 +++++++++
+ drivers/char/lrng/lrng_interface_dev_common.c | 295 ++++++++++++++++
+ .../char/lrng/lrng_interface_random_kernel.c  | 325 ++++++++++++++++++
+ .../char/lrng/lrng_interface_random_user.c    |  70 ++++
+ 6 files changed, 855 insertions(+), 1 deletion(-)
  create mode 100644 drivers/char/lrng/lrng_interface_aux.c
  create mode 100644 drivers/char/lrng/lrng_interface_dev_common.c
  create mode 100644 drivers/char/lrng/lrng_interface_random_kernel.c
@@ -53,10 +53,10 @@ index 52b4625a0760..6242262d577e 100644
 +					   lrng_interface_aux.o
 diff --git a/drivers/char/lrng/lrng_interface_aux.c b/drivers/char/lrng/lrng_interface_aux.c
 new file mode 100644
-index 000000000000..0eb49bd6b48f
+index 000000000000..a2236ff3b133
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_aux.c
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,158 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG auxiliary interfaces
@@ -183,12 +183,44 @@ index 000000000000..0eb49bd6b48f
 +		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
 +	}
 +}
++
++/*
++ * randomize_page - Generate a random, page aligned address
++ * @start:	The smallest acceptable address the caller will take.
++ * @range:	The size of the area, starting at @start, within which the
++ *		random address must fall.
++ *
++ * If @start + @range would overflow, @range is capped.
++ *
++ * NOTE: Historical use of randomize_range, which this replaces, presumed that
++ * @start was already page aligned.  We now align it regardless.
++ *
++ * Return: A page aligned address within [start, start + range).  On error,
++ * @start is returned.
++ */
++unsigned long randomize_page(unsigned long start, unsigned long range)
++{
++	if (!PAGE_ALIGNED(start)) {
++		range -= PAGE_ALIGN(start) - start;
++		start = PAGE_ALIGN(start);
++	}
++
++	if (start > ULONG_MAX - range)
++		range = ULONG_MAX - start;
++
++	range >>= PAGE_SHIFT;
++
++	if (range == 0)
++		return start;
++
++	return start + (get_random_long() % range << PAGE_SHIFT);
++}
 diff --git a/drivers/char/lrng/lrng_interface_dev_common.c b/drivers/char/lrng/lrng_interface_dev_common.c
 new file mode 100644
-index 000000000000..c366b29feb99
+index 000000000000..8e80d5bd9773
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_dev_common.c
-@@ -0,0 +1,297 @@
+@@ -0,0 +1,295 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG User and kernel space interfaces
@@ -270,7 +302,7 @@ index 000000000000..c366b29feb99
 +
 +/************************ LRNG user output interfaces *************************/
 +
-+ssize_t lrng_read_common(char __user *buf, size_t nbytes, bool pr)
++ssize_t lrng_read_common(char __user *buf, size_t nbytes)
 +{
 +	ssize_t ret = 0;
 +	u8 tmpbuf[LRNG_DRNG_BLOCKSIZE] __aligned(LRNG_KCAPI_ALIGN);
@@ -308,7 +340,7 @@ index 000000000000..c366b29feb99
 +			schedule();
 +		}
 +
-+		rc = lrng_drng_get_sleep(tmp, todo, pr);
++		rc = lrng_drng_get_sleep(tmp, todo);
 +		if (rc <= 0) {
 +			if (rc < 0)
 +				ret = rc;
@@ -333,8 +365,7 @@ index 000000000000..c366b29feb99
 +	return ret;
 +}
 +
-+ssize_t lrng_read_common_block(int nonblock, int pr,
-+			       char __user *buf, size_t nbytes)
++ssize_t lrng_read_common_block(int nonblock, char __user *buf, size_t nbytes)
 +{
 +	int ret;
 +
@@ -345,14 +376,13 @@ index 000000000000..c366b29feb99
 +	if (ret)
 +		return ret;
 +
-+	return lrng_read_common(buf, nbytes, !!pr);
++	return lrng_read_common(buf, nbytes);
 +}
 +
 +ssize_t lrng_drng_read_block(struct file *file, char __user *buf, size_t nbytes,
 +			     loff_t *ppos)
 +{
-+	return lrng_read_common_block(file->f_flags & O_NONBLOCK,
-+				      file->f_flags & O_SYNC, buf, nbytes);
++	return lrng_read_common_block(file->f_flags & O_NONBLOCK, buf, nbytes);
 +}
 +
 +__poll_t lrng_random_poll(struct file *file, poll_table *wait)
@@ -425,7 +455,7 @@ index 000000000000..c366b29feb99
 +
 +	switch (cmd) {
 +	case RNDGETENTCNT:
-+		ent_count_bits = lrng_avail_entropy_aux();
++		ent_count_bits = lrng_avail_entropy();
 +		if (put_user(ent_count_bits, p))
 +			return -EFAULT;
 +		return 0;
@@ -488,10 +518,10 @@ index 000000000000..c366b29feb99
 +}
 diff --git a/drivers/char/lrng/lrng_interface_random_kernel.c b/drivers/char/lrng/lrng_interface_random_kernel.c
 new file mode 100644
-index 000000000000..ec6310884865
+index 000000000000..4dae08e06500
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_kernel.c
-@@ -0,0 +1,207 @@
+@@ -0,0 +1,325 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Kernel space interfaces API/ABI compliant to linux/random.h
@@ -513,14 +543,42 @@ index 000000000000..ec6310884865
 +#include "lrng_interface_dev_common.h"
 +#include "lrng_interface_random_kernel.h"
 +
++static RAW_NOTIFIER_HEAD(lrng_ready_chain);
++static DEFINE_SPINLOCK(lrng_ready_chain_lock);
++static unsigned int lrng_ready_chain_used = 0;
++
 +/********************************** Helper ***********************************/
 +
-+int __init random_init(const char *command_line)
++int __init rand_initialize(void)
 +{
-+	int ret = lrng_rand_initialize();
++	return lrng_rand_initialize();
++}
 +
-+	lrng_pool_insert_aux(command_line, strlen(command_line), 0);
-+	return ret;
++bool lrng_ready_chain_has_sleeper(void)
++{
++	return !!lrng_ready_chain_used;
++}
++
++/*
++ * lrng_process_ready_list() - Ping all kernel internal callers waiting until
++ * the DRNG is completely initialized to inform that the DRNG reached that
++ * seed level.
++ *
++ * When the SP800-90B testing is enabled, the ping only happens if the SP800-90B
++ * startup health tests are completed. This implies that kernel internal
++ * callers always have an SP800-90B compliant noise source when being
++ * pinged.
++ */
++void lrng_process_ready_list(void)
++{
++	unsigned long flags;
++
++	if (!lrng_state_operational())
++		return;
++
++	spin_lock_irqsave(&lrng_ready_chain_lock, flags);
++	raw_notifier_call_chain(&lrng_ready_chain, 0, NULL);
++	spin_unlock_irqrestore(&lrng_ready_chain_lock, flags);
 +}
 +
 +/************************ LRNG kernel input interfaces ************************/
@@ -571,6 +629,7 @@ index 000000000000..ec6310884865
 +			     IS_ENABLED(CONFIG_RANDOM_TRUST_BOOTLOADER) ?
 +			     size * 8 : 0);
 +}
++EXPORT_SYMBOL_GPL(add_bootloader_randomness);
 +
 +/*
 + * Callback for HID layer -- use the HID event values to stir the entropy pool
@@ -618,6 +677,58 @@ index 000000000000..ec6310884865
 +void add_interrupt_randomness(int irq) { }
 +EXPORT_SYMBOL(add_interrupt_randomness);
 +#endif
++
++/*
++ * unregister_random_ready_notifier() - Delete a previously registered readiness
++ * callback function.
++ *
++ * @nb: callback definition that was registered initially
++ */
++int unregister_random_ready_notifier(struct notifier_block *nb)
++{
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&lrng_ready_chain_lock, flags);
++	ret = raw_notifier_chain_unregister(&lrng_ready_chain, nb);
++	spin_unlock_irqrestore(&lrng_ready_chain_lock, flags);
++
++	if (!ret && lrng_ready_chain_used)
++		lrng_ready_chain_used--;
++
++	return ret;
++}
++EXPORT_SYMBOL(unregister_random_ready_notifier);
++
++/*
++ * register_random_ready_notifier() - Add a callback function that will be
++ * invoked when the DRNG is fully initialized and seeded.
++ *
++ * @nb: callback definition to be invoked when the LRNG is seeded
++ *
++ * Return:
++ * * 0 if callback is successfully added
++ * * -EALREADY if pool is already initialised (callback not called)
++ */
++int register_random_ready_notifier(struct notifier_block *nb)
++{
++	unsigned long flags;
++	int err = -EALREADY;
++
++	if (likely(lrng_state_operational()))
++		return err;
++
++	spin_lock_irqsave(&lrng_ready_chain_lock, flags);
++	if (!lrng_state_operational())
++		err = raw_notifier_chain_register(&lrng_ready_chain, nb);
++	spin_unlock_irqrestore(&lrng_ready_chain_lock, flags);
++
++	if (!err)
++		lrng_ready_chain_used++;
++
++	return err;
++}
++EXPORT_SYMBOL(register_random_ready_notifier);
 +
 +#if IS_ENABLED(CONFIG_VMGENID)
 +static BLOCKING_NOTIFIER_HEAD(lrng_vmfork_chain);
@@ -689,6 +800,43 @@ index 000000000000..ec6310884865
 +EXPORT_SYMBOL(wait_for_random_bytes);
 +
 +/*
++ * get_random_bytes_arch() - This function will use the architecture-specific
++ * hardware random number generator if it is available.
++ *
++ * The arch-specific hw RNG will almost certainly be faster than what we can
++ * do in software, but it is impossible to verify that it is implemented
++ * securely (as opposed, to, say, the AES encryption of a sequence number using
++ * a key known by the NSA).  So it's useful if we need the speed, but only if
++ * we're willing to trust the hardware manufacturer not to have put in a back
++ * door.
++ *
++ * @buf: buffer allocated by caller to store the random data in
++ * @nbytes: length of outbuf
++ *
++ * Return: number of bytes filled in.
++ */
++size_t __must_check get_random_bytes_arch(void *buf, size_t nbytes)
++{
++	size_t left = nbytes;
++	u8 *p = buf;
++
++	while (left) {
++		unsigned long v;
++		size_t chunk = min_t(size_t, left, sizeof(unsigned long));
++
++		if (!arch_get_random_long(&v))
++			break;
++
++		memcpy(p, &v, chunk);
++		p += chunk;
++		left -= chunk;
++	}
++
++	return nbytes - left;
++}
++EXPORT_SYMBOL(get_random_bytes_arch);
++
++/*
 + * Returns whether or not the LRNG has been seeded.
 + *
 + * Returns: true if the urandom pool has been seeded.
@@ -701,7 +849,7 @@ index 000000000000..ec6310884865
 +EXPORT_SYMBOL(rng_is_initialized);
 diff --git a/drivers/char/lrng/lrng_interface_random_user.c b/drivers/char/lrng/lrng_interface_random_user.c
 new file mode 100644
-index 000000000000..0565ba7a3588
+index 000000000000..7e45f41b7a4d
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_user.c
 @@ -0,0 +1,70 @@
@@ -731,7 +879,7 @@ index 000000000000..0565ba7a3588
 +		pr_debug_ratelimited("%s - use of not fully seeded DRNG (%zu bytes read)\n",
 +				     current->comm, nbytes);
 +
-+	return lrng_read_common(buf, nbytes, false);
++	return lrng_read_common(buf, nbytes);
 +}
 +
 +const struct file_operations random_fops = {
@@ -773,8 +921,8 @@ index 000000000000..0565ba7a3588
 +	if (flags & GRND_INSECURE)
 +		return lrng_drng_read(NULL, buf, count, NULL);
 +
-+	return lrng_read_common_block(flags & GRND_NONBLOCK, 0, buf, count);
++	return lrng_read_common_block(flags & GRND_NONBLOCK, buf, count);
 +}
 --
-2.37.1
+2.36.1
 
