@@ -1,7 +1,7 @@
-From 5f0699174ef3c0e6050b85f59d311f5a569401fe Mon Sep 17 00:00:00 2001
+From dac167428616c559ab6d4178a26ec92e65974368 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Fri, 18 Jun 2021 08:09:59 +0200
-Subject: [PATCH v43 09/15] LRNG - add SP800-90A DRBG extension
+Date: Sun, 15 May 2022 16:09:02 +0200
+Subject: [PATCH v45 07/26] LRNG - add SP800-90A DRBG extension
 
 Using the LRNG switchable DRNG support, the SP800-90A DRBG extension is
 implemented.
@@ -20,90 +20,153 @@ late_initcall stage which implies that with the start of user space, the
 user space interfaces of getrandom(2), /dev/random and /dev/urandom
 provide random data produced by an SP800-90A DRBG.
 
-CC: Torsten Duwe <duwe@lst.de>
-CC: "Eric W. Biederman" <ebiederm@xmission.com>
-CC: "Alexander E. Patrakov" <patrakov@gmail.com>
-CC: "Ahmed S. Darwish" <darwish.07@gmail.com>
-CC: "Theodore Y. Ts'o" <tytso@mit.edu>
-CC: Willy Tarreau <w@1wt.eu>
-CC: Matthew Garrett <mjg59@srcf.ucam.org>
-CC: Vito Caputo <vcaputo@pengaru.com>
-CC: Andreas Dilger <adilger.kernel@dilger.ca>
-CC: Jan Kara <jack@suse.cz>
-CC: Ray Strode <rstrode@redhat.com>
-CC: William Jon McCann <mccann@jhu.edu>
-CC: zhangjs <zachary@baishancloud.com>
-CC: Andy Lutomirski <luto@kernel.org>
-CC: Florian Weimer <fweimer@redhat.com>
-CC: Lennart Poettering <mzxreary@0pointer.de>
-CC: Nicolai Stange <nstange@suse.de>
-Reviewed-by: Alexander Lobakin <alobakin@pm.me>
-Tested-by: Alexander Lobakin <alobakin@pm.me>
-Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
-Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
-Tested-by: Neil Horman <nhorman@redhat.com>
-Tested-by: Jirka Hladky <jhladky@redhat.com>
-Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig     |  10 ++
- drivers/char/lrng/Makefile    |   1 +
- drivers/char/lrng/lrng_drbg.c | 198 ++++++++++++++++++++++++++++++++++
- 3 files changed, 209 insertions(+)
- create mode 100644 drivers/char/lrng/lrng_drbg.c
+ drivers/char/lrng/Kconfig          |  76 ++++++------
+ drivers/char/lrng/Makefile         |   1 +
+ drivers/char/lrng/lrng_drng_drbg.c | 179 +++++++++++++++++++++++++++++
+ 3 files changed, 218 insertions(+), 38 deletions(-)
+ create mode 100644 drivers/char/lrng/lrng_drng_drbg.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 531b34b9ae65..d06d0417b025 100644
+index 98d541103ff5..c2aedd067b05 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -268,6 +268,16 @@ config LRNG_KCAPI_HASH
- 	bool
- 	select CRYPTO_HASH
- 
+@@ -519,11 +519,11 @@ config LRNG_RANDOM_IF
+ config LRNG_DRNG_CHACHA20
+ 	tristate
+
+-# config LRNG_DRBG
+-# 	tristate
+-# 	depends on CRYPTO
+-# 	select CRYPTO_DRBG_MENU
+-#
 +config LRNG_DRBG
-+	tristate "SP800-90A support for the LRNG"
++	tristate
 +	depends on CRYPTO
 +	select CRYPTO_DRBG_MENU
-+	select CRYPTO_SHA512
-+	select LRNG_KCAPI_HASH
++
+ # config LRNG_DRNG_KCAPI
+ # 	tristate
+ # 	depends on CRYPTO
+@@ -552,33 +552,33 @@ config LRNG_HASH_KCAPI
+
+ endif # LRNG_SWITCH_HASH
+
+-# menuconfig LRNG_SWITCH_DRNG
+-# 	bool "Support DRNG runtime switching"
+-# 	select LRNG_SWITCH
+-# 	help
+-# 	  The LRNG uses a default DRNG With this configuration
+-# 	  option other DRNGs or message digests can be selected and
+-# 	  loaded at runtime.
+-#
+-# if LRNG_SWITCH_DRNG
+-#
+-# config LRNG_SWITCH_DRNG_CHACHA20
+-# 	tristate "ChaCha20-based DRNG support for LRNG"
+-# 	depends on !LRNG_DFLT_DRNG_CHACHA20
+-# 	select LRNG_DRNG_CHACHA20
+-# 	help
+-# 	  Enable the ChaCha20-based DRNG. This DRNG implementation
+-# 	  does not depend on the kernel crypto API presence.
+-#
+-# config LRNG_SWITCH_DRBG
+-# 	tristate "SP800-90A support for the LRNG"
+-# 	depends on !LRNG_DFLT_DRNG_DRBG
+-# 	select LRNG_DRBG
+-# 	help
+-# 	  Enable the SP800-90A DRBG support for the LRNG. Once the
+-# 	  module is loaded, output from /dev/random, /dev/urandom,
+-# 	  getrandom(2), or get_random_bytes_full is provided by a DRBG.
+-#
++menuconfig LRNG_SWITCH_DRNG
++	bool "Support DRNG runtime switching"
++	select LRNG_SWITCH
++	help
++	  The LRNG uses a default DRNG With this configuration
++	  option other DRNGs or message digests can be selected and
++	  loaded at runtime.
++
++if LRNG_SWITCH_DRNG
++
++config LRNG_SWITCH_DRNG_CHACHA20
++	tristate "ChaCha20-based DRNG support for LRNG"
++	depends on !LRNG_DFLT_DRNG_CHACHA20
++	select LRNG_DRNG_CHACHA20
++	help
++	  Enable the ChaCha20-based DRNG. This DRNG implementation
++	  does not depend on the kernel crypto API presence.
++
++config LRNG_SWITCH_DRBG
++	tristate "SP800-90A support for the LRNG"
++	depends on !LRNG_DFLT_DRNG_DRBG
++	select LRNG_DRBG
 +	help
 +	  Enable the SP800-90A DRBG support for the LRNG. Once the
 +	  module is loaded, output from /dev/random, /dev/urandom,
 +	  getrandom(2), or get_random_bytes_full is provided by a DRBG.
- endif # LRNG_DRNG_SWITCH
- 
- endif # LRNG
++
+ # config LRNG_SWITCH_DRNG_KCAPI
+ # 	tristate "Kernel Crypto API support for the LRNG"
+ # 	depends on !LRNG_DFLT_DRNG_KCAPI
+@@ -590,8 +590,8 @@ endif # LRNG_SWITCH_HASH
+ # 	  LRNG. Once the module is loaded, output from /dev/random,
+ # 	  /dev/urandom, getrandom(2), or get_random_bytes is
+ # 	  provided by the selected kernel crypto API RNG.
+-#
+-# endif # LRNG_SWITCH_DRNG
++
++endif # LRNG_SWITCH_DRNG
+
+ choice
+ 	prompt "LRNG Default DRNG"
+@@ -606,10 +606,10 @@ choice
+ 		bool "ChaCha20-based DRNG"
+ 		select LRNG_DRNG_CHACHA20
+
+-# 	config LRNG_DFLT_DRNG_DRBG
+-# 		bool "SP800-90A DRBG"
+-# 		select LRNG_DRBG
+-#
++	config LRNG_DFLT_DRNG_DRBG
++		bool "SP800-90A DRBG"
++		select LRNG_DRBG
++
+ # 	config LRNG_DFLT_DRNG_KCAPI
+ # 		bool "Kernel Crypto API DRNG"
+ # 		select LRNG_DRNG_KCAPI
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index cb9b03bdfd00..c00e15b6396e 100644
+index b3326c9580eb..b59414316f1c 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -13,3 +13,4 @@ obj-$(CONFIG_NUMA)		+= lrng_numa.o
- obj-$(CONFIG_LRNG_CPU)		+= lrng_es_archrandom.o
- obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
- obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
-+obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
-diff --git a/drivers/char/lrng/lrng_drbg.c b/drivers/char/lrng/lrng_drbg.c
+@@ -14,3 +14,4 @@ obj-$(CONFIG_NUMA)			+= lrng_numa.o
+ obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
+ obj-$(CONFIG_LRNG_HASH_KCAPI)		+= lrng_hash_kcapi.o
+ obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
++obj-$(CONFIG_LRNG_DRBG)			+= lrng_drng_drbg.o
+diff --git a/drivers/char/lrng/lrng_drng_drbg.c b/drivers/char/lrng/lrng_drng_drbg.c
 new file mode 100644
-index 000000000000..6ca6b05eccf4
+index 000000000000..1feec2c095a5
 --- /dev/null
-+++ b/drivers/char/lrng/lrng_drbg.c
-@@ -0,0 +1,198 @@
++++ b/drivers/char/lrng/lrng_drng_drbg.c
+@@ -0,0 +1,179 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * Backend for the LRNG providing the cryptographic primitives using the
 + * kernel crypto API and its DRBG.
 + *
-+ * Copyright (C) 2016 - 2021, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
 +#include <crypto/drbg.h>
++#include <linux/lrng.h>
 +#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/lrng.h>
 +
-+#include "lrng_kcapi_hash.h"
++#include "lrng_drng_drbg.h"
 +
 +/*
 + * Define a DRBG plus a hash / MAC used to extract data from the entropy pool.
@@ -141,13 +204,10 @@ index 000000000000..6ca6b05eccf4
 +
 +static const struct lrng_drbg lrng_drbg_types[] = {
 +	{	/* CTR_DRBG with AES-256 using derivation function */
-+		.hash_name = "sha512",
 +		.drbg_core = "drbg_nopr_ctr_aes256",
 +	}, {	/* HMAC_DRBG with SHA-512 */
-+		.hash_name = "sha512",
 +		.drbg_core = "drbg_nopr_hmac_sha512",
 +	}, {	/* Hash_DRBG with SHA-512 using derivation function */
-+		.hash_name = "sha512",
 +		.drbg_core = "drbg_nopr_sha512"
 +	}
 +};
@@ -234,37 +294,20 @@ index 000000000000..6ca6b05eccf4
 +	pr_info("DRBG deallocated\n");
 +}
 +
-+static void *lrng_drbg_hash_alloc(void)
-+{
-+	return lrng_kcapi_hash_alloc(lrng_drbg_types[lrng_drbg_type].hash_name);
-+}
-+
 +static const char *lrng_drbg_name(void)
 +{
 +	return lrng_drbg_types[lrng_drbg_type].drbg_core;
 +}
 +
-+static const char *lrng_hash_name(void)
-+{
-+	return lrng_drbg_types[lrng_drbg_type].hash_name;
-+}
-+
-+static const struct lrng_crypto_cb lrng_drbg_crypto_cb = {
-+	.lrng_drng_name			= lrng_drbg_name,
-+	.lrng_hash_name			= lrng_hash_name,
-+	.lrng_drng_alloc		= lrng_drbg_drng_alloc,
-+	.lrng_drng_dealloc		= lrng_drbg_drng_dealloc,
-+	.lrng_drng_seed_helper		= lrng_drbg_drng_seed_helper,
-+	.lrng_drng_generate_helper	= lrng_drbg_drng_generate_helper,
-+	.lrng_hash_alloc		= lrng_drbg_hash_alloc,
-+	.lrng_hash_dealloc		= lrng_kcapi_hash_dealloc,
-+	.lrng_hash_digestsize		= lrng_kcapi_hash_digestsize,
-+	.lrng_hash_init			= lrng_kcapi_hash_init,
-+	.lrng_hash_update		= lrng_kcapi_hash_update,
-+	.lrng_hash_final		= lrng_kcapi_hash_final,
-+	.lrng_hash_desc_zero		= lrng_kcapi_hash_zero,
++const struct lrng_drng_cb lrng_drbg_cb = {
++	.drng_name	= lrng_drbg_name,
++	.drng_alloc	= lrng_drbg_drng_alloc,
++	.drng_dealloc	= lrng_drbg_drng_dealloc,
++	.drng_seed	= lrng_drbg_drng_seed_helper,
++	.drng_generate	= lrng_drbg_drng_generate_helper,
 +};
 +
++#ifndef CONFIG_LRNG_DFLT_DRNG_DRBG
 +static int __init lrng_drbg_init(void)
 +{
 +	if (lrng_drbg_type >= ARRAY_SIZE(lrng_drbg_types)) {
@@ -273,7 +316,7 @@ index 000000000000..6ca6b05eccf4
 +		       (unsigned long)ARRAY_SIZE(lrng_drbg_types) - 1);
 +		return -EAGAIN;
 +	}
-+	return lrng_set_drng_cb(&lrng_drbg_crypto_cb);
++	return lrng_set_drng_cb(&lrng_drbg_cb);
 +}
 +
 +static void __exit lrng_drbg_exit(void)
@@ -285,7 +328,8 @@ index 000000000000..6ca6b05eccf4
 +module_exit(lrng_drbg_exit);
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
-+MODULE_DESCRIPTION("Linux Random Number Generator - SP800-90A DRBG backend");
--- 
-2.31.1
++MODULE_DESCRIPTION("Entropy Source and DRNG Manager - SP800-90A DRBG backend");
++#endif /* CONFIG_LRNG_DFLT_DRNG_DRBG */
+--
+2.36.1
 

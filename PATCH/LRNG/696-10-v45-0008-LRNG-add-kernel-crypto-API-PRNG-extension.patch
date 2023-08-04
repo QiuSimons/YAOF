@@ -1,7 +1,7 @@
-From efa7aed1263537b0243aa6da8f866d65ab28f40e Mon Sep 17 00:00:00 2001
+From b8771baac603b17cf26a7a7b55b4070f23fe0a43 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Fri, 18 Jun 2021 08:10:53 +0200
-Subject: [PATCH v43 10/15] LRNG - add kernel crypto API PRNG extension
+Date: Sun, 15 May 2022 16:13:37 +0200
+Subject: [PATCH v45 08/26] LRNG - add kernel crypto API PRNG extension
 
 Add runtime-pluggable support for all PRNGs that are accessible via
 the kernel crypto API, including hardware PRNGs. The PRNG is selected
@@ -16,104 +16,111 @@ example is the S390 CPACF support providing such a PRNG.
 The hash is provided by a kernel crypto API SHASH whose digest size
 complies with the seedsize of the PRNG.
 
-CC: Torsten Duwe <duwe@lst.de>
-CC: "Eric W. Biederman" <ebiederm@xmission.com>
-CC: "Alexander E. Patrakov" <patrakov@gmail.com>
-CC: "Ahmed S. Darwish" <darwish.07@gmail.com>
-CC: "Theodore Y. Ts'o" <tytso@mit.edu>
-CC: Willy Tarreau <w@1wt.eu>
-CC: Matthew Garrett <mjg59@srcf.ucam.org>
-CC: Vito Caputo <vcaputo@pengaru.com>
-CC: Andreas Dilger <adilger.kernel@dilger.ca>
-CC: Jan Kara <jack@suse.cz>
-CC: Ray Strode <rstrode@redhat.com>
-CC: William Jon McCann <mccann@jhu.edu>
-CC: zhangjs <zachary@baishancloud.com>
-CC: Andy Lutomirski <luto@kernel.org>
-CC: Florian Weimer <fweimer@redhat.com>
-CC: Lennart Poettering <mzxreary@0pointer.de>
-CC: Nicolai Stange <nstange@suse.de>
-Reviewed-by: Alexander Lobakin <alobakin@pm.me>
-Tested-by: Alexander Lobakin <alobakin@pm.me>
-Reviewed-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
-Reviewed-by: Roman Drahtmueller <draht@schaltsekun.de>
-Tested-by: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
-Tested-by: Neil Horman <nhorman@redhat.com>
-Tested-by: Jirka Hladky <jhladky@redhat.com>
-Reviewed-by: Jirka Hladky <jhladky@redhat.com>
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig      |  13 ++
- drivers/char/lrng/Makefile     |   1 +
- drivers/char/lrng/lrng_kcapi.c | 227 +++++++++++++++++++++++++++++++++
- 3 files changed, 241 insertions(+)
- create mode 100644 drivers/char/lrng/lrng_kcapi.c
+ drivers/char/lrng/Kconfig           |  36 ++---
+ drivers/char/lrng/Makefile          |   1 +
+ drivers/char/lrng/lrng_drng_kcapi.c | 208 ++++++++++++++++++++++++++++
+ 3 files changed, 227 insertions(+), 18 deletions(-)
+ create mode 100644 drivers/char/lrng/lrng_drng_kcapi.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index d06d0417b025..25684c54d6a9 100644
+index c2aedd067b05..6632eae0c797 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -278,6 +278,19 @@ config LRNG_DRBG
- 	  Enable the SP800-90A DRBG support for the LRNG. Once the
+@@ -524,10 +524,10 @@ config LRNG_DRBG
+ 	depends on CRYPTO
+ 	select CRYPTO_DRBG_MENU
+
+-# config LRNG_DRNG_KCAPI
+-# 	tristate
+-# 	depends on CRYPTO
+-# 	select CRYPTO_RNG
++config LRNG_DRNG_KCAPI
++	tristate
++	depends on CRYPTO
++	select CRYPTO_RNG
+
+ config LRNG_SWITCH
+ 	bool
+@@ -579,17 +579,17 @@ config LRNG_SWITCH_DRBG
  	  module is loaded, output from /dev/random, /dev/urandom,
  	  getrandom(2), or get_random_bytes_full is provided by a DRBG.
-+
-+config LRNG_KCAPI
+
+-# config LRNG_SWITCH_DRNG_KCAPI
+-# 	tristate "Kernel Crypto API support for the LRNG"
+-# 	depends on !LRNG_DFLT_DRNG_KCAPI
+-#	depends on !LRNG_SWITCH_DRBG
+-# 	select LRNG_DRNG_KCAPI
+-# 	help
+-# 	  Enable the support for generic pseudo-random number
+-# 	  generators offered by the kernel crypto API with the
+-# 	  LRNG. Once the module is loaded, output from /dev/random,
+-# 	  /dev/urandom, getrandom(2), or get_random_bytes is
+-# 	  provided by the selected kernel crypto API RNG.
++config LRNG_SWITCH_DRNG_KCAPI
 +	tristate "Kernel Crypto API support for the LRNG"
-+	depends on CRYPTO
-+	depends on !LRNG_DRBG
-+	select CRYPTO_RNG
-+	select LRNG_KCAPI_HASH
++	depends on !LRNG_DFLT_DRNG_KCAPI
++	depends on !LRNG_SWITCH_DRBG
++	select LRNG_DRNG_KCAPI
 +	help
 +	  Enable the support for generic pseudo-random number
 +	  generators offered by the kernel crypto API with the
 +	  LRNG. Once the module is loaded, output from /dev/random,
 +	  /dev/urandom, getrandom(2), or get_random_bytes is
 +	  provided by the selected kernel crypto API RNG.
- endif # LRNG_DRNG_SWITCH
- 
- endif # LRNG
+
+ endif # LRNG_SWITCH_DRNG
+
+@@ -610,9 +610,9 @@ choice
+ 		bool "SP800-90A DRBG"
+ 		select LRNG_DRBG
+
+-# 	config LRNG_DFLT_DRNG_KCAPI
+-# 		bool "Kernel Crypto API DRNG"
+-# 		select LRNG_DRNG_KCAPI
++	config LRNG_DFLT_DRNG_KCAPI
++		bool "Kernel Crypto API DRNG"
++		select LRNG_DRNG_KCAPI
+ endchoice
+
+ # menuconfig LRNG_TESTING_MENU
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index c00e15b6396e..85abeaa68136 100644
+index b59414316f1c..099d366500e5 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -14,3 +14,4 @@ obj-$(CONFIG_LRNG_CPU)		+= lrng_es_archrandom.o
- obj-$(CONFIG_LRNG_DRNG_SWITCH)	+= lrng_switch.o
- obj-$(CONFIG_LRNG_KCAPI_HASH)	+= lrng_kcapi_hash.o
- obj-$(CONFIG_LRNG_DRBG)		+= lrng_drbg.o
-+obj-$(CONFIG_LRNG_KCAPI)	+= lrng_kcapi.o
-diff --git a/drivers/char/lrng/lrng_kcapi.c b/drivers/char/lrng/lrng_kcapi.c
+@@ -15,3 +15,4 @@ obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
+ obj-$(CONFIG_LRNG_HASH_KCAPI)		+= lrng_hash_kcapi.o
+ obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
+ obj-$(CONFIG_LRNG_DRBG)			+= lrng_drng_drbg.o
++obj-$(CONFIG_LRNG_DRNG_KCAPI)		+= lrng_drng_kcapi.o
+diff --git a/drivers/char/lrng/lrng_drng_kcapi.c b/drivers/char/lrng/lrng_drng_kcapi.c
 new file mode 100644
-index 000000000000..b06449cb2365
+index 000000000000..a204bcf52a9a
 --- /dev/null
-+++ b/drivers/char/lrng/lrng_kcapi.c
-@@ -0,0 +1,227 @@
++++ b/drivers/char/lrng/lrng_drng_kcapi.c
+@@ -0,0 +1,208 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * Backend for the LRNG providing the cryptographic primitives using the
 + * kernel crypto API.
 + *
-+ * Copyright (C) 2018 - 2021, Stephan Mueller <smueller@chronox.de>
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
 + */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
++#include <linux/lrng.h>
 +#include <crypto/hash.h>
 +#include <crypto/rng.h>
 +#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/lrng.h>
 +
-+#include "lrng_kcapi_hash.h"
++#include "lrng_drng_kcapi.h"
 +
 +static char *drng_name = NULL;
 +module_param(drng_name, charp, 0444);
 +MODULE_PARM_DESC(drng_name, "Kernel crypto API name of DRNG");
-+
-+static char *pool_hash = "sha512";
-+module_param(pool_hash, charp, 0444);
-+MODULE_PARM_DESC(pool_hash,
-+		 "Kernel crypto API name of hash or keyed message digest to read the entropy pool");
 +
 +static char *seed_hash = NULL;
 +module_param(seed_hash, charp, 0444);
@@ -122,34 +129,28 @@ index 000000000000..b06449cb2365
 +
 +struct lrng_drng_info {
 +	struct crypto_rng *kcapi_rng;
-+	void *lrng_hash;
++	struct crypto_shash *hash_tfm;
 +};
-+
-+static void *lrng_kcapi_drng_hash_alloc(void)
-+{
-+	return lrng_kcapi_hash_alloc(pool_hash);
-+}
 +
 +static int lrng_kcapi_drng_seed_helper(void *drng, const u8 *inbuf,
 +				       u32 inbuflen)
 +{
-+	SHASH_DESC_ON_STACK(shash, NULL);
 +	struct lrng_drng_info *lrng_drng_info = (struct lrng_drng_info *)drng;
 +	struct crypto_rng *kcapi_rng = lrng_drng_info->kcapi_rng;
-+	void *hash = lrng_drng_info->lrng_hash;
-+	u32 digestsize = lrng_kcapi_hash_digestsize(hash);
-+	u8 digest[64] __aligned(8);
++	struct crypto_shash *hash_tfm = lrng_drng_info->hash_tfm;
++	SHASH_DESC_ON_STACK(shash, hash_tfm);
++	u32 digestsize;
++	u8 digest[HASH_MAX_DIGESTSIZE] __aligned(8);
 +	int ret;
 +
-+	if (!hash)
++	if (!hash_tfm)
 +		return crypto_rng_reset(kcapi_rng, inbuf, inbuflen);
 +
-+	BUG_ON(digestsize > sizeof(digest));
++	shash->tfm = hash_tfm;
++	digestsize = crypto_shash_digestsize(hash_tfm);
 +
-+	ret = lrng_kcapi_hash_init(shash, hash) ?:
-+	      lrng_kcapi_hash_update(shash, inbuf, inbuflen) ?:
-+	      lrng_kcapi_hash_final(shash, digest);
-+	lrng_kcapi_hash_zero(shash);
++	ret = crypto_shash_digest(shash, inbuf, inbuflen, digest);
++	shash_desc_zero(shash);
 +	if (ret)
 +		return ret;
 +
@@ -178,7 +179,8 @@ index 000000000000..b06449cb2365
 +{
 +	struct lrng_drng_info *lrng_drng_info;
 +	struct crypto_rng *kcapi_rng;
-+	int seedsize;
++	u32 time = random_get_entropy();
++	int seedsize, rv;
 +	void *ret =  ERR_PTR(-ENOMEM);
 +
 +	if (!drng_name) {
@@ -186,14 +188,15 @@ index 000000000000..b06449cb2365
 +		return ERR_PTR(-EINVAL);
 +	}
 +
-+	if (!memcmp(drng_name, "drbg", 4) ||
-+	    !memcmp(drng_name, "stdrng", 6) ||
++	if (!memcmp(drng_name, "stdrng", 6) ||
++	    !memcmp(drng_name, "lrng", 4) ||
++	    !memcmp(drng_name, "drbg", 4) ||
 +	    !memcmp(drng_name, "jitterentropy_rng", 17)) {
 +		pr_err("Refusing to load the requested random number generator\n");
 +		return ERR_PTR(-EINVAL);
 +	}
 +
-+	lrng_drng_info = kmalloc(sizeof(*lrng_drng_info), GFP_KERNEL);
++	lrng_drng_info = kzalloc(sizeof(*lrng_drng_info), GFP_KERNEL);
 +	if (!lrng_drng_info)
 +		return ERR_PTR(-ENOMEM);
 +
@@ -203,16 +206,12 @@ index 000000000000..b06449cb2365
 +		ret = ERR_CAST(kcapi_rng);
 +		goto free;
 +	}
++
 +	lrng_drng_info->kcapi_rng = kcapi_rng;
 +
-+	seedsize =  crypto_rng_seedsize(kcapi_rng);
-+
-+	if (sec_strength > seedsize)
-+		pr_info("Seedsize DRNG (%u bits) lower than security strength of LRNG noise source (%u bits)\n",
-+			crypto_rng_seedsize(kcapi_rng) * 8, sec_strength * 8);
-+
++	seedsize = crypto_rng_seedsize(kcapi_rng);
 +	if (seedsize) {
-+		void *lrng_hash;
++		struct crypto_shash *hash_tfm;
 +
 +		if (!seed_hash) {
 +			switch (seedsize) {
@@ -232,24 +231,29 @@ index 000000000000..b06449cb2365
 +			}
 +		}
 +
-+		lrng_hash = lrng_kcapi_hash_alloc(seed_hash);
-+		if (IS_ERR(lrng_hash)) {
-+			ret = ERR_CAST(lrng_hash);
++		hash_tfm = crypto_alloc_shash(seed_hash, 0, 0);
++		if (IS_ERR(hash_tfm)) {
++			ret = ERR_CAST(hash_tfm);
 +			goto dealloc;
 +		}
 +
-+		if (seedsize != lrng_kcapi_hash_digestsize(lrng_hash)) {
++		if (seedsize != crypto_shash_digestsize(hash_tfm)) {
 +			pr_err("Seed hash output size not equal to DRNG seed size\n");
-+			lrng_kcapi_hash_dealloc(lrng_hash);
++			crypto_free_shash(hash_tfm);
 +			ret = ERR_PTR(-EINVAL);
 +			goto dealloc;
 +		}
 +
-+		lrng_drng_info->lrng_hash = lrng_hash;
++		lrng_drng_info->hash_tfm = hash_tfm;
 +
 +		pr_info("Seed hash %s allocated\n", seed_hash);
-+	} else {
-+		lrng_drng_info->lrng_hash = NULL;
++	}
++
++	rv = lrng_kcapi_drng_seed_helper(lrng_drng_info, (u8 *)(&time),
++					 sizeof(time));
++	if (rv) {
++		ret = ERR_PTR(rv);
++		goto dealloc;
 +	}
 +
 +	pr_info("Kernel crypto API DRNG %s allocated\n", drng_name);
@@ -269,8 +273,8 @@ index 000000000000..b06449cb2365
 +	struct crypto_rng *kcapi_rng = lrng_drng_info->kcapi_rng;
 +
 +	crypto_free_rng(kcapi_rng);
-+	if (lrng_drng_info->lrng_hash)
-+		lrng_kcapi_hash_dealloc(lrng_drng_info->lrng_hash);
++	if (lrng_drng_info->hash_tfm)
++		crypto_free_shash(lrng_drng_info->hash_tfm);
 +	kfree(lrng_drng_info);
 +	pr_info("DRNG %s deallocated\n", drng_name);
 +}
@@ -280,30 +284,18 @@ index 000000000000..b06449cb2365
 +	return drng_name;
 +}
 +
-+static const char *lrng_kcapi_pool_hash(void)
-+{
-+	return pool_hash;
-+}
-+
-+static const struct lrng_crypto_cb lrng_kcapi_crypto_cb = {
-+	.lrng_drng_name			= lrng_kcapi_drng_name,
-+	.lrng_hash_name			= lrng_kcapi_pool_hash,
-+	.lrng_drng_alloc		= lrng_kcapi_drng_alloc,
-+	.lrng_drng_dealloc		= lrng_kcapi_drng_dealloc,
-+	.lrng_drng_seed_helper		= lrng_kcapi_drng_seed_helper,
-+	.lrng_drng_generate_helper	= lrng_kcapi_drng_generate_helper,
-+	.lrng_hash_alloc		= lrng_kcapi_drng_hash_alloc,
-+	.lrng_hash_dealloc		= lrng_kcapi_hash_dealloc,
-+	.lrng_hash_digestsize		= lrng_kcapi_hash_digestsize,
-+	.lrng_hash_init			= lrng_kcapi_hash_init,
-+	.lrng_hash_update		= lrng_kcapi_hash_update,
-+	.lrng_hash_final		= lrng_kcapi_hash_final,
-+	.lrng_hash_desc_zero		= lrng_kcapi_hash_zero,
++const struct lrng_drng_cb lrng_kcapi_drng_cb = {
++	.drng_name	= lrng_kcapi_drng_name,
++	.drng_alloc	= lrng_kcapi_drng_alloc,
++	.drng_dealloc	= lrng_kcapi_drng_dealloc,
++	.drng_seed	= lrng_kcapi_drng_seed_helper,
++	.drng_generate	= lrng_kcapi_drng_generate_helper,
 +};
 +
++#ifndef CONFIG_LRNG_DFLT_DRNG_KCAPI
 +static int __init lrng_kcapi_init(void)
 +{
-+	return lrng_set_drng_cb(&lrng_kcapi_crypto_cb);
++	return lrng_set_drng_cb(&lrng_kcapi_drng_cb);
 +}
 +static void __exit lrng_kcapi_exit(void)
 +{
@@ -314,7 +306,8 @@ index 000000000000..b06449cb2365
 +module_exit(lrng_kcapi_exit);
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
-+MODULE_DESCRIPTION("Linux Random Number Generator - kernel crypto API DRNG backend");
--- 
-2.31.1
++MODULE_DESCRIPTION("Entropy Source and DRNG Manager - kernel crypto API DRNG backend");
++#endif /* CONFIG_LRNG_DFLT_DRNG_KCAPI */
+--
+2.36.1
 

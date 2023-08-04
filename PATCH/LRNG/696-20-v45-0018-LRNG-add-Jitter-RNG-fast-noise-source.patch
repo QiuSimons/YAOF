@@ -1,0 +1,247 @@
+From 0f98c3a76f004cf551cc854bddc0bdd90e77ec35 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 17:51:58 +0200
+Subject: [PATCH v45 18/26] LRNG - add Jitter RNG fast noise source
+
+The Jitter RNG fast noise source implemented as part of the kernel
+crypto API is queried for 256 bits of entropy at the time the seed
+buffer managed by the LRNG is about to be filled.
+
+The default entropy rate is set to 16 bits of entropy per 256 bits of
+data. In FIPS mode, the ratio is set to 256 bits of entropy per 256 bits
+of data considering that the Jitter RNG passed the NIST ENT validation
+to claim full entropy.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Kconfig        |  58 ++++++-------
+ drivers/char/lrng/Makefile       |   1 +
+ drivers/char/lrng/lrng_es_jent.c | 136 +++++++++++++++++++++++++++++++
+ 3 files changed, 166 insertions(+), 29 deletions(-)
+ create mode 100644 drivers/char/lrng/lrng_es_jent.c
+
+diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
+index 549f472d4c1b..797f6001f17b 100644
+--- a/drivers/char/lrng/Kconfig
++++ b/drivers/char/lrng/Kconfig
+@@ -366,35 +366,35 @@ config LRNG_IRQ_ENTROPY_RATE
+ 	  interrupt entropy source will still deliver data but without
+ 	  being credited with entropy.
+
+-# comment "Jitter RNG Entropy Source"
+-#
+-# config LRNG_JENT
+-# 	bool "Enable Jitter RNG as LRNG Seed Source"
+-# 	depends on CRYPTO
+-# 	select CRYPTO_JITTERENTROPY
+-# 	help
+-# 	  The LRNG may use the Jitter RNG as entropy source. Enabling
+-# 	  this option enables the use of the Jitter RNG. Its default
+-# 	  entropy level is 16 bits of entropy per 256 data bits delivered
+-# 	  by the Jitter RNG. This entropy level can be changed at boot
+-# 	  time or at runtime with the lrng_base.jitterrng configuration
+-# 	  variable.
+-#
+-# config LRNG_JENT_ENTROPY_RATE
+-# 	int "Jitter RNG Entropy Source Entropy Rate"
+-# 	depends on LRNG_JENT
+-# 	range 0 256
+-# 	default 16
+-# 	help
+-# 	  The option defines the amount of entropy the LRNG applies to 256
+-# 	  bits of data obtained from the Jitter RNG entropy source. The
+-# 	  LRNG enforces the limit that this value must be in the range
+-# 	  between 0 and 256.
+-#
+-# 	  When configuring this value to 0, the Jitter RNG entropy source
+-# 	  will provide 256 bits of data without being credited to contain
+-# 	  entropy.
+-#
++comment "Jitter RNG Entropy Source"
++
++config LRNG_JENT
++	bool "Enable Jitter RNG as LRNG Seed Source"
++	depends on CRYPTO
++	select CRYPTO_JITTERENTROPY
++	help
++	  The LRNG may use the Jitter RNG as entropy source. Enabling
++	  this option enables the use of the Jitter RNG. Its default
++	  entropy level is 16 bits of entropy per 256 data bits delivered
++	  by the Jitter RNG. This entropy level can be changed at boot
++	  time or at runtime with the lrng_base.jitterrng configuration
++	  variable.
++
++config LRNG_JENT_ENTROPY_RATE
++	int "Jitter RNG Entropy Source Entropy Rate"
++	depends on LRNG_JENT
++	range 0 256
++	default 16
++	help
++	  The option defines the amount of entropy the LRNG applies to 256
++	  bits of data obtained from the Jitter RNG entropy source. The
++	  LRNG enforces the limit that this value must be in the range
++	  between 0 and 256.
++
++	  When configuring this value to 0, the Jitter RNG entropy source
++	  will provide 256 bits of data without being credited to contain
++	  entropy.
++
+ comment "CPU Entropy Source"
+
+ config LRNG_CPU
+diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
+index 101c323ea1f2..96652f3aefd9 100644
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -23,5 +23,6 @@ obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
+ obj-$(CONFIG_LRNG_KERNEL_RNG)		+= lrng_es_krng.o
+ obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
+ obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.o
++obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
+
+ obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
+diff --git a/drivers/char/lrng/lrng_es_jent.c b/drivers/char/lrng/lrng_es_jent.c
+new file mode 100644
+index 000000000000..dbb2fce591f0
+--- /dev/null
++++ b/drivers/char/lrng/lrng_es_jent.c
+@@ -0,0 +1,136 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG Fast Entropy Source: Jitter RNG
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/fips.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <crypto/internal/jitterentropy.h>
++
++#include "lrng_definitions.h"
++#include "lrng_es_aux.h"
++#include "lrng_es_jent.h"
++
++/*
++ * Estimated entropy of data is a 16th of LRNG_DRNG_SECURITY_STRENGTH_BITS.
++ * Albeit a full entropy assessment is provided for the noise source indicating
++ * that it provides high entropy rates and considering that it deactivates
++ * when it detects insufficient hardware, the chosen under estimation of
++ * entropy is considered to be acceptable to all reviewers.
++ */
++static u32 jent_entropy = CONFIG_LRNG_JENT_ENTROPY_RATE;
++#ifdef CONFIG_LRNG_RUNTIME_ES_CONFIG
++module_param(jent_entropy, uint, 0644);
++MODULE_PARM_DESC(jent_entropy, "Entropy in bits of 256 data bits from Jitter RNG noise source");
++#endif
++
++static bool lrng_jent_initialized = false;
++static struct rand_data *lrng_jent_state;
++
++static int __init lrng_jent_initialize(void)
++{
++	/* Initialize the Jitter RNG after the clocksources are initialized. */
++	if (jent_entropy_init() ||
++	    (lrng_jent_state = jent_entropy_collector_alloc(1, 0)) == NULL) {
++		jent_entropy = 0;
++		pr_info("Jitter RNG unusable on current system\n");
++		return 0;
++	}
++	lrng_jent_initialized = true;
++	pr_debug("Jitter RNG working on current system\n");
++
++	/*
++	 * In FIPS mode, the Jitter RNG is defined to have full of entropy
++	 * unless a different value has been specified at the command line
++	 * (i.e. the user overrides the default), and the default value is
++	 * larger than zero (if it is zero, it is assumed that an RBG2(P) or
++	 * RBG2(NP) construction is attempted that intends to exclude the
++	 * Jitter RNG).
++	 */
++	if (fips_enabled &&
++	    CONFIG_LRNG_JENT_ENTROPY_RATE > 0 &&
++	    jent_entropy == CONFIG_LRNG_JENT_ENTROPY_RATE)
++		jent_entropy = LRNG_DRNG_SECURITY_STRENGTH_BITS;
++
++	lrng_drng_force_reseed();
++	if (jent_entropy)
++		lrng_es_add_entropy();
++
++	return 0;
++}
++device_initcall(lrng_jent_initialize);
++
++static u32 lrng_jent_entropylevel(u32 requested_bits)
++{
++	return lrng_fast_noise_entropylevel(lrng_jent_initialized ?
++					    jent_entropy : 0, requested_bits);
++}
++
++static u32 lrng_jent_poolsize(void)
++{
++	return lrng_jent_entropylevel(lrng_security_strength());
++}
++
++/*
++ * lrng_get_jent() - Get Jitter RNG entropy
++ *
++ * @eb: entropy buffer to store entropy
++ * @requested_bits: requested entropy in bits
++ */
++static void lrng_jent_get(struct entropy_buf *eb, u32 requested_bits,
++			  bool __unused)
++{
++	int ret;
++	u32 ent_bits = lrng_jent_entropylevel(requested_bits);
++	unsigned long flags;
++	static DEFINE_SPINLOCK(lrng_jent_lock);
++
++	spin_lock_irqsave(&lrng_jent_lock, flags);
++
++	if (!lrng_jent_initialized) {
++		spin_unlock_irqrestore(&lrng_jent_lock, flags);
++		goto err;
++	}
++
++	ret = jent_read_entropy(lrng_jent_state, eb->e[lrng_ext_es_jitter],
++				requested_bits >> 3);
++	spin_unlock_irqrestore(&lrng_jent_lock, flags);
++
++	if (ret) {
++		pr_debug("Jitter RNG failed with %d\n", ret);
++		goto err;
++	}
++
++	pr_debug("obtained %u bits of entropy from Jitter RNG noise source\n",
++		 ent_bits);
++
++	eb->e_bits[lrng_ext_es_jitter] = ent_bits;
++	return;
++
++err:
++	eb->e_bits[lrng_ext_es_jitter] = 0;
++}
++
++static void lrng_jent_es_state(unsigned char *buf, size_t buflen)
++{
++	snprintf(buf, buflen,
++		 " Available entropy: %u\n"
++		 " Enabled: %s\n",
++		 lrng_jent_poolsize(),
++		 lrng_jent_initialized ? "true" : "false");
++}
++
++struct lrng_es_cb lrng_es_jent = {
++	.name			= "JitterRNG",
++	.get_ent		= lrng_jent_get,
++	.curr_entropy		= lrng_jent_entropylevel,
++	.max_entropy		= lrng_jent_poolsize,
++	.state			= lrng_jent_es_state,
++	.reset			= NULL,
++	.switch_hash		= NULL,
++};
+--
+2.36.1
+
