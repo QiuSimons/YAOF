@@ -1,7 +1,7 @@
-From 87ffcfed38ad5f716667b0db4ef52edccfa95456 Mon Sep 17 00:00:00 2001
+From d06ee253a78fb22e8733384dcec9b62c70a9e767 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:21:44 +0200
-Subject: [PATCH v47 10/26] LRNG - add common timer-based entropy source code
+Subject: [PATCH v46 10/26] LRNG - add common timer-based entropy source code
 
 The code shared for timer-based entropy sources offers the following
 support:
@@ -26,10 +26,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_es_timer_common.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index d0588a1fd81c..8e341f22ab95 100644
+index 6632eae0c797..b9a357243075 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -138,9 +138,9 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -112,9 +112,9 @@ config LRNG_RANDOM_IF
  # config LRNG_SCHED_DFLT_TIMER_ES
  # 	bool
  #
@@ -202,6 +202,6 @@ index 000000000000..70f3ff074fe6
 +	return 0;
 +}
 +core_initcall(lrng_init_time_source);
--- 
-2.37.3
+--
+2.37.1
 

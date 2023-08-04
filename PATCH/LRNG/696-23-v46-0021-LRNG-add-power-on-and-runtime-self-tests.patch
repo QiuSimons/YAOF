@@ -1,7 +1,7 @@
-From a709ca769f5539cbbbdab913daf1140b54436676 Mon Sep 17 00:00:00 2001
+From 49d1c361f9fb72d87281faa604d5627f5aa7c16e Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:13:56 +0200
-Subject: [PATCH v47 21/26] LRNG - add power-on and runtime self-tests
+Subject: [PATCH v46 21/26] LRNG - add power-on and runtime self-tests
 
 Parts of the LRNG are already covered by self-tests, including:
 
@@ -54,12 +54,12 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_selftest.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 7873b4533f6b..97a1421660e6 100644
+index 6b5f6a88e956..ec45aee683de 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -901,32 +901,32 @@ config LRNG_TEST_CPU_ES_COMPRESSION
+@@ -875,32 +875,32 @@ config LRNG_TEST_CPU_ES_COMPRESSION
  	  than what may be required.
- 
+
  endif #LRNG_TESTING_MENU
 -#
 -# config LRNG_SELFTEST
@@ -113,15 +113,15 @@ index 7873b4533f6b..97a1421660e6 100644
 +	  LRNG power-on self-test failure is detected.
 +
 +endif # LRNG_SELFTEST
- 
+
  endif # LRNG
- 
+
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
 index 552ad7232d0d..0a61a2c9ec6e 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -27,3 +27,4 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
- 
+
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
  obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
 +obj-$(CONFIG_LRNG_SELFTEST)		+= lrng_selftest.o
@@ -528,6 +528,6 @@ index 000000000000..15f1e4a2a719
 +}
 +
 +module_init(lrng_selftest_init);
--- 
-2.37.3
+--
+2.37.1
 

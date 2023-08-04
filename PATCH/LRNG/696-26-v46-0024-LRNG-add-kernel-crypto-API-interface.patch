@@ -1,7 +1,7 @@
-From 9caa5a4cfc4885ebc9dccd3755cf18f165756f91 Mon Sep 17 00:00:00 2001
+From c6cde7356c804df387fbf19e68e71f8519d0a396 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 9 Oct 2022 10:22:39 +0200
-Subject: [PATCH v47 24/26] LRNG - add kernel crypto API interface
+Date: Sun, 15 May 2022 18:35:14 +0200
+Subject: [PATCH v46 24/26] LRNG - add kernel crypto API interface
 
 The LRNG can be registered with the kernel crypto API's random number
 generator framework. This offers a random number generator with the name
@@ -17,13 +17,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_kcapi.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 97a1421660e6..2d825156d6e7 100644
+index ec45aee683de..3ddd8d08a39d 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -83,18 +83,18 @@ config LRNG_AIS2031_NTG1_SEEDING_STRATEGY
- 
- endmenu # "Specific DRNG seeding strategies"
- 
+@@ -57,18 +57,18 @@ config LRNG_RANDOM_IF
+ 	select LRNG_DRNG_ATOMIC
+ 	select LRNG_SYSCTL
+
 -# menu "LRNG Interfaces"
 -#
 -# config LRNG_KCAPI_IF
@@ -51,15 +51,15 @@ index 97a1421660e6..2d825156d6e7 100644
  # config LRNG_HWRAND_IF
  # 	tristate "Interface with Hardware Random Number Generator Framework"
  # 	depends on HW_RANDOM
-@@ -114,7 +114,7 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -88,7 +88,7 @@ config LRNG_RANDOM_IF
  # 	  identically to /dev/random including IOCTL, read and write
  # 	  operations.
  #
 -# endmenu # "LRNG Interfaces"
 +endmenu # "LRNG Interfaces"
- 
+
  menu "Entropy Source Configuration"
- 
+
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
 index 6242262d577e..6a163038ffb4 100644
 --- a/drivers/char/lrng/Makefile
@@ -204,6 +204,6 @@ index 000000000000..4cb511f8088e
 +MODULE_ALIAS_CRYPTO("lrng");
 +MODULE_ALIAS_CRYPTO("lrng_atomic");
 +MODULE_ALIAS_CRYPTO("stdrng");
--- 
-2.37.3
+--
+2.37.1
 

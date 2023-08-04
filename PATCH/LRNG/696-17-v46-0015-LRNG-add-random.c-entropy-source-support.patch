@@ -1,7 +1,7 @@
-From 71f7daa45b90954a0e1e549ddd7b4c0be7ee6da1 Mon Sep 17 00:00:00 2001
+From d16afd437a238344b815cbeab2c6f1c078798d56 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 9 Oct 2022 10:15:35 +0200
-Subject: [PATCH v47 15/26] LRNG - add random.c entropy source support
+Date: Sun, 15 May 2022 17:32:29 +0200
+Subject: [PATCH v46 15/26] LRNG - add random.c entropy source support
 
 The random.c implementation can be used as an entropy source by the
 LRNG. This support can be enabled at compile time.
@@ -21,20 +21,20 @@ thus must be treated to not deliver any entropy in FIPS mode.
 
 Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
- drivers/char/lrng/Kconfig        |  56 ++++++++---------
+ drivers/char/lrng/Kconfig        |  56 +++++++-------
  drivers/char/lrng/Makefile       |   1 +
- drivers/char/lrng/lrng_es_krng.c | 100 +++++++++++++++++++++++++++++++
- 3 files changed, 129 insertions(+), 28 deletions(-)
+ drivers/char/lrng/lrng_es_krng.c | 121 +++++++++++++++++++++++++++++++
+ 3 files changed, 150 insertions(+), 28 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_krng.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index b3f6beb761bc..a719d7f10a74 100644
+index 04592e1f13d8..9f88fe02aea7 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -511,34 +511,34 @@ config LRNG_SCHED_ENTROPY_RATE
+@@ -485,34 +485,34 @@ config LRNG_SCHED_ENTROPY_RATE
  	  scheduler entropy source will still deliver data but without
  	  being credited with entropy.
- 
+
 -# comment "Kernel RNG Entropy Source"
 -#
 -# config LRNG_KERNEL_RNG
@@ -91,27 +91,27 @@ index b3f6beb761bc..a719d7f10a74 100644
 +	  kernel in FIPS mode (with fips=1 kernel command line option).
 +	  This is due to the fact that random.c is not SP800-90B
 +	  compliant.
- 
+
  endmenu # "Entropy Source Configuration"
- 
+
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
 index 6dc38c1b70e9..811208f38005 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -20,6 +20,7 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
- 
+
  obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
  obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
 +obj-$(CONFIG_LRNG_KERNEL_RNG)		+= lrng_es_krng.o
  obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
- 
+
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
 diff --git a/drivers/char/lrng/lrng_es_krng.c b/drivers/char/lrng/lrng_es_krng.c
 new file mode 100644
-index 000000000000..519ba640cc75
+index 000000000000..0ef88e6c8d56
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_krng.c
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,121 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Fast Entropy Source: Linux kernel RNG (random.c)
@@ -137,12 +137,17 @@ index 000000000000..519ba640cc75
 +
 +static atomic_t lrng_krng_initial_rate = ATOMIC_INIT(0);
 +
++static struct notifier_block lrng_krng_ready = {
++	.notifier_call = NULL,
++};
++
 +static u32 lrng_krng_fips_entropylevel(u32 entropylevel)
 +{
 +	return fips_enabled ? 0 : entropylevel;
 +}
 +
-+static int lrng_krng_adjust_entropy(void)
++static int lrng_krng_adjust_entropy(struct notifier_block *nb,
++				    unsigned long action, void *data)
 +{
 +	u32 entropylevel;
 +
@@ -159,11 +164,27 @@ index 000000000000..519ba640cc75
 +
 +static u32 lrng_krng_entropylevel(u32 requested_bits)
 +{
-+	static bool init = false;
++	if (lrng_krng_ready.notifier_call == NULL) {
++		int err;
 +
-+	if (unlikely(!init) && rng_is_initialized()) {
-+		init = true;
-+		lrng_krng_adjust_entropy();
++		lrng_krng_ready.notifier_call = lrng_krng_adjust_entropy;
++
++		err = register_random_ready_notifier(&lrng_krng_ready);
++		switch (err) {
++		case 0:
++			atomic_set(&lrng_krng_initial_rate, krng_entropy);
++			krng_entropy = 0;
++			pr_debug("Kernel RNG is not yet seeded, setting entropy rate to 0 bits of entropy\n");
++			break;
++
++		case -EALREADY:
++			pr_debug("Kernel RNG is fully seeded, setting entropy rate to %u bits of entropy\n",
++				 lrng_krng_fips_entropylevel(krng_entropy));
++			break;
++		default:
++			lrng_krng_ready.notifier_call = NULL;
++			return 0;
++		}
 +	}
 +
 +	return lrng_fast_noise_entropylevel(
@@ -212,6 +233,6 @@ index 000000000000..519ba640cc75
 +	.reset			= NULL,
 +	.switch_hash		= NULL,
 +};
--- 
-2.37.3
+--
+2.37.1
 

@@ -1,7 +1,7 @@
-From 2b798627b9c15a9ed74e6440f6c99e58725cbe9c Mon Sep 17 00:00:00 2001
+From cb71dc431aa3c7eb56ea2befa15fd688ad60960b Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 9 Oct 2022 10:21:13 +0200
-Subject: [PATCH v47 23/26] LRMG - add drop-in replacement random(4) API
+Date: Sun, 31 Jul 2022 22:35:54 +0200
+Subject: [PATCH v46 23/26] LRMG - add drop-in replacement random(4) API
 
 The LRNG is intended to be a full replacement of the existing random.c.
 This also includes the providing of a full API and ABI compliant drop-in
@@ -14,24 +14,24 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
 ---
  drivers/char/Makefile                         |   3 +-
  drivers/char/lrng/Makefile                    |   5 +
- drivers/char/lrng/lrng_interface_aux.c        | 126 +++++++
- drivers/char/lrng/lrng_interface_dev_common.c | 314 ++++++++++++++++++
- .../char/lrng/lrng_interface_random_kernel.c  | 214 ++++++++++++
- .../char/lrng/lrng_interface_random_user.c    | 104 ++++++
- 6 files changed, 765 insertions(+), 1 deletion(-)
+ drivers/char/lrng/lrng_interface_aux.c        | 126 ++++++++
+ drivers/char/lrng/lrng_interface_dev_common.c | 297 ++++++++++++++++++
+ .../char/lrng/lrng_interface_random_kernel.c  | 207 ++++++++++++
+ .../char/lrng/lrng_interface_random_user.c    |  70 +++++
+ 6 files changed, 707 insertions(+), 1 deletion(-)
  create mode 100644 drivers/char/lrng/lrng_interface_aux.c
  create mode 100644 drivers/char/lrng/lrng_interface_dev_common.c
  create mode 100644 drivers/char/lrng/lrng_interface_random_kernel.c
  create mode 100644 drivers/char/lrng/lrng_interface_random_user.c
 
 diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index 3ee88288d1f8..0d56f0a24fcd 100644
+index bcb57ac88a7c..c2676f5d5c96 100644
 --- a/drivers/char/Makefile
 +++ b/drivers/char/Makefile
 @@ -3,7 +3,8 @@
  # Makefile for the kernel character device drivers.
  #
- 
+
 -obj-y				+= mem.o random.o
 +obj-y				+= mem.o
 +obj-$(CONFIG_RANDOM_DEFAULT_IMPL) += random.o
@@ -185,10 +185,10 @@ index 000000000000..0eb49bd6b48f
 +}
 diff --git a/drivers/char/lrng/lrng_interface_dev_common.c b/drivers/char/lrng/lrng_interface_dev_common.c
 new file mode 100644
-index 000000000000..09d0563074a4
+index 000000000000..c366b29feb99
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_dev_common.c
-@@ -0,0 +1,314 @@
+@@ -0,0 +1,297 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG User and kernel space interfaces
@@ -269,23 +269,6 @@ index 000000000000..09d0563074a4
 +}
 +
 +/************************ LRNG user output interfaces *************************/
-+
-+ssize_t lrng_read_seed(char __user *buf, size_t nbytes, unsigned int flags)
-+{
-+	ssize_t ret = 0;
-+	u64 t[(sizeof(struct entropy_buf) + 3 * sizeof(u64) - 1) / sizeof(u64)];
-+
-+	memset(t, 0, sizeof(t));
-+	ret = lrng_get_seed(t, min_t(size_t, nbytes, sizeof(t)), flags);
-+	if (ret == -EMSGSIZE && copy_to_user(buf, t, sizeof(u64))) {
-+		ret = -EFAULT;
-+	} else if (ret > 0 && copy_to_user(buf, t, ret)) {
-+		ret = -EFAULT;
-+	}
-+	memzero_explicit(t, sizeof(t));
-+
-+	return ret;
-+}
 +
 +ssize_t lrng_read_common(char __user *buf, size_t nbytes, bool pr)
 +{
@@ -505,10 +488,10 @@ index 000000000000..09d0563074a4
 +}
 diff --git a/drivers/char/lrng/lrng_interface_random_kernel.c b/drivers/char/lrng/lrng_interface_random_kernel.c
 new file mode 100644
-index 000000000000..471390bfd70c
+index 000000000000..ec6310884865
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_kernel.c
-@@ -0,0 +1,214 @@
+@@ -0,0 +1,207 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Kernel space interfaces API/ABI compliant to linux/random.h
@@ -531,15 +514,6 @@ index 000000000000..471390bfd70c
 +#include "lrng_interface_random_kernel.h"
 +
 +/********************************** Helper ***********************************/
-+
-+static bool lrng_trust_bootloader __initdata =
-+	IS_ENABLED(CONFIG_RANDOM_TRUST_BOOTLOADER);
-+
-+static int __init lrng_parse_trust_bootloader(char *arg)
-+{
-+	return kstrtobool(arg, &lrng_trust_bootloader);
-+}
-+early_param("random.trust_bootloader", lrng_parse_trust_bootloader);
 +
 +int __init random_init(const char *command_line)
 +{
@@ -591,9 +565,11 @@ index 000000000000..471390bfd70c
 + *	 insert into entropy pool.
 + * @size: length of buffer
 + */
-+void __init add_bootloader_randomness(const void *buf, size_t size)
++void add_bootloader_randomness(const void *buf, size_t size)
 +{
-+	lrng_pool_insert_aux(buf, size, lrng_trust_bootloader ? size * 8 : 0);
++	lrng_pool_insert_aux(buf, size,
++			     IS_ENABLED(CONFIG_RANDOM_TRUST_BOOTLOADER) ?
++			     size * 8 : 0);
 +}
 +
 +/*
@@ -725,10 +701,10 @@ index 000000000000..471390bfd70c
 +EXPORT_SYMBOL(rng_is_initialized);
 diff --git a/drivers/char/lrng/lrng_interface_random_user.c b/drivers/char/lrng/lrng_interface_random_user.c
 new file mode 100644
-index 000000000000..d12e883804d9
+index 000000000000..0565ba7a3588
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_user.c
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,70 @@
 +// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
 +/*
 + * LRNG Common user space interfaces compliant to random(4), random(7) and
@@ -777,29 +753,10 @@ index 000000000000..d12e883804d9
 +	.llseek = noop_llseek,
 +};
 +
-+/*
-+ * GRND_SEED
-+ *
-+ * This flag requests to provide the data directly from the entropy sources.
-+ *
-+ * The behavior of the call is exactly as outlined for the function
-+ * lrng_get_seed in lrng.h.
-+ */
-+#define GRND_SEED		0x0010
-+
-+/*
-+ * GRND_FULLY_SEEDED
-+ *
-+ * This flag indicates whether the caller wants to reseed a DRNG that is already
-+ * fully seeded. See esdm_get_seed in lrng.h for details.
-+ */
-+#define GRND_FULLY_SEEDED	0x0020
-+
 +SYSCALL_DEFINE3(getrandom, char __user *, buf, size_t, count,
 +		unsigned int, flags)
 +{
-+	if (flags & ~(GRND_NONBLOCK|GRND_RANDOM|GRND_INSECURE|
-+		      GRND_SEED|GRND_FULLY_SEEDED))
++	if (flags & ~(GRND_NONBLOCK|GRND_RANDOM|GRND_INSECURE))
 +		return -EINVAL;
 +
 +	/*
@@ -809,30 +766,15 @@ index 000000000000..d12e883804d9
 +	if ((flags &
 +	     (GRND_INSECURE|GRND_RANDOM)) == (GRND_INSECURE|GRND_RANDOM))
 +		return -EINVAL;
-+	if ((flags &
-+	     (GRND_INSECURE|GRND_SEED)) == (GRND_INSECURE|GRND_SEED))
-+		return -EINVAL;
-+	if ((flags &
-+	     (GRND_RANDOM|GRND_SEED)) == (GRND_RANDOM|GRND_SEED))
-+		return -EINVAL;
 +
 +	if (count > INT_MAX)
 +		count = INT_MAX;
 +
-+	if (flags & GRND_INSECURE) {
++	if (flags & GRND_INSECURE)
 +		return lrng_drng_read(NULL, buf, count, NULL);
-+	} else if (flags & GRND_SEED) {
-+		unsigned int seed_flags = (flags & GRND_NONBLOCK) ?
-+					  LRNG_GET_SEED_NONBLOCK : 0;
 +
-+		seed_flags |= (flags & GRND_FULLY_SEEDED) ?
-+			      LRNG_GET_SEED_FULLY_SEEDED : 0;
-+		return lrng_read_seed(buf, count, seed_flags);
-+	}
-+
-+	return lrng_read_common_block(flags & GRND_NONBLOCK,
-+				      flags & GRND_RANDOM, buf, count);
++	return lrng_read_common_block(flags & GRND_NONBLOCK, 0, buf, count);
 +}
--- 
-2.37.3
+--
+2.37.1
 
