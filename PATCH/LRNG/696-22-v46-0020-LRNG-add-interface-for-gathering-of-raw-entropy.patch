@@ -1,7 +1,7 @@
-From 3210dd3d86bcc7a6ff1fdad309536259bf14420c Mon Sep 17 00:00:00 2001
+From fd3b0b0872eba0f35abe66bcfa88ce7f7ff69435 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:05:58 +0200
-Subject: [PATCH v47 20/26] LRNG - add interface for gathering of raw entropy
+Subject: [PATCH v46 20/26] LRNG - add interface for gathering of raw entropy
 
 The test interface allows a privileged process to capture the raw
 unconditioned noise that is collected by the LRNG for statistical
@@ -78,13 +78,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_testing.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 1e182d426247..7873b4533f6b 100644
+index d7e87dc26850..6b5f6a88e956 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -641,266 +641,266 @@ choice
+@@ -615,266 +615,266 @@ choice
  		select LRNG_DRNG_KCAPI
  endchoice
- 
+
 -# menuconfig LRNG_TESTING_MENU
 -# 	bool "LRNG testing interfaces"
 -# 	depends on DEBUG_FS
@@ -614,7 +614,7 @@ index 96652f3aefd9..552ad7232d0d 100644
 +++ b/drivers/char/lrng/Makefile
 @@ -26,3 +26,4 @@ obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.o
  obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
- 
+
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
 +obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
 diff --git a/drivers/char/lrng/lrng_testing.c b/drivers/char/lrng/lrng_testing.c
@@ -1524,6 +1524,6 @@ index 000000000000..101140085d81
 +}
 +
 +module_init(lrng_raw_init);
--- 
-2.37.3
+--
+2.37.1
 

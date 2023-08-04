@@ -1,7 +1,7 @@
-From 8106cc448596c4b6b58793994841f092e79f7a3e Mon Sep 17 00:00:00 2001
+From 30fef4ccee1976ec04bba7fc26efbea87c29ba6f Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 17:51:58 +0200
-Subject: [PATCH v47 18/26] LRNG - add Jitter RNG fast noise source
+Subject: [PATCH v46 18/26] LRNG - add Jitter RNG fast noise source
 
 The Jitter RNG fast noise source implemented as part of the kernel
 crypto API is queried for 256 bits of entropy at the time the seed
@@ -21,13 +21,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_es_jent.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 1617f2331519..464fd8b78b3a 100644
+index 549f472d4c1b..797f6001f17b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -392,35 +392,35 @@ config LRNG_IRQ_ENTROPY_RATE
+@@ -366,35 +366,35 @@ config LRNG_IRQ_ENTROPY_RATE
  	  interrupt entropy source will still deliver data but without
  	  being credited with entropy.
- 
+
 -# comment "Jitter RNG Entropy Source"
 -#
 -# config LRNG_JENT
@@ -87,7 +87,7 @@ index 1617f2331519..464fd8b78b3a 100644
 +	  entropy.
 +
  comment "CPU Entropy Source"
- 
+
  config LRNG_CPU
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
 index 101c323ea1f2..96652f3aefd9 100644
@@ -98,7 +98,7 @@ index 101c323ea1f2..96652f3aefd9 100644
  obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
  obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.o
 +obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
- 
+
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
 diff --git a/drivers/char/lrng/lrng_es_jent.c b/drivers/char/lrng/lrng_es_jent.c
 new file mode 100644
@@ -242,6 +242,6 @@ index 000000000000..dbb2fce591f0
 +	.reset			= NULL,
 +	.switch_hash		= NULL,
 +};
--- 
-2.37.3
+--
+2.37.1
 

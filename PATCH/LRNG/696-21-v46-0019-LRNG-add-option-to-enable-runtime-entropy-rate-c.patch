@@ -1,7 +1,7 @@
-From 260c3aae78401bc4479a97683ab48df32beae4bd Mon Sep 17 00:00:00 2001
+From 1687f0f9df94c3a7dda322827d289fdd4186daaf Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 17:56:56 +0200
-Subject: [PATCH v47 19/26] LRNG - add option to enable runtime entropy rate
+Subject: [PATCH v46 19/26] LRNG - add option to enable runtime entropy rate
  configuration
 
 The entropy rate for the different entropy sources is configured at
@@ -28,13 +28,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 464fd8b78b3a..1e182d426247 100644
+index 797f6001f17b..d7e87dc26850 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -118,17 +118,17 @@ endmenu # "Specific DRNG seeding strategies"
- 
+@@ -92,17 +92,17 @@ config LRNG_RANDOM_IF
+
  menu "Entropy Source Configuration"
- 
+
 -# config LRNG_RUNTIME_ES_CONFIG
 -# 	bool "Enable runtime configuration of entropy sources"
 -# 	help
@@ -57,9 +57,9 @@ index 464fd8b78b3a..1e182d426247 100644
 +	  a kernel command line option. When not providing any
 +	  option, the default specified during kernel compilation
 +	  is applied.
- 
+
  comment "Common Timer-based Entropy Source Configuration"
- 
--- 
-2.37.3
+
+--
+2.37.1
 

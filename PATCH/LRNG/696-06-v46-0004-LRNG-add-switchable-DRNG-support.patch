@@ -1,7 +1,7 @@
-From a0dd04774a1a4319df927a3c4367cd99fc9357ca Mon Sep 17 00:00:00 2001
+From 900170ca2ae3bc5d74c0695692e0ee11423a24dd Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 31 Jul 2022 22:18:18 +0200
-Subject: [PATCH v47 04/26] LRNG - add switchable DRNG support
+Subject: [PATCH v46 04/26] LRNG - add switchable DRNG support
 
 The DRNG switch support allows replacing the DRNG mechanism of the
 LRNG. The switching support rests on the interface definition of
@@ -48,10 +48,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_switch.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index e78963532180..b128aac36e2a 100644
+index 1f93c64d430e..27652e2fd7be 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -554,10 +554,10 @@ config LRNG_DRNG_CHACHA20
+@@ -528,10 +528,10 @@ config LRNG_DRNG_CHACHA20
  # 	tristate
  # 	depends on CRYPTO
  # 	select CRYPTO_RNG
@@ -73,7 +73,7 @@ index dafa6299972d..f89224d82d73 100644
 @@ -11,4 +11,5 @@ obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
  obj-$(CONFIG_SYSCTL)			+= lrng_proc.o
  obj-$(CONFIG_NUMA)			+= lrng_numa.o
- 
+
 +obj-$(CONFIG_LRNG_SWITCH)		+= lrng_switch.o
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 diff --git a/drivers/char/lrng/lrng_switch.c b/drivers/char/lrng/lrng_switch.c
@@ -368,6 +368,6 @@ index 000000000000..aae75594926f
 +	return ret;
 +}
 +EXPORT_SYMBOL(lrng_set_hash_cb);
--- 
-2.37.3
+--
+2.37.1
 

@@ -1,7 +1,7 @@
-From 7c8e5ed5f412f20d8b1e22a43decd1dc4ee0da4b Mon Sep 17 00:00:00 2001
+From 212271c342942d30e78a441feca4089d9811f98d Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 17:47:58 +0200
-Subject: [PATCH v47 17/26] crypto: move Jitter RNG header include dir
+Subject: [PATCH v46 17/26] crypto: move Jitter RNG header include dir
 
 To support the LRNG operation which uses the Jitter RNG separately
 from the kernel crypto API, the header file must be accessible to
@@ -26,7 +26,7 @@ index 2d115bec15ae..e7dac734d237 100644
 -
 -#include "jitterentropy.h"
 +#include <crypto/internal/jitterentropy.h>
- 
+
  /***************************************************************************
   * Helper function
 diff --git a/crypto/jitterentropy.c b/crypto/jitterentropy.c
@@ -35,17 +35,17 @@ index 93bff3213823..81b80a4d3d3a 100644
 +++ b/crypto/jitterentropy.c
 @@ -133,7 +133,7 @@ struct rand_data {
  #define JENT_ENTROPY_SAFETY_FACTOR	64
- 
+
  #include <linux/fips.h>
 -#include "jitterentropy.h"
 +#include <crypto/internal/jitterentropy.h>
- 
+
  /***************************************************************************
   * Adaptive Proportion Test
 diff --git a/crypto/jitterentropy.h b/include/crypto/internal/jitterentropy.h
 similarity index 100%
 rename from crypto/jitterentropy.h
 rename to include/crypto/internal/jitterentropy.h
--- 
-2.37.3
+--
+2.37.1
 
