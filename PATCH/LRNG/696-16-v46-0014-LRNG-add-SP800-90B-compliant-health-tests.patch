@@ -1,7 +1,7 @@
-From a5f8dd80e9352db7e99ad903946bb52d080aecaa Mon Sep 17 00:00:00 2001
+From da4641ac878224c0767ca7e19ed9d5f7bf7fbe93 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 17:07:49 +0200
-Subject: [PATCH v47 14/26] LRNG - add SP800-90B compliant health tests
+Subject: [PATCH v46 14/26] LRNG - add SP800-90B compliant health tests
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -119,13 +119,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_health.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index a4b531a4553b..b3f6beb761bc 100644
+index f8a0b47744f8..04592e1f13d8 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -223,68 +223,68 @@ config LRNG_COLLECTION_SIZE
+@@ -197,68 +197,68 @@ config LRNG_COLLECTION_SIZE
  	default 4096 if LRNG_COLLECTION_SIZE_4096
  	default 8192 if LRNG_COLLECTION_SIZE_8192
- 
+
 -# config LRNG_HEALTH_TESTS
 -# 	bool "Enable internal entropy source online health tests"
 -# 	depends on LRNG_TIMER_COMMON
@@ -250,9 +250,9 @@ index a4b531a4553b..b3f6beb761bc 100644
 +	int
 +	default 325 if !LRNG_APT_BROKEN
 +	default 32 if LRNG_APT_BROKEN
- 
+
  comment "Interrupt Entropy Source"
- 
+
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
 index c14a056fea95..6dc38c1b70e9 100644
 --- a/drivers/char/lrng/Makefile
@@ -689,6 +689,6 @@ index 000000000000..a60c8378eea5
 +
 +	return lrng_health_pass;
 +}
--- 
-2.37.3
+--
+2.37.1
 

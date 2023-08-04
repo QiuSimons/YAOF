@@ -1,7 +1,7 @@
-From 1fd6e429673ab38a97615c84f9e53a26aa3cd08a Mon Sep 17 00:00:00 2001
+From f1ddd7f43a2299961080e1218a5ac1abe3cd5ce2 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:39:30 +0200
-Subject: [PATCH v47 25/26] LRNG - add /dev/lrng device file support
+Subject: [PATCH v46 25/26] LRNG - add /dev/lrng device file support
 
 The LRNG can create a character device file that operates identically
 to /dev/random including IOCTL, read and write operations.
@@ -15,10 +15,10 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_dev.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 2d825156d6e7..3c6055c8b38e 100644
+index 3ddd8d08a39d..860a2bbd2bf4 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -105,15 +105,15 @@ config LRNG_KCAPI_IF
+@@ -79,15 +79,15 @@ config LRNG_KCAPI_IF
  # 	  with the name "lrng" that is accessible via the framework.
  # 	  For example it allows pulling data from the LRNG via the
  # 	  /dev/hwrng file.
@@ -41,7 +41,7 @@ index 2d825156d6e7..3c6055c8b38e 100644
 +	  operations.
 +
  endmenu # "LRNG Interfaces"
- 
+
  menu "Entropy Source Configuration"
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
 index 6a163038ffb4..9dd87363a97e 100644
@@ -93,6 +93,6 @@ index 000000000000..e60060d402b3
 +	return misc_register(&lrng_miscdev);
 +}
 +device_initcall(lrng_dev_if_mod_init);
--- 
-2.37.3
+--
+2.37.1
 

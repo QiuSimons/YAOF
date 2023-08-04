@@ -1,7 +1,7 @@
-From 3680635fbb7e58801b5fb70c27ebabf7100e1cd6 Mon Sep 17 00:00:00 2001
+From 28554916899baf3858038e251da3536dc3f15373 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:43:30 +0200
-Subject: [PATCH v47 26/26] LRNG - add hwrand framework interface
+Subject: [PATCH v46 26/26] LRNG - add hwrand framework interface
 
 The LRNG can be registered with the hardware random number generator
 framework. This offers a random number generator with the name "lrng"
@@ -17,13 +17,13 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_hwrand.c
 
 diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 3c6055c8b38e..508dc8f48af5 100644
+index 860a2bbd2bf4..bfd6b3ea4f1b 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -95,16 +95,16 @@ config LRNG_KCAPI_IF
+@@ -69,16 +69,16 @@ config LRNG_KCAPI_IF
  	  is intended to be higher than the existing RNG
  	  implementations.
- 
+
 -# config LRNG_HWRAND_IF
 -# 	tristate "Interface with Hardware Random Number Generator Framework"
 -# 	depends on HW_RANDOM
@@ -44,7 +44,7 @@ index 3c6055c8b38e..508dc8f48af5 100644
 +	  with the name "lrng" that is accessible via the framework.
 +	  For example it allows pulling data from the LRNG via the
 +	  /dev/hwrng file.
- 
+
  config LRNG_DEV_IF
  	bool "Character device file interface"
 diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
@@ -130,6 +130,6 @@ index 000000000000..e841eea13348
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager HW-Random Interface");
--- 
-2.37.3
+--
+2.37.1
 

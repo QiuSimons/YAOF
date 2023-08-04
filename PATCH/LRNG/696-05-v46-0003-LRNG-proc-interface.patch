@@ -1,7 +1,7 @@
-From 8b238ba6ce39ce1221982f5c5b328872fd9a0abd Mon Sep 17 00:00:00 2001
+From 385136329ef5008263938ff2ef5413b67c63005a Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
-Date: Sun, 9 Oct 2022 10:07:59 +0200
-Subject: [PATCH v47 03/26] LRNG - /proc interface
+Date: Sun, 31 Jul 2022 22:16:44 +0200
+Subject: [PATCH v46 03/26] LRNG - /proc interface
 
 The patch adds the file lrng_type which provides details about
 the LRNG:
@@ -40,14 +40,14 @@ index 60effabb1372..dafa6299972d 100644
 @@ -8,6 +8,7 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr.o \
  obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha256.o
  obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
- 
+
 +obj-$(CONFIG_SYSCTL)			+= lrng_proc.o
  obj-$(CONFIG_NUMA)			+= lrng_numa.o
- 
+
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 diff --git a/drivers/char/lrng/lrng_proc.c b/drivers/char/lrng/lrng_proc.c
 new file mode 100644
-index 000000000000..2818591be3f0
+index 000000000000..92329cc6ef28
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.c
 @@ -0,0 +1,74 @@
@@ -87,15 +87,15 @@ index 000000000000..2818591be3f0
 +		 "DRNG name: %s\n"
 +		 "LRNG security strength in bits: %d\n"
 +		 "Number of DRNG instances: %u\n"
-+		 "Standards compliance: %sNTG.1 (2011%s)\n"
++		 "Standards compliance: %s%s\n"
 +		 "LRNG minimally seeded: %s\n"
 +		 "LRNG fully seeded: %s\n"
 +		 "LRNG entropy level: %u\n",
 +		 lrng_drng_init->drng_cb->drng_name(),
 +		 lrng_security_strength(),
 +		 numa_drngs,
-+		 lrng_sp80090c_compliant() ? "SP800-90C, " : "",
-+		 lrng_ntg1_compliant() ? " / 2022" : "",
++		 lrng_sp80090c_compliant() ? "SP800-90C " : "",
++		 lrng_ntg1_compliant() ? "NTG.1 " : "",
 +		 lrng_state_min_seeded() ? "true" : "false",
 +		 lrng_state_fully_seeded() ? "true" : "false",
 +		 lrng_avail_entropy());
@@ -132,14 +132,14 @@ index e8097abe7fbd..c653274f1954 100644
 @@ -6,6 +6,10 @@
  #ifndef _LRNG_PROC_H
  #define _LRNG_PROC_H
- 
+
 +#ifdef CONFIG_SYSCTL
 +void lrng_pool_inc_numa_node(void);
 +#else
  static inline void lrng_pool_inc_numa_node(void) { }
 +#endif
- 
+
  #endif /* _LRNG_PROC_H */
--- 
-2.37.3
+--
+2.37.1
 
