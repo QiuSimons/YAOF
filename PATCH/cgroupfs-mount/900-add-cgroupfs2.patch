@@ -8,7 +8,7 @@ index 40810ba..f4c9f45 100755
  if ! mountpoint -q /sys/fs/cgroup; then
 -	mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
 +	if [ "$1" = "v2" ]; then
-+		mount -t cgroup2 cgroup2 /sys/fs/cgroup
++		mount -t cgroup2 -o rw,nosuid,nodev,noexec,relatime,nsdelegate cgroup2 /sys/fs/cgroup
 +	else
 +		mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
 +	fi
