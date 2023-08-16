@@ -62,6 +62,7 @@ cp -rf ../lede/target/linux/generic/hack-5.15/982-add-bcm-fullconenat-support.pa
 rm -rf ./package/network/config/firewall4
 cp -rf ../immortalwrt/package/network/config/firewall4 ./package/network/config/firewall4
 cp -f ../PATCH/firewall/990-unconditionally-allow-ct-status-dnat.patch ./package/network/config/firewall4/patches/990-unconditionally-allow-ct-status-dnat.patch
+cp -f ../PATCH/firewall/001-fix-fw4-flow-offload.patch ./package/network/config/firewall4/patches/001-fix-fw4-flow-offload.patch
 rm -rf ./package/libs/libnftnl
 cp -rf ../immortalwrt/package/libs/libnftnl ./package/libs/libnftnl
 rm -rf ./package/network/utils/nftables

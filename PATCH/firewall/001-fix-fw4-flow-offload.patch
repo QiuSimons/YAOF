@@ -1,0 +1,15 @@
+diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
+index 06ef932..0a40e02 100644
+--- a/root/usr/share/ucode/fw4.uc
++++ b/root/usr/share/ucode/fw4.uc
+@@ -2049,8 +2049,8 @@ return {
+ 					});
+ 				}
+ 
+-				if (net.physdev && !e.invert)
+-					push(related_physdevs, net.physdev);
++				if (net.up && net.device && !e.invert)
++					push(related_physdevs, net.device);
+ 
+ 				push(related_subnets, ...(net.ipaddrs || []));
+ 			}
