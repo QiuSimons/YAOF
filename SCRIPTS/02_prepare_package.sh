@@ -477,7 +477,7 @@ wget -qO - https://github.com/coolsnowwolf/lede/commit/ec795c9.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/789f805.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/6398168.patch | patch -p1
 cp -rf ../lede/package/lean/shortcut-fe/shortcut-fe ./package/lean/shortcut-fe/shortcut-fe
-wget -qO - https://github.com/coolsnowwolf/lede/commit/413cd91.patch | patch -p1
+wget -qO - https://github.com/coolsnowwolf/lede/commit/0e29809.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/eb70dad.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/7ba3ec0.patch | patch -p1
 cp -rf ../lede/package/lean/shortcut-fe/simulated-driver ./package/lean/shortcut-fe/simulated-driver
