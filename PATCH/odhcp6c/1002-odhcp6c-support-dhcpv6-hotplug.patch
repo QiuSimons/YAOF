@@ -1,0 +1,25 @@
+From b774d35a8945e7a517bfa76d10216def4d7f470c Mon Sep 17 00:00:00 2001
+From: Jianhui Zhao <jianhui.zhao@gl-inet.com>
+Date: Fri, 26 May 2023 15:18:27 +0800
+Subject: [PATCH] odhcp6c: support dhcpv6 hotplug
+
+Signed-off-by: Jianhui Zhao <jianhui.zhao@gl-inet.com>
+---
+ package/network/ipv6/odhcp6c/files/dhcpv6.script | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/package/network/ipv6/odhcp6c/files/dhcpv6.script b/package/network/ipv6/odhcp6c/files/dhcpv6.script
+index b1a99ed986..0d295afa52 100755
+--- a/package/network/ipv6/odhcp6c/files/dhcpv6.script
++++ b/package/network/ipv6/odhcp6c/files/dhcpv6.script
+@@ -133,6 +133,7 @@ setup_interface () {
+ 
+ 		if [ -z "$gw" -o "$duplicate" = 1 ]; then
+ 			proto_add_ipv6_route "$addr" "$mask" "$gw" "$metric" "$valid"
++			env -i ACTION="ifup" INTERFACE="$INTERFACE" DEVICE="$DEVICE" ADDR="$addr" MASK="$mask" "GW"="$gw" METRIC="$metric" VALID="$valid" /sbin/hotplug-call dhcpv6
+ 		else
+ 			for prefix in $PREFIXES $ADDRESSES; do
+ 				local paddr="${prefix%%,*}"
+-- 
+2.34.1
+
