@@ -112,10 +112,6 @@ ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
 cp -rf ../immortalwrt_pkg/net/daed ./feeds/packages/net/daed
 ln -sf ../../../feeds/packages/net/daed ./package/feeds/packages/daed
 git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
-# xdp
-wget -qO - https://github.com/openwrt/openwrt/commit/47ea58b.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/ce3082d.patch | patch -p1
-wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/hack-5.15/901-debloat_sock_diag.patch -O target/linux/generic/hack-5.15/901-debloat_sock_diag.patch
 # btf
 wget -qO - https://github.com/immortalwrt/immortalwrt/commit/73e5679.patch | patch -p1
 wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch -O target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch
