@@ -2,7 +2,7 @@
 <img width="768" src="https://raw.githubusercontent.com/QiuSimons/Others/master/YAOF.png" >
 </p>
 <p align="center">
-<img src="https://forthebadge.com/images/badges/built-with-love.svg">
+<img src="https://github.com/Tired-Fox/cargors/raw/aabd34c/assets/badges/built_with_love.svg">
 <p>
 <p align="center">
 <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/QiuSimons/YAOF/total?style=for-the-badge">
