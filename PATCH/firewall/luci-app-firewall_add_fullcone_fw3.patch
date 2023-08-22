@@ -1,0 +1,17 @@
+From: QiuSimons
+index 58cd2a7c1e9..3d476e198fb 100644
+--- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -57,6 +57,12 @@ return view.extend({
+ 
+ 		o = s.option(form.Flag, 'drop_invalid', _('Drop invalid packets'));
+ 
++		o = s.option(form.ListValue, "fullcone", _("Enable FullCone NAT"));
++		o.value("0", _('Disabled'));
++		o.value("1", _('Compatible Mode'));
++		o.value("2", _('High Performing Mode'));
++		o.default = "2";
++
+ 		var p = [
+ 			s.option(form.ListValue, 'input', _('Input')),
+ 			s.option(form.ListValue, 'output', _('Output')),

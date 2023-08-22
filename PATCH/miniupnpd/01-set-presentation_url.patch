@@ -1,0 +1,14 @@
+diff --git a/net/miniupnpd/files/miniupnpd.init b/net/miniupnpd/files/miniupnpd.init
+index de35045..c5a14ab 100644
+--- a/net/miniupnpd/files/miniupnpd.init
++++ b/net/miniupnpd/files/miniupnpd.init
+@@ -217,6 +217,9 @@ stop_service() {
+ }
+ 
+ start_service() {
++	sed -i '/presentation_url/d' /etc/config/upnpd
++	sed -i "\/uuid/a\\\toption presentation_url 'http://$(uci -q get network.lan.ipaddr)/'" /etc/config/upnpd
++	uci commit upnpd
+ 	config_load "upnpd"
+ 	config_foreach upnpd "upnpd"
+ }

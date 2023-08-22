@@ -4,6 +4,10 @@ rm -rf ./package/network/utils/iptables
 cp -rf ../openwrt_22/package/network/utils/iptables ./package/network/utils/iptables
 cp -rf ../lede/package/network/utils/iptables/patches/900-bcm-fullconenat.patch ./package/network/utils/iptables/patches/900-bcm-fullconenat.patch
 # 滚回fw3
+pushd feeds/luci
+patch -Rp1 <../../../PATCH/firewall/luci-app-firewall_add_fullcone_fw4.patch
+patch -p1 <../../../PATCH/firewall/luci-app-firewall_add_fullcone_fw3.patch
+popd
 sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall2/Makefile
 sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall/Makefile
 sed -i 's,iptables-nft +kmod-nft-fullcone,iptables-mod-fullconenat,g' ./package/new/addition-trans-zh/Makefile
@@ -15,6 +19,7 @@ sed -i '/firewall/d' ./.config
 sed -i '/offload/d' ./.config
 sed -i '/tables/d' ./.config
 sed -i '/nft/d' ./.config
+sed -i '/Nft/d' ./.config
 echo '
 CONFIG_PACKAGE_firewall=y
 # CONFIG_PACKAGE_firewall4 is not set
@@ -26,7 +31,9 @@ CONFIG_PACKAGE_xtables-legacy=y
 # CONFIG_PACKAGE_xtables-nft is not set
 CONFIG_PACKAGE_kmod-nft-offload=n
 CONFIG_PACKAGE_kmod-ipt-offload=y
+CONFIG_PACKAGE_dnsmasq_full_ipset=y
 CONFIG_PACKAGE_dnsmasq_full_nftset=n
+CONFIG_PACKAGE_iptables-mod-fullconenat=y
 ' >>./.config
 rm -rf ./feeds/luci/applications/luci-app-zerotier
 cp -rf ../lede_luci/applications/luci-app-zerotier ./feeds/luci/applications/luci-app-zerotier

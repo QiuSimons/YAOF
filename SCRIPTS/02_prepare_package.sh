@@ -60,14 +60,15 @@ cp -rf ../lede/target/linux/generic/hack-5.15/952-add-net-conntrack-events-suppo
 cp -rf ../lede/target/linux/generic/hack-5.15/982-add-bcm-fullconenat-support.patch ./target/linux/generic/hack-5.15/982-add-bcm-fullconenat-support.patch
 # Patch FireWall 以增添 FullCone 功能
 # FW4
-rm -rf ./package/network/config/firewall4
-cp -rf ../immortalwrt/package/network/config/firewall4 ./package/network/config/firewall4
-cp -f ../PATCH/firewall/990-unconditionally-allow-ct-status-dnat.patch ./package/network/config/firewall4/patches/990-unconditionally-allow-ct-status-dnat.patch
+mkdir -p package/network/config/firewall4/patches
 cp -f ../PATCH/firewall/001-fix-fw4-flow-offload.patch ./package/network/config/firewall4/patches/001-fix-fw4-flow-offload.patch
-rm -rf ./package/libs/libnftnl
-cp -rf ../immortalwrt/package/libs/libnftnl ./package/libs/libnftnl
-rm -rf ./package/network/utils/nftables
-cp -rf ../immortalwrt/package/network/utils/nftables ./package/network/utils/nftables
+cp -f ../PATCH/firewall/990-unconditionally-allow-ct-status-dnat.patch ./package/network/config/firewall4/patches/990-unconditionally-allow-ct-status-dnat.patch
+cp -f ../PATCH/firewall/999-01-firewall4-add-fullcone-support.patch ./package/network/config/firewall4/patches/999-01-firewall4-add-fullcone-support.patch
+mkdir -p package/libs/libnftnl/patches
+cp -f ../PATCH/firewall/libnftnl/001-libnftnl-add-fullcone-expression-support.patch ./package/libs/libnftnl/patches/001-libnftnl-add-fullcone-expression-support.patch
+sed -i '/PKG_INSTALL:=/iPKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
+mkdir -p package/network/utils/nftables/patches
+cp -f ../PATCH/firewall/nftables/002-nftables-add-fullcone-expression-support.patch ./package/network/utils/nftables/patches/002-nftables-add-fullcone-expression-support.patch
 # FW3
 mkdir -p package/network/config/firewall/patches
 cp -rf ../immortalwrt_21/package/network/config/firewall/patches/100-fullconenat.patch ./package/network/config/firewall/patches/100-fullconenat.patch
@@ -78,7 +79,7 @@ cp -rf ../lede/package/network/utils/iptables/patches/900-bcm-fullconenat.patch 
 wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
 # Patch LuCI 以增添 FullCone 开关
 pushd feeds/luci
-wget -qO- https://github.com/openwrt/luci/commit/471182b2.patch | patch -p1
+patch -p1 <../../../PATCH/firewall/luci-app-firewall_add_fullcone_fw4.patch
 popd
 # FullCone PKG
 git clone --depth 1 https://github.com/fullcone-nat-nftables/nft-fullcone package/new/nft-fullcone
@@ -106,6 +107,9 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
+# netifd
+mkdir -p package/network/config/netifd/patches
+cp -f ../PATCH/netifd/100-system-linux-fix-autoneg-for-2.5G-5G-10G.patch ./package/network/config/netifd/patches/100-system-linux-fix-autoneg-for-2.5G-5G-10G.patch
 # dae ready
 cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
@@ -202,17 +206,10 @@ ln -sf ../../../feeds/luci/applications/luci-app-autoreboot ./package/feeds/luci
 rm -rf ./feeds/packages/net/miniupnpd
 cp -rf ../openwrt_pkg_ma/net/miniupnpd ./feeds/packages/net/miniupnpd
 pushd feeds/packages
-wget -qO- https://github.com/openwrt/packages/commit/785bbcb.patch | patch -p1
-wget -qO- https://github.com/openwrt/packages/commit/d811cb4.patch | patch -p1
-wget -qO- https://github.com/openwrt/packages/commit/9a2da85.patch | patch -p1
-wget -qO- https://github.com/openwrt/packages/commit/71dc090.patch | patch -p1
+patch -p1 <../../../PATCH/miniupnpd/01-set-presentation_url.patch
+patch -p1 <../../../PATCH/miniupnpd/02-force_forwarding.patch
+patch -p1 <../../../PATCH/miniupnpd/03-Update-301-options-force_forwarding-support.patch.patch
 popd
-wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/201-change-default-chain-rule-to-accept.patch
-wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0004-miniupnpd-format-xml-to-make-some-app-happy.patch
-wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0005-miniupnpd-stun-ignore-external-port-changed.patch
-wget -P feeds/packages/net/miniupnpd/patches/ https://github.com/ptpt52/openwrt-packages/raw/master/net/miniupnpd/patches/500-0006-miniupnpd-fix-stun-POSTROUTING-filter-for-openwrt.patch
-rm -rf ./feeds/luci/applications/luci-app-upnp
-cp -rf ../openwrt_luci_ma/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
 pushd feeds/luci
 wget -qO- https://github.com/openwrt/luci/commit/0b5fb915.patch | patch -p1
 popd
@@ -293,9 +290,6 @@ git clone -b master --depth 1 https://github.com/NateLol/luci-app-oled.git packa
 git clone --single-branch --depth 1 -b dev https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 # Passwall
 cp -rf ../passwall_luci/luci-app-passwall ./package/new/luci-app-passwall
-pushd package/new/luci-app-passwall
-sed -i 's,iptables-legacy,iptables-nft,g' Makefile
-popd
 wget -P package/new/luci-app-passwall/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
 chmod -R 755 ./package/new/luci-app-passwall/move_2_services.sh
 pushd package/new/luci-app-passwall
@@ -364,6 +358,7 @@ cp -rf ../ssrp/luci-app-ssr-plus ./package/new/luci-app-ssr-plus
 rm -rf ./package/new/luci-app-ssr-plus/po/zh_Hans
 pushd package/new
 wget -qO - https://github.com/fw876/helloworld/commit/5bbf6e7.patch | patch -p1
+grep -qF "shadowsocksr_server" luci-app-ssr-plus/root/etc/init.d/shadowsocksr || wget -qO - https://github.com/fw876/helloworld/pull/1249.patch | patch -p1
 popd
 pushd package/new/luci-app-ssr-plus
 sed -i '/Clang.CN.CIDR/a\o:value("https://gh.404delivr.workers.dev/https://github.com/QiuSimons/Chnroute/raw/master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
@@ -375,6 +370,9 @@ cp -rf ../openwrt_pkg_ma/net/v2raya ./feeds/packages/net/v2raya
 ln -sf ../../../feeds/packages/net/v2raya ./package/feeds/packages/v2raya
 # socat
 cp -rf ../Lienol_pkg/luci-app-socat ./package/new/luci-app-socat
+pushd package/new
+wget -qO - https://github.com/Lienol/openwrt-package/pull/39.patch | patch -p1
+popd
 sed -i '/socat\.config/d' feeds/packages/net/socat/Makefile
 # 订阅转换
 cp -rf ../immortalwrt_pkg/net/subconverter ./feeds/packages/net/subconverter
