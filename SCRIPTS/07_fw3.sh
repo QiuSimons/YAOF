@@ -20,6 +20,7 @@ sed -i '/offload/d' ./.config
 sed -i '/tables/d' ./.config
 sed -i '/nft/d' ./.config
 sed -i '/Nft/d' ./.config
+sed -i '/homeproxy/d' ./.config
 echo '
 CONFIG_PACKAGE_firewall=y
 # CONFIG_PACKAGE_firewall4 is not set

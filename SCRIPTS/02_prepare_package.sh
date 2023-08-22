@@ -286,6 +286,10 @@ wget https://destan19.github.io/assets/oaf/open_feature/feature-cn-22-06-21.cfg 
 popd
 # OLED 驱动程序
 git clone -b master --depth 1 https://github.com/NateLol/luci-app-oled.git package/new/luci-app-oled
+# homeproxy
+git clone --single-branch --depth 1 -b dev https://github.com/immortalwrt/homeproxy.git package/new/homeproxy
+rm -rf ./feeds/packages/net/sing-box
+cp -rf ../immortalwrt_pkg/net/sing-box ./feeds/packages/net/sing-box
 # OpenClash
 git clone --single-branch --depth 1 -b dev https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 # Passwall

@@ -85,6 +85,7 @@ CONFIG_PACKAGE_luci-nginx=y
 CONFIG_PACKAGE_luci-compat=y
 
 ### APPLICATION ###
+CONFIG_PACKAGE_luci-app-homeproxy=y
 CONFIG_PACKAGE_luci-app-ap-modem=y
 CONFIG_PACKAGE_luci-app-oled=y
 CONFIG_PACKAGE_luci-proto-wireguard=y
