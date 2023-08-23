@@ -22,5 +22,5 @@ index 0d6b68d..4ae3185 100755
  
 -	cgroupfs-mount
 +	umount_cgroup
-+	cgroupfs-mount v2
++	cgroupfs-mount
  }

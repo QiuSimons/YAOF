@@ -1,0 +1,29 @@
+From 3855430e665c09b8b36d177a39245d0a69453397 Mon Sep 17 00:00:00 2001
+From: sbwml <admin@cooluc.com>
+Date: Wed, 23 Aug 2023 20:10:30 +0800
+Subject: [PATCH 1/2] mount cgroup v2 hierarchy to /sys/fs/cgroup/cgroup2
+
+---
+ cgroupfs-mount | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/cgroupfs-mount b/cgroupfs-mount
+index 40810ba..114f7a1 100755
+--- a/cgroupfs-mount
++++ b/cgroupfs-mount
+@@ -41,6 +41,12 @@ for sys in $(awk '!/^#/ { if ($4 == 1) print $1 }' /proc/cgroups); do
+ 	fi
+ done
+ 
++# mount cgroup v2 hierarchy to /sys/fs/cgroup/cgroup2 if kernel support cgroup2 filesystem
++if grep -q cgroup2 /proc/filesystems; then
++	mkdir -p /sys/fs/cgroup/cgroup2
++	mount -t cgroup2 -o rw,nosuid,nodev,noexec,relatime,nsdelegate cgroup2 /sys/fs/cgroup/cgroup2
++fi
++
+ # example /proc/cgroups:
+ #  #subsys_name	hierarchy	num_cgroups	enabled
+ #  cpuset	2	3	1
+-- 
+2.34.8
+

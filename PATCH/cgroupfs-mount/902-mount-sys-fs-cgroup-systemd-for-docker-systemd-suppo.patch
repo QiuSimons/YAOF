@@ -1,0 +1,29 @@
+From 7f6837183da98c4ec5697d9c609e7da4ce354dea Mon Sep 17 00:00:00 2001
+From: sbwml <admin@cooluc.com>
+Date: Wed, 23 Aug 2023 21:41:37 +0800
+Subject: [PATCH] mount /sys/fs/cgroup/systemd for docker systemd support
+
+---
+ cgroupfs-mount | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/cgroupfs-mount b/cgroupfs-mount
+index 8274c7c..4c1f954 100755
+--- a/cgroupfs-mount
++++ b/cgroupfs-mount
+@@ -47,6 +47,12 @@ if grep -q cgroup2 /proc/filesystems; then
+ 	mount -t cgroup2 -o rw,nosuid,nodev,noexec,relatime,nsdelegate cgroup2 /sys/fs/cgroup/cgroup2
+ fi
+ 
++# mount /sys/fs/cgroup/systemd for docker systemd 
++mkdir -p /sys/fs/cgroup/systemd
++if ! mountpoint -q /sys/fs/cgroup/systemd; then
++	mount -t cgroup -o none,name=systemd systemd /sys/fs/cgroup/systemd
++fi
++
+ # example /proc/cgroups:
+ #  #subsys_name	hierarchy	num_cgroups	enabled
+ #  cpuset	2	3	1
+-- 
+2.34.8
+

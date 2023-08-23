@@ -1,0 +1,29 @@
+From 712d45f93d6d499f8c6e6da44084ed2bfdae1605 Mon Sep 17 00:00:00 2001
+From: sbwml <admin@cooluc.com>
+Date: Wed, 23 Aug 2023 20:11:57 +0800
+Subject: [PATCH 2/2] fix cgroupfs-umount
+
+---
+ cgroupfs-umount | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/cgroupfs-umount b/cgroupfs-umount
+index ac26b6b..5b4c86e 100755
+--- a/cgroupfs-umount
++++ b/cgroupfs-umount
+@@ -24,8 +24,11 @@ for sys in *; do
+ 		umount $sys
+ 	fi
+ 	if [ -d $sys ]; then
+-		rmdir $sys || true
++		rm -rf $sys || true
+ 	fi
+ done
+ 
++cd /
++umount /sys/fs/cgroup || true
++
+ exit 0
+-- 
+2.34.8
+
