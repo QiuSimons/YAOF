@@ -258,10 +258,11 @@ git clone -b master --depth 1 https://github.com/kiddin9/luci-theme-edge.git pac
 rm -rf ./feeds/luci/applications/luci-app-frps
 rm -rf ./feeds/luci/applications/luci-app-frpc
 rm -rf ./feeds/packages/net/frp
-rm -f ./package/feeds/packages/frp
+cp -rf ../immortalwrt_pkg/net/frp ./feeds/packages/net/frp
+sed -i '/etc/d' feeds/packages/net/frp/Makefile
+sed -i '/defaults/{N;d;}' feeds/packages/net/frp/Makefile
 cp -rf ../lede_luci/applications/luci-app-frps ./package/new/luci-app-frps
 cp -rf ../lede_luci/applications/luci-app-frpc ./package/new/luci-app-frpc
-cp -rf ../lede_pkg/net/frp ./package/new/frp
 # IPSec
 #cp -rf ../lede_luci/applications/luci-app-ipsec-server ./package/new/luci-app-ipsec-server
 # IPv6 兼容助手
@@ -352,7 +353,8 @@ cp -rf ../ssrp/v2ray-core ./package/new/v2ray-core
 cp -rf ../passwall_pkg/hysteria ./package/new/hysteria
 cp -rf ../ssrp/sagernet-core ./package/new/sagernet-core
 rm -rf ./feeds/packages/net/xray-core
-cp -rf ../ssrp/xray-core ./package/new/xray-core
+cp -rf ../immortalwrt_pkg/net/xray-core ./feeds/packages/net/xray-core
+sed -i '/CURDIR/d' feeds/packages/net/xray-core/Makefile
 cp -rf ../ssrp/v2ray-plugin ./package/new/v2ray-plugin
 cp -rf ../ssrp/shadowsocks-rust ./package/new/shadowsocks-rust
 cp -rf ../ssrp/lua-neturl ./package/new/lua-neturl
