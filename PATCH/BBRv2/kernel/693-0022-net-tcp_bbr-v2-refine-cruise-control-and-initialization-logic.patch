@@ -1,0 +1,126 @@
+From 548bcda67cacc792b404f8917e82c2a2127bd5a4 Mon Sep 17 00:00:00 2001
+From: zhaoya <marywangran@126.com>
+Date: Tue, 15 Nov 2022 11:39:04 +0800
+Subject: net-tcp_bbr: v2: refine cruise control and initialization logic
+---
+ net/ipv4/tcp_bbr2.c   | 31 + 1 -
+ include/net/inet_connection_sock.h   | +-
+ 2 files changed, 32 insertions(+), 2 deletion(-)
+
+--- a/include/net/inet_connection_sock.h
++++ b/include/net/inet_connection_sock.h
+@@ -135,7 +135,7 @@
+ 	u32			  icsk_user_timeout;
+ 
+ /* XXX inflated by temporary internal debugging info */
+-#define ICSK_CA_PRIV_SIZE      (216)
++#define ICSK_CA_PRIV_SIZE      (224)
+ 	u64			  icsk_ca_priv[ICSK_CA_PRIV_SIZE / sizeof(u64)];
+ };
+ 
+--- a/net/ipv4/tcp_bbr2.c
++++ b/net/ipv4/tcp_bbr2.c
+@@ -132,11 +132,13 @@
+ 	/* For tracking ACK aggregation: */
+ 	u64	ack_epoch_mstamp;	/* start of ACK sampling epoch */
+ 	u16	extra_acked[2];		/* max excess data ACKed in epoch */
++	u16	cruise_inc;
+ 	u32	ack_epoch_acked:20,	/* packets (S)ACKed in sampling epoch */
+ 		extra_acked_win_rtts:5,	/* age of extra_acked, in round trips */
+ 		extra_acked_win_idx:1,	/* current index in extra_acked array */
+ 	/* BBR v2 state: */
+-		unused1:2,
++		unused1:1,
++		no_loss_in_prev_round:1,
+ 		startup_ecn_rounds:2,	/* consecutive hi ECN STARTUP rounds */
+ 		loss_in_cycle:1,	/* packet loss in this cycle? */
+ 		ecn_in_cycle:1;		/* ECN in this cycle? */
+@@ -147,6 +149,7 @@
+ 	u32	bw_latest;	 /* max delivered bw in last round trip */
+ 	u32	bw_lo;		 /* lower bound on sending bandwidth */
+ 	u32	bw_hi[2];	 /* upper bound of sending bandwidth range*/
++	u32	round_start_bw;
+ 	u32	inflight_latest; /* max delivered data in last round trip */
+ 	u32	inflight_lo;	 /* lower bound of inflight data range */
+ 	u32	inflight_hi;	 /* upper bound of inflight data range */
+@@ -1156,6 +1163,11 @@
+ 	if (rs->rtt_us >= 0 &&
+ 	    (rs->rtt_us <= bbr->probe_rtt_min_us ||
+ 	     (probe_rtt_expired && !rs->is_ack_delayed))) {
++                if (!probe_rtt_expired &&
++                    (bbr->mode == BBR_PROBE_BW &&
++                     bbr->cycle_idx == BBR_BW_PROBE_CRUISE) &&
++                    3*bbr->probe_rtt_min_us >= 4*rs->rtt_us)
++                        bbr->inflight_lo = bbr->bw_lo = 0;
+ 		bbr->probe_rtt_min_us = rs->rtt_us;
+ 		bbr->probe_rtt_min_stamp = tcp_jiffies32;
+ 	}
+@@ -1265,6 +1277,9 @@
+ 	bbr->debug.target_cwnd = 0;
+ 	bbr->debug.undo = 0;
+ 
++	bbr->cruise_inc = 0;
++	bbr->round_start_bw = 0;
++	bbr->no_loss_in_prev_round = 0;
+ 	bbr->init_cwnd = min(0x7FU, tp->snd_cwnd);
+ 	bbr->prior_cwnd = tp->prior_cwnd;
+ 	tp->snd_ssthresh = TCP_INFINITE_SSTHRESH;
+@@ -1648,6 +1663,7 @@
+ 
+ 	/* Loss response. */
+ 	if (bbr->loss_in_round) {
++		bbr->cruise_inc = 0;
+ 		/* Reduce bw and inflight to (1 - beta). */
+ 		if (bbr->bw_lo == ~0U)
+ 			bbr->bw_lo = bbr_max_bw(sk);
+@@ -1713,6 +1729,7 @@
+ 		bbr2_take_bw_hi_sample(sk, bw);
+ 
+ 	bbr->loss_in_round |= (rs->losses > 0);
++	bbr->no_loss_in_prev_round = 0;
+ 
+ 	/* Update rate and volume of delivered data from latest round trip: */
+ 	bbr->bw_latest       = max_t(u32, bbr->bw_latest,       ctx->sample_bw);
+@@ -1725,6 +1742,11 @@
+ 	bbr->loss_round_start = 1;
+ 	bbr2_adapt_lower_bounds(sk);
+ 
++	if (!bbr->loss_in_round) {
++		bbr->no_loss_in_prev_round = 1;
++		if (!bbr->cruise_inc)
++			bbr->cruise_inc = 1;
++	}
+ 	/* Update windowed "latest" (single-round-trip) filters. */
+ 	bbr->loss_in_round = 0;
+ 	bbr->ecn_in_round  = 0;
+@@ -1862,6 +1884,7 @@
+ 	if (bbr->inflight_lo != ~0U)
+ 		bbr->inflight_lo = min(bbr->inflight_lo, bbr->inflight_hi);
+ 
++	bbr->round_start_bw = bbr_bw(sk);
+ 	bbr2_set_cycle_idx(sk, BBR_BW_PROBE_CRUISE);
+ }
+ 
+@@ -2033,6 +2056,22 @@
+ 	case BBR_BW_PROBE_CRUISE:
+ 		if (bbr2_check_time_to_probe_bw(sk))
+ 			return;		/* already decided state transition */
++		if (bbr->loss_round_start == 1 && bbr->no_loss_in_prev_round == 1) {
++			if (bbr->inflight_lo != ~0U)
++				bbr->inflight_lo =
++					min_t(u32, bbr->inflight_lo + bbr->cruise_inc,
++							bbr2_inflight_with_headroom(sk));
++			if (bbr->bw_lo != ~0U)
++				bbr->bw_lo = min_t(u32, bbr->bw_lo + bbr->cruise_inc,
++						bbr->round_start_bw);
++			if (bbr->inflight_lo != ~0U || bbr->bw_lo != ~0U) {
++				bbr->cruise_inc *= 2;
++				bbr->cruise_inc &= 0xff; // 0x1ff ??
++				if (bbr->cruise_inc == 0)
++					bbr->cruise_inc ++;
++			}
++			
++		}
+ 		break;
+ 
+ 	/* After cruising, when it's time to probe, we first "refill": we send
