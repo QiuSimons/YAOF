@@ -34,6 +34,10 @@ CONFIG_PACKAGE_daed-geosite=y
 CONFIG_USE_GC_SECTIONS=y
 CONFIG_USE_LTO=y
 
+# RNGD
+# CONFIG_PACKAGE_urandom-seed is not set
+# CONFIG_PACKAGE_urngd is not set
+
 ### BASIC ###
 CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
 CONFIG_PACKAGE_addition-trans-zh=y
