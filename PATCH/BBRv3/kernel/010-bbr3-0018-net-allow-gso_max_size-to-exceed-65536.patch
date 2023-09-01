@@ -1,0 +1,180 @@
+From 2630ebb33e34348c0efe943d2cd6b746b7880165 Mon Sep 17 00:00:00 2001
+From: Alexander Duyck <alexanderduyck@fb.com>
+Date: Fri, 13 May 2022 11:33:57 -0700
+Subject: [PATCH 18/23] net: allow gso_max_size to exceed 65536
+
+The code for gso_max_size was added originally to allow for debugging and
+workaround of buggy devices that couldn't support TSO with blocks 64K in
+size. The original reason for limiting it to 64K was because that was the
+existing limits of IPv4 and non-jumbogram IPv6 length fields.
+
+With the addition of Big TCP we can remove this limit and allow the value
+to potentially go up to UINT_MAX and instead be limited by the tso_max_size
+value.
+
+So in order to support this we need to go through and clean up the
+remaining users of the gso_max_size value so that the values will cap at
+64K for non-TCPv6 flows. In addition we can clean up the GSO_MAX_SIZE value
+so that 64K becomes GSO_LEGACY_MAX_SIZE and UINT_MAX will now be the upper
+limit for GSO_MAX_SIZE.
+
+v6: (edumazet) fixed a compile error if CONFIG_IPV6=n,
+               in a new sk_trim_gso_size() helper.
+               netif_set_tso_max_size() caps the requested TSO size
+               with GSO_MAX_SIZE.
+
+Signed-off-by: Alexander Duyck <alexanderduyck@fb.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/amd/xgbe/xgbe.h       | 3 ++-
+ drivers/net/ethernet/sfc/falcon/tx.c       | 3 ++-
+ drivers/net/ethernet/sfc/tx_common.c       | 3 ++-
+ drivers/net/ethernet/synopsys/dwc-xlgmac.h | 3 ++-
+ drivers/net/hyperv/rndis_filter.c          | 2 +-
+ drivers/scsi/fcoe/fcoe.c                   | 2 +-
+ include/linux/netdevice.h                  | 4 +++-
+ net/bpf/test_run.c                         | 2 +-
+ net/core/dev.c                             | 2 +-
+ net/ipv4/tcp_output.c                      | 2 +-
+ 10 files changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/net/ethernet/amd/xgbe/xgbe.h b/drivers/net/ethernet/amd/xgbe/xgbe.h
+index e0b8f3c4c..875b2c5a5 100644
+--- a/drivers/net/ethernet/amd/xgbe/xgbe.h
++++ b/drivers/net/ethernet/amd/xgbe/xgbe.h
+@@ -151,7 +151,8 @@
+ #define XGBE_TX_MAX_BUF_SIZE	(0x3fff & ~(64 - 1))
+ 
+ /* Descriptors required for maximum contiguous TSO/GSO packet */
+-#define XGBE_TX_MAX_SPLIT	((GSO_MAX_SIZE / XGBE_TX_MAX_BUF_SIZE) + 1)
++#define XGBE_TX_MAX_SPLIT	\
++	((GSO_LEGACY_MAX_SIZE / XGBE_TX_MAX_BUF_SIZE) + 1)
+ 
+ /* Maximum possible descriptors needed for an SKB:
+  * - Maximum number of SKB frags
+diff --git a/drivers/net/ethernet/sfc/falcon/tx.c b/drivers/net/ethernet/sfc/falcon/tx.c
+index f7306e93a..b93694837 100644
+--- a/drivers/net/ethernet/sfc/falcon/tx.c
++++ b/drivers/net/ethernet/sfc/falcon/tx.c
+@@ -98,7 +98,8 @@ unsigned int ef4_tx_max_skb_descs(struct ef4_nic *efx)
+ 	/* Possibly more for PCIe page boundaries within input fragments */
+ 	if (PAGE_SIZE > EF4_PAGE_SIZE)
+ 		max_descs += max_t(unsigned int, MAX_SKB_FRAGS,
+-				   DIV_ROUND_UP(GSO_MAX_SIZE, EF4_PAGE_SIZE));
++				   DIV_ROUND_UP(GSO_LEGACY_MAX_SIZE,
++						EF4_PAGE_SIZE));
+ 
+ 	return max_descs;
+ }
+diff --git a/drivers/net/ethernet/sfc/tx_common.c b/drivers/net/ethernet/sfc/tx_common.c
+index 9bc8281b7..658ea2d34 100644
+--- a/drivers/net/ethernet/sfc/tx_common.c
++++ b/drivers/net/ethernet/sfc/tx_common.c
+@@ -416,7 +416,8 @@ unsigned int efx_tx_max_skb_descs(struct efx_nic *efx)
+ 	/* Possibly more for PCIe page boundaries within input fragments */
+ 	if (PAGE_SIZE > EFX_PAGE_SIZE)
+ 		max_descs += max_t(unsigned int, MAX_SKB_FRAGS,
+-				   DIV_ROUND_UP(GSO_MAX_SIZE, EFX_PAGE_SIZE));
++				   DIV_ROUND_UP(GSO_LEGACY_MAX_SIZE,
++						EFX_PAGE_SIZE));
+ 
+ 	return max_descs;
+ }
+diff --git a/drivers/net/ethernet/synopsys/dwc-xlgmac.h b/drivers/net/ethernet/synopsys/dwc-xlgmac.h
+index 8598aaf3e..06ecb00f4 100644
+--- a/drivers/net/ethernet/synopsys/dwc-xlgmac.h
++++ b/drivers/net/ethernet/synopsys/dwc-xlgmac.h
+@@ -38,7 +38,8 @@
+ #define XLGMAC_RX_DESC_MAX_DIRTY	(XLGMAC_RX_DESC_CNT >> 3)
+ 
+ /* Descriptors required for maximum contiguous TSO/GSO packet */
+-#define XLGMAC_TX_MAX_SPLIT	((GSO_MAX_SIZE / XLGMAC_TX_MAX_BUF_SIZE) + 1)
++#define XLGMAC_TX_MAX_SPLIT	\
++	((GSO_LEGACY_MAX_SIZE / XLGMAC_TX_MAX_BUF_SIZE) + 1)
+ 
+ /* Maximum possible descriptors needed for a SKB */
+ #define XLGMAC_TX_MAX_DESC_NR	(MAX_SKB_FRAGS + XLGMAC_TX_MAX_SPLIT + 2)
+diff --git a/drivers/net/hyperv/rndis_filter.c b/drivers/net/hyperv/rndis_filter.c
+index f6c9c2a67..c801ac9c0 100644
+--- a/drivers/net/hyperv/rndis_filter.c
++++ b/drivers/net/hyperv/rndis_filter.c
+@@ -1347,7 +1347,7 @@ static int rndis_netdev_set_hwcaps(struct rndis_device *rndis_device,
+ 	struct net_device_context *net_device_ctx = netdev_priv(net);
+ 	struct ndis_offload hwcaps;
+ 	struct ndis_offload_params offloads;
+-	unsigned int gso_max_size = GSO_MAX_SIZE;
++	unsigned int gso_max_size = GSO_LEGACY_MAX_SIZE;
+ 	int ret;
+ 
+ 	/* Find HW offload capabilities */
+diff --git a/drivers/scsi/fcoe/fcoe.c b/drivers/scsi/fcoe/fcoe.c
+index 76dbdae0e..9958bf2b4 100644
+--- a/drivers/scsi/fcoe/fcoe.c
++++ b/drivers/scsi/fcoe/fcoe.c
+@@ -666,7 +666,7 @@ static void fcoe_netdev_features_change(struct fc_lport *lport,
+ 
+ 	if (netdev->features & NETIF_F_FSO) {
+ 		lport->seq_offload = 1;
+-		lport->lso_max = netdev->gso_max_size;
++		lport->lso_max = min(netdev->gso_max_size, GSO_LEGACY_MAX_SIZE);
+ 		FCOE_NETDEV_DBG(netdev, "Supports LSO for max len 0x%x\n",
+ 				lport->lso_max);
+ 	} else {
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index b5df2e59a..9fa26de39 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -2251,7 +2251,9 @@ struct net_device {
+ 	const struct rtnl_link_ops *rtnl_link_ops;
+ 
+ 	/* for setting kernel sock attribute on TCP connection setup */
+-#define GSO_MAX_SIZE		65536
++#define GSO_LEGACY_MAX_SIZE	65536u
++#define GSO_MAX_SIZE		UINT_MAX
++
+ 	unsigned int		gso_max_size;
+ #define GSO_MAX_SEGS		65535
+ 	u16			gso_max_segs;
+diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
+index 11d254ce3..f2ba2be09 100644
+--- a/net/bpf/test_run.c
++++ b/net/bpf/test_run.c
+@@ -524,7 +524,7 @@ static int convert___skb_to_skb(struct sk_buff *skb, struct __sk_buff *__skb)
+ 		cb->pkt_len = skb->len;
+ 	} else {
+ 		if (__skb->wire_len < skb->len ||
+-		    __skb->wire_len > GSO_MAX_SIZE)
++		    __skb->wire_len > GSO_LEGACY_MAX_SIZE)
+ 			return -EINVAL;
+ 		cb->pkt_len = __skb->wire_len;
+ 	}
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 4d698ccf4..3725ccecd 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -10838,7 +10838,7 @@ struct net_device *alloc_netdev_mqs(int sizeof_priv, const char *name,
+ 
+ 	dev_net_set(dev, &init_net);
+ 
+-	dev->gso_max_size = GSO_MAX_SIZE;
++	dev->gso_max_size = GSO_LEGACY_MAX_SIZE;
+ 	dev->gso_max_segs = GSO_MAX_SEGS;
+ 	dev->upper_level = 1;
+ 	dev->lower_level = 1;
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index ee4fe5874..98b0332c9 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1557,7 +1557,7 @@ int tcp_fragment(struct sock *sk, enum tcp_queue tcp_queue,
+ 	 * SO_SNDBUF values.
+ 	 * Also allow first and last skb in retransmit queue to be split.
+ 	 */
+-	limit = sk->sk_sndbuf + 2 * SKB_TRUESIZE(GSO_MAX_SIZE);
++	limit = sk->sk_sndbuf + 2 * SKB_TRUESIZE(GSO_LEGACY_MAX_SIZE);
+ 	if (unlikely((sk->sk_wmem_queued >> 1) > limit &&
+ 		     tcp_queue != TCP_FRAG_IN_WRITE_QUEUE &&
+ 		     skb != tcp_rtx_queue_head(sk) &&
+-- 
+2.39.3
+
