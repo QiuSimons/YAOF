@@ -25,20 +25,19 @@ Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
  3 files changed, 33 insertions(+), 19 deletions(-)
 
 diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 2a7632c87..2d5a5eec7 100644
+index 2a7632c87..484e3bcfc 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1075,8 +1075,8 @@ struct tcp_congestion_ops {
- 	/* hook for packet ack accounting (optional) */
- 	void (*pkts_acked)(struct sock *sk, const struct ack_sample *sample);
+@@ -1078,6 +1078,9 @@ struct tcp_congestion_ops {
+ 	/* override sysctl_tcp_min_tso_segs */
+ 	u32 (*min_tso_segs)(struct sock *sk);
  
--	/* override sysctl_tcp_min_tso_segs */
--	u32 (*min_tso_segs)(struct sock *sk);
 +	/* pick target number of segments per TSO/GSO skb (optional): */
 +	u32 (*tso_segs)(struct sock *sk, unsigned int mss_now);
- 
++
  	/* react to a specific lost skb (optional) */
  	void (*skb_marked_lost)(struct sock *sk, const struct sk_buff *skb);
+ 
 diff --git a/net/ipv4/tcp_bbr.c b/net/ipv4/tcp_bbr.c
 index c5ee83654..935ef3ccd 100644
 --- a/net/ipv4/tcp_bbr.c
