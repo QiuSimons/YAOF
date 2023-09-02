@@ -1,7 +1,7 @@
-From 0dbfa89b136e87f8ef0f22cdd9fc52cb3da2a779 Mon Sep 17 00:00:00 2001
+From 45c18820a190e8f028cbbe76ef99cbe08b913e2e Mon Sep 17 00:00:00 2001
 From: Mubashir Adnan Qureshi <mubashirq@google.com>
 Date: Wed, 26 Oct 2022 13:51:12 +0000
-Subject: [PATCH 20/23] tcp: add PLB functionality for TCP
+Subject: [PATCH 18/21] tcp: add PLB functionality for TCP
 
 Congestion control algorithms track PLB state and cause the connection
 to trigger a path change when either of the 2 conditions is satisfied:
@@ -33,10 +33,10 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  create mode 100644 net/ipv4/tcp_plb.c
 
 diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 8777165ba..7b684305b 100644
+index 8ea77d0b8..ef59af120 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -2170,6 +2170,34 @@ extern void tcp_rack_advance(struct tcp_sock *tp, u8 sacked, u32 end_seq,
+@@ -2173,6 +2173,34 @@ extern void tcp_rack_advance(struct tcp_sock *tp, u8 sacked, u32 end_seq,
  extern void tcp_rack_reo_timeout(struct sock *sk);
  extern void tcp_rack_update_reo_wnd(struct sock *sk, struct rate_sample *rs);
  
@@ -85,7 +85,7 @@ index bbdd9c44f..af7d2cf49 100644
  	     fib_frontend.o fib_semantics.o fib_trie.o fib_notifier.o \
  	     inet_fragment.o ping.o ip_tunnel_core.o gre_offload.o \
 diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index a3cf1f0a4..8cd181df8 100644
+index 2fbdc6e2d..2d31489a6 100644
 --- a/net/ipv4/tcp_ipv4.c
 +++ b/net/ipv4/tcp_ipv4.c
 @@ -3211,7 +3211,7 @@ static int __net_init tcp_sk_init(struct net *net)

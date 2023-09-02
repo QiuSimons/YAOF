@@ -1,7 +1,7 @@
-From 290fa4557da7eda259dee30952b32e421a1ff475 Mon Sep 17 00:00:00 2001
+From f461af1920b21e171e0fa300811e3950f4d16f38 Mon Sep 17 00:00:00 2001
 From: David Morley <morleyd@google.com>
 Date: Fri, 14 Jul 2023 11:07:56 -0400
-Subject: [PATCH 15/23] tcp: introduce per-route feature RTAX_FEATURE_ECN_LOW
+Subject: [PATCH 15/21] tcp: introduce per-route feature RTAX_FEATURE_ECN_LOW
 
 Define and implement a new per-route feature, RTAX_FEATURE_ECN_LOW.
 
@@ -31,7 +31,7 @@ Change-Id: I6bc06e9c6cb426fbae7243fc71c9a8c18175f5d3
  4 files changed, 19 insertions(+), 3 deletions(-)
 
 diff --git a/include/net/tcp.h b/include/net/tcp.h
-index ed2352c0f..8777165ba 100644
+index 4ca98c13e..8ea77d0b8 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
 @@ -360,6 +360,7 @@ static inline void tcp_dec_quickack_mode(struct sock *sk,

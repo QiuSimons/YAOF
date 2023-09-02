@@ -1,7 +1,7 @@
-From 2630ebb33e34348c0efe943d2cd6b746b7880165 Mon Sep 17 00:00:00 2001
+From 9fffe7e05bb0da5aef700cc246a71fc33672c81e Mon Sep 17 00:00:00 2001
 From: Alexander Duyck <alexanderduyck@fb.com>
 Date: Fri, 13 May 2022 11:33:57 -0700
-Subject: [PATCH 18/23] net: allow gso_max_size to exceed 65536
+Subject: [PATCH 16/21] net: allow gso_max_size to exceed 65536
 
 The code for gso_max_size was added originally to allow for debugging and
 workaround of buggy devices that couldn't support TSO with blocks 64K in
@@ -163,10 +163,10 @@ index 4d698ccf4..3725ccecd 100644
  	dev->upper_level = 1;
  	dev->lower_level = 1;
 diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index ee4fe5874..98b0332c9 100644
+index a01888029..bdb7e4ef3 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1557,7 +1557,7 @@ int tcp_fragment(struct sock *sk, enum tcp_queue tcp_queue,
+@@ -1553,7 +1553,7 @@ int tcp_fragment(struct sock *sk, enum tcp_queue tcp_queue,
  	 * SO_SNDBUF values.
  	 * Also allow first and last skb in retransmit queue to be split.
  	 */

@@ -1,7 +1,7 @@
-From 2f6b483516731a24a1153bc2a9cbf126cbea65dc Mon Sep 17 00:00:00 2001
+From 92cc6148b75351640fa820dedf61dfef59d7b9f0 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Tue, 7 Aug 2018 21:52:06 -0400
-Subject: [PATCH 06/23] net-tcp_bbr: v2: introduce ca_ops->skb_marked_lost() CC
+Subject: [PATCH 06/21] net-tcp_bbr: v2: introduce ca_ops->skb_marked_lost() CC
  module callback API
 
 For connections experiencing reordering, RACK can mark packets lost

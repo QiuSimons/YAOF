@@ -1,7 +1,7 @@
-From 7b2939d8f71d80d59cff6edc8037c8de387ba480 Mon Sep 17 00:00:00 2001
+From 9e4a6a6a35617746e9e88d2212abc3403246245a Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Sun, 23 Jul 2023 23:25:34 -0400
-Subject: [PATCH 23/23] tcp: export TCPI_OPT_ECN_LOW in tcp_info tcpi_options
+Subject: [PATCH 21/21] tcp: export TCPI_OPT_ECN_LOW in tcp_info tcpi_options
  field
 
 Analogous to other important ECN information, export TCPI_OPT_ECN_LOW
