@@ -1,7 +1,7 @@
-From 7bd9e5381421c89d15fee7789626e82e43a585ce Mon Sep 17 00:00:00 2001
+From 056449511b1f5c6a2b9758655f01f2dd8e135fa0 Mon Sep 17 00:00:00 2001
 From: Jianfeng Wang <jfwang@google.com>
 Date: Tue, 16 Jun 2020 17:41:19 +0000
-Subject: [PATCH 13/23] net-tcp_bbr: v2: inform CC module of losses repaired by
+Subject: [PATCH 13/21] net-tcp_bbr: v2: inform CC module of losses repaired by
  TLP probe
 
 Before this commit, when there is a packet loss that creates a sequence
@@ -23,7 +23,7 @@ Change-Id: Ieba72332b401b329bff5a641d2b2043a3fb8f632
  2 files changed, 2 insertions(+)
 
 diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 2d5a5eec7..545f83812 100644
+index 484e3bcfc..eb895a286 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
 @@ -988,6 +988,7 @@ enum tcp_ca_event {

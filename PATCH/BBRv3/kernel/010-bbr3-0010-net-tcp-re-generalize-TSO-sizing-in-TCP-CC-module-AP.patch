@@ -1,7 +1,7 @@
-From 120a19c6ce514c4c889763b1603e1727619785ff Mon Sep 17 00:00:00 2001
+From c54e85537abd076d1c87a49323a65a1c2980748d Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Fri, 27 Sep 2019 17:10:26 -0400
-Subject: [PATCH 10/23] net-tcp: re-generalize TSO sizing in TCP CC module API
+Subject: [PATCH 10/21] net-tcp: re-generalize TSO sizing in TCP CC module API
 
 Reorganize the API for CC modules so that the CC module once again
 gets complete control of the TSO sizing decision. This is how the API
@@ -19,10 +19,10 @@ large cwnd, and thus large pacing rate and large TSO burst size.
 
 Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
 ---
- include/net/tcp.h     |  4 ++--
+ include/net/tcp.h     |  3 +++
  net/ipv4/tcp_bbr.c    | 37 ++++++++++++++++++++++++++-----------
  net/ipv4/tcp_output.c | 11 +++++------
- 3 files changed, 33 insertions(+), 19 deletions(-)
+ 3 files changed, 34 insertions(+), 17 deletions(-)
 
 diff --git a/include/net/tcp.h b/include/net/tcp.h
 index 2a7632c87..484e3bcfc 100644

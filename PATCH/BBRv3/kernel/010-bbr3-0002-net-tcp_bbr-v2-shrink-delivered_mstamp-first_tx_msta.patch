@@ -1,7 +1,7 @@
-From 955df87f53c7b4519534d795fc47389df11813a7 Mon Sep 17 00:00:00 2001
+From 6c3b493c130425c182198467e1b53df3e3fcf6cb Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Sun, 24 Jun 2018 21:55:59 -0400
-Subject: [PATCH 02/23] net-tcp_bbr: v2: shrink delivered_mstamp,
+Subject: [PATCH 02/21] net-tcp_bbr: v2: shrink delivered_mstamp,
  first_tx_mstamp to u32 to free up 8 bytes
 
 Free up some space for tracking inflight and losses for each

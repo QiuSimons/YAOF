@@ -1,7 +1,7 @@
-From c9abcd5a3f466d06656380d870c54b028762e824 Mon Sep 17 00:00:00 2001
+From 962ec6509e8793040cb97da051a52a8d6319887c Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Tue, 11 Jun 2019 12:54:22 -0400
-Subject: [PATCH 21/23] net-tcp_bbr: v3: update TCP "bbr" congestion control
+Subject: [PATCH 19/21] net-tcp_bbr: v3: update TCP "bbr" congestion control
  module to BBRv3
 
 BBR v3 is an enhacement to the BBR v1 algorithm. It's designed to aim for lower
@@ -153,10 +153,10 @@ index 695ed4584..475a01524 100644
  
  #define ICSK_TIME_RETRANS	1	/* Retransmit timer */
 diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 7b684305b..0823ced80 100644
+index ef59af120..14efad728 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -2185,7 +2185,7 @@ struct tcp_plb_state {
+@@ -2188,7 +2188,7 @@ struct tcp_plb_state {
  	u8	consec_cong_rounds:5, /* consecutive congested rounds */
  		unused:3;
  	u32	pause_until; /* jiffies32 when PLB can resume rerouting */

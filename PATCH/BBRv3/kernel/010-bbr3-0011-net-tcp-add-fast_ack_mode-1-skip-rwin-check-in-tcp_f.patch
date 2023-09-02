@@ -1,7 +1,7 @@
-From 3c0330134029303b67eb49730508b706d8e661ac Mon Sep 17 00:00:00 2001
+From 8c21eb6f85f3a59479338943f1b6a0a60898329a Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Sat, 16 Nov 2019 13:16:25 -0500
-Subject: [PATCH 11/23] net-tcp: add fast_ack_mode=1: skip rwin check in
+Subject: [PATCH 11/21] net-tcp: add fast_ack_mode=1: skip rwin check in
  tcp_fast_ack_mode__tcp_ack_snd_check()
 
 Add logic for an experimental TCP connection behavior, enabled with

@@ -1,7 +1,7 @@
-From 5e884c6f2658d2374b595e40e2813194be14f817 Mon Sep 17 00:00:00 2001
+From 67a575e5256a44bef46a8db3e1f0b9c18398467e Mon Sep 17 00:00:00 2001
 From: Mubashir Adnan Qureshi <mubashirq@google.com>
 Date: Wed, 26 Oct 2022 13:51:11 +0000
-Subject: [PATCH 19/23] tcp: add sysctls for TCP PLB parameters
+Subject: [PATCH 17/21] tcp: add sysctls for TCP PLB parameters
 
 PLB (Protective Load Balancing) is a host based mechanism for load
 balancing across switch links. It leverages congestion signals(e.g. ECN)
@@ -30,10 +30,10 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  4 files changed, 133 insertions(+)
 
 diff --git a/Documentation/networking/ip-sysctl.rst b/Documentation/networking/ip-sysctl.rst
-index 286878415..8aa6b76fe 100644
+index 7890b395e..e6a1b2582 100644
 --- a/Documentation/networking/ip-sysctl.rst
 +++ b/Documentation/networking/ip-sysctl.rst
-@@ -1013,6 +1013,81 @@ tcp_rx_skb_cache - BOOLEAN
+@@ -999,6 +999,81 @@ tcp_rx_skb_cache - BOOLEAN
  
  	Default: 0 (disabled)
  
@@ -116,7 +116,7 @@ index 286878415..8aa6b76fe 100644
  =============
  
 diff --git a/include/net/netns/ipv4.h b/include/net/netns/ipv4.h
-index 6f4872ee7..48c5f0d2e 100644
+index d60a10cfc..333c3d6e1 100644
 --- a/include/net/netns/ipv4.h
 +++ b/include/net/netns/ipv4.h
 @@ -177,6 +177,12 @@ struct netns_ipv4 {
@@ -133,7 +133,7 @@ index 6f4872ee7..48c5f0d2e 100644
  	int sysctl_udp_rmem_min;
  
 diff --git a/net/ipv4/sysctl_net_ipv4.c b/net/ipv4/sysctl_net_ipv4.c
-index 34fa4aca2..a089119d8 100644
+index 1f22e7207..d8bacb073 100644
 --- a/net/ipv4/sysctl_net_ipv4.c
 +++ b/net/ipv4/sysctl_net_ipv4.c
 @@ -54,6 +54,9 @@ static int one_day_secs = 24 * 3600;
@@ -146,9 +146,9 @@ index 34fa4aca2..a089119d8 100644
  /* obsolete */
  static int sysctl_tcp_low_latency __read_mostly;
  
-@@ -1376,6 +1379,47 @@ static struct ctl_table ipv4_net_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_douintvec_minmax,
+@@ -1362,6 +1365,47 @@ static struct ctl_table ipv4_net_table[] = {
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= &two,
  	},
 +	{
 +		.procname       = "tcp_plb_enabled",
@@ -195,7 +195,7 @@ index 34fa4aca2..a089119d8 100644
  };
  
 diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index b55de6edd..a3cf1f0a4 100644
+index b5cb674ec..2fbdc6e2d 100644
 --- a/net/ipv4/tcp_ipv4.c
 +++ b/net/ipv4/tcp_ipv4.c
 @@ -3205,6 +3205,14 @@ static int __net_init tcp_sk_init(struct net *net)

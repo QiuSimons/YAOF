@@ -1,7 +1,7 @@
-From 4733ea28964074a9f341e4cd8231427f1837bd30 Mon Sep 17 00:00:00 2001
+From de047f291da6b10d4cd1a9ed74d1c4fdc4baf08b Mon Sep 17 00:00:00 2001
 From: Adithya Abraham Philip <abrahamphilip@google.com>
 Date: Fri, 11 Jun 2021 21:56:10 +0000
-Subject: [PATCH 22/23] net-tcp_bbr: v3: ensure ECN-enabled BBR flows set ECT
+Subject: [PATCH 20/21] net-tcp_bbr: v3: ensure ECN-enabled BBR flows set ECT
  on retransmits
 
 Adds a new flag TCP_ECN_ECT_PERMANENT that is used by CCAs to
@@ -23,7 +23,7 @@ Change-Id: I8b048eaab35e136fe6501ef6cd89fd9faa15e6d2
  3 files changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 0823ced80..3b7d3582c 100644
+index 14efad728..287103bf0 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
 @@ -361,6 +361,7 @@ static inline void tcp_dec_quickack_mode(struct sock *sk,
@@ -49,10 +49,10 @@ index b3496cc65..91ea40632 100644
  
  /* BBR marks the current round trip as a loss round. */
 diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 98b0332c9..2391678f3 100644
+index bdb7e4ef3..9a621da3f 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -381,7 +381,8 @@ static void tcp_ecn_send(struct sock *sk, struct sk_buff *skb,
+@@ -377,7 +377,8 @@ static void tcp_ecn_send(struct sock *sk, struct sk_buff *skb,
  				th->cwr = 1;
  				skb_shinfo(skb)->gso_type |= SKB_GSO_TCP_ECN;
  			}
