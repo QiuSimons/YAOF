@@ -39,8 +39,6 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  net/ipv4/tcp_output.c                      | 2 +-
  10 files changed, 16 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/ethernet/amd/xgbe/xgbe.h b/drivers/net/ethernet/amd/xgbe/xgbe.h
-index e0b8f3c4c..875b2c5a5 100644
 --- a/drivers/net/ethernet/amd/xgbe/xgbe.h
 +++ b/drivers/net/ethernet/amd/xgbe/xgbe.h
 @@ -151,7 +151,8 @@
@@ -53,11 +51,9 @@ index e0b8f3c4c..875b2c5a5 100644
  
  /* Maximum possible descriptors needed for an SKB:
   * - Maximum number of SKB frags
-diff --git a/drivers/net/ethernet/sfc/falcon/tx.c b/drivers/net/ethernet/sfc/falcon/tx.c
-index f7306e93a..b93694837 100644
 --- a/drivers/net/ethernet/sfc/falcon/tx.c
 +++ b/drivers/net/ethernet/sfc/falcon/tx.c
-@@ -98,7 +98,8 @@ unsigned int ef4_tx_max_skb_descs(struct ef4_nic *efx)
+@@ -98,7 +98,8 @@ unsigned int ef4_tx_max_skb_descs(struct
  	/* Possibly more for PCIe page boundaries within input fragments */
  	if (PAGE_SIZE > EF4_PAGE_SIZE)
  		max_descs += max_t(unsigned int, MAX_SKB_FRAGS,
@@ -67,11 +63,9 @@ index f7306e93a..b93694837 100644
  
  	return max_descs;
  }
-diff --git a/drivers/net/ethernet/sfc/tx_common.c b/drivers/net/ethernet/sfc/tx_common.c
-index 9bc8281b7..658ea2d34 100644
 --- a/drivers/net/ethernet/sfc/tx_common.c
 +++ b/drivers/net/ethernet/sfc/tx_common.c
-@@ -416,7 +416,8 @@ unsigned int efx_tx_max_skb_descs(struct efx_nic *efx)
+@@ -416,7 +416,8 @@ unsigned int efx_tx_max_skb_descs(struct
  	/* Possibly more for PCIe page boundaries within input fragments */
  	if (PAGE_SIZE > EFX_PAGE_SIZE)
  		max_descs += max_t(unsigned int, MAX_SKB_FRAGS,
@@ -81,8 +75,6 @@ index 9bc8281b7..658ea2d34 100644
  
  	return max_descs;
  }
-diff --git a/drivers/net/ethernet/synopsys/dwc-xlgmac.h b/drivers/net/ethernet/synopsys/dwc-xlgmac.h
-index 8598aaf3e..06ecb00f4 100644
 --- a/drivers/net/ethernet/synopsys/dwc-xlgmac.h
 +++ b/drivers/net/ethernet/synopsys/dwc-xlgmac.h
 @@ -38,7 +38,8 @@
@@ -95,11 +87,9 @@ index 8598aaf3e..06ecb00f4 100644
  
  /* Maximum possible descriptors needed for a SKB */
  #define XLGMAC_TX_MAX_DESC_NR	(MAX_SKB_FRAGS + XLGMAC_TX_MAX_SPLIT + 2)
-diff --git a/drivers/net/hyperv/rndis_filter.c b/drivers/net/hyperv/rndis_filter.c
-index f6c9c2a67..c801ac9c0 100644
 --- a/drivers/net/hyperv/rndis_filter.c
 +++ b/drivers/net/hyperv/rndis_filter.c
-@@ -1347,7 +1347,7 @@ static int rndis_netdev_set_hwcaps(struct rndis_device *rndis_device,
+@@ -1347,7 +1347,7 @@ static int rndis_netdev_set_hwcaps(struc
  	struct net_device_context *net_device_ctx = netdev_priv(net);
  	struct ndis_offload hwcaps;
  	struct ndis_offload_params offloads;
@@ -108,11 +98,9 @@ index f6c9c2a67..c801ac9c0 100644
  	int ret;
  
  	/* Find HW offload capabilities */
-diff --git a/drivers/scsi/fcoe/fcoe.c b/drivers/scsi/fcoe/fcoe.c
-index 76dbdae0e..9958bf2b4 100644
 --- a/drivers/scsi/fcoe/fcoe.c
 +++ b/drivers/scsi/fcoe/fcoe.c
-@@ -666,7 +666,7 @@ static void fcoe_netdev_features_change(struct fc_lport *lport,
+@@ -666,7 +666,7 @@ static void fcoe_netdev_features_change(
  
  	if (netdev->features & NETIF_F_FSO) {
  		lport->seq_offload = 1;
@@ -121,8 +109,6 @@ index 76dbdae0e..9958bf2b4 100644
  		FCOE_NETDEV_DBG(netdev, "Supports LSO for max len 0x%x\n",
  				lport->lso_max);
  	} else {
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index b5df2e59a..9fa26de39 100644
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
 @@ -2251,7 +2251,9 @@ struct net_device {
@@ -136,11 +122,9 @@ index b5df2e59a..9fa26de39 100644
  	unsigned int		gso_max_size;
  #define GSO_MAX_SEGS		65535
  	u16			gso_max_segs;
-diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
-index 11d254ce3..f2ba2be09 100644
 --- a/net/bpf/test_run.c
 +++ b/net/bpf/test_run.c
-@@ -524,7 +524,7 @@ static int convert___skb_to_skb(struct sk_buff *skb, struct __sk_buff *__skb)
+@@ -524,7 +524,7 @@ static int convert___skb_to_skb(struct s
  		cb->pkt_len = skb->len;
  	} else {
  		if (__skb->wire_len < skb->len ||
@@ -149,11 +133,9 @@ index 11d254ce3..f2ba2be09 100644
  			return -EINVAL;
  		cb->pkt_len = __skb->wire_len;
  	}
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 4d698ccf4..3725ccecd 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -10838,7 +10838,7 @@ struct net_device *alloc_netdev_mqs(int sizeof_priv, const char *name,
+@@ -10838,7 +10838,7 @@ struct net_device *alloc_netdev_mqs(int
  
  	dev_net_set(dev, &init_net);
  
@@ -162,11 +144,9 @@ index 4d698ccf4..3725ccecd 100644
  	dev->gso_max_segs = GSO_MAX_SEGS;
  	dev->upper_level = 1;
  	dev->lower_level = 1;
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index a01888029..bdb7e4ef3 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1553,7 +1553,7 @@ int tcp_fragment(struct sock *sk, enum tcp_queue tcp_queue,
+@@ -1553,7 +1553,7 @@ int tcp_fragment(struct sock *sk, enum t
  	 * SO_SNDBUF values.
  	 * Also allow first and last skb in retransmit queue to be split.
  	 */
@@ -175,6 +155,3 @@ index a01888029..bdb7e4ef3 100644
  	if (unlikely((sk->sk_wmem_queued >> 1) > limit &&
  		     tcp_queue != TCP_FRAG_IN_WRITE_QUEUE &&
  		     skb != tcp_rtx_queue_head(sk) &&
--- 
-2.39.3
-

@@ -22,11 +22,9 @@ Change-Id: I3b779603797263b52a61ad57c565eb91fe42680c
  net/ipv4/tcp_rate.c | 7 ++++---
  2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index d8920f84f..ef15d509a 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -800,6 +800,11 @@ static inline u32 tcp_stamp_us_delta(u64 t1, u64 t0)
+@@ -800,6 +800,11 @@ static inline u32 tcp_stamp_us_delta(u64
  	return max_t(s64, t1 - t0, 0);
  }
  
@@ -50,11 +48,9 @@ index d8920f84f..ef15d509a 100644
  		} tx;   /* only used for outgoing skbs */
  		union {
  			struct inet_skb_parm	h4;
-diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
-index 042e27f54..cbb2cbe0f 100644
 --- a/net/ipv4/tcp_rate.c
 +++ b/net/ipv4/tcp_rate.c
-@@ -99,8 +99,9 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
+@@ -99,8 +99,9 @@ void tcp_rate_skb_delivered(struct sock
  		/* Record send time of most recently ACKed packet: */
  		tp->first_tx_mstamp  = tx_tstamp;
  		/* Find the duration of the "send phase" of this window: */
@@ -66,7 +62,7 @@ index 042e27f54..cbb2cbe0f 100644
  
  	}
  	/* Mark off the skb delivered once it's sacked to avoid being
-@@ -149,7 +150,7 @@ void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
+@@ -149,7 +150,7 @@ void tcp_rate_gen(struct sock *sk, u32 d
  	 * longer phase.
  	 */
  	snd_us = rs->interval_us;				/* send phase */
@@ -75,6 +71,3 @@ index 042e27f54..cbb2cbe0f 100644
  				    rs->prior_mstamp); /* ack phase */
  	rs->interval_us = max(snd_us, ack_us);
  
--- 
-2.39.3
-

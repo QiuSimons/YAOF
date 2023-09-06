@@ -16,8 +16,6 @@ Change-Id: I594c2500868d9c530770e7ddd68ffc87c57f4fd5
  net/ipv4/tcp_rate.c | 3 +++
  2 files changed, 7 insertions(+)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 808f01070..ebf984b01 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
 @@ -885,6 +885,7 @@ struct tcp_skb_cb {
@@ -41,11 +39,9 @@ index 808f01070..ebf984b01 100644
  	long interval_us;	/* time for tp->delivered to incr "delivered" */
  	u32 snd_interval_us;	/* snd interval for delivered packets */
  	u32 rcv_interval_us;	/* rcv interval for delivered packets */
-diff --git a/net/ipv4/tcp_rate.c b/net/ipv4/tcp_rate.c
-index 50a292d48..f3413e5e2 100644
 --- a/net/ipv4/tcp_rate.c
 +++ b/net/ipv4/tcp_rate.c
-@@ -83,6 +83,7 @@ void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb)
+@@ -83,6 +83,7 @@ void tcp_rate_skb_sent(struct sock *sk,
  	TCP_SKB_CB(skb)->tx.first_tx_mstamp	= tp->first_tx_mstamp;
  	TCP_SKB_CB(skb)->tx.delivered_mstamp	= tp->delivered_mstamp;
  	TCP_SKB_CB(skb)->tx.delivered		= tp->delivered;
@@ -53,7 +49,7 @@ index 50a292d48..f3413e5e2 100644
  	TCP_SKB_CB(skb)->tx.is_app_limited	= tp->app_limited ? 1 : 0;
  	tcp_set_tx_in_flight(sk, skb);
  }
-@@ -109,6 +110,7 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
+@@ -109,6 +110,7 @@ void tcp_rate_skb_delivered(struct sock
  	if (!rs->prior_delivered ||
  	    tcp_skb_sent_after(tx_tstamp, tp->first_tx_mstamp,
  			       scb->end_seq, rs->last_end_seq)) {
@@ -61,7 +57,7 @@ index 50a292d48..f3413e5e2 100644
  		rs->prior_delivered  = scb->tx.delivered;
  		rs->prior_mstamp     = scb->tx.delivered_mstamp;
  		rs->is_app_limited   = scb->tx.is_app_limited;
-@@ -163,6 +165,7 @@ void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
+@@ -163,6 +165,7 @@ void tcp_rate_gen(struct sock *sk, u32 d
  		return;
  	}
  	rs->delivered   = tp->delivered - rs->prior_delivered;
@@ -69,6 +65,3 @@ index 50a292d48..f3413e5e2 100644
  
  	/* Model sending data and receiving ACKs as separate pipeline phases
  	 * for a window. Usually the ACK phase is longer, but with ACK
--- 
-2.39.3
-

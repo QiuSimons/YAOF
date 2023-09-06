@@ -22,8 +22,6 @@ Change-Id: Ieba72332b401b329bff5a641d2b2043a3fb8f632
  net/ipv4/tcp_input.c | 1 +
  2 files changed, 2 insertions(+)
 
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 484e3bcfc..eb895a286 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
 @@ -988,6 +988,7 @@ enum tcp_ca_event {
@@ -34,11 +32,9 @@ index 484e3bcfc..eb895a286 100644
  };
  
  /* Information about inbound ACK, passed to cong_ops->in_ack_event() */
-diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
-index bc27acdc4..7cbff90c6 100644
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3713,6 +3713,7 @@ static void tcp_process_tlp_ack(struct sock *sk, u32 ack, int flag)
+@@ -3713,6 +3713,7 @@ static void tcp_process_tlp_ack(struct s
  		/* ACK advances: there was a loss, so reduce cwnd. Reset
  		 * tlp_high_seq in tcp_init_cwnd_reduction()
  		 */
@@ -46,6 +42,3 @@ index bc27acdc4..7cbff90c6 100644
  		tcp_init_cwnd_reduction(sk);
  		tcp_set_ca_state(sk, TCP_CA_CWR);
  		tcp_end_cwnd_reduction(sk);
--- 
-2.39.3
-

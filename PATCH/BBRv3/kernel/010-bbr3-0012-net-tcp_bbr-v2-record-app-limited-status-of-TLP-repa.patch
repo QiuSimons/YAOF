@@ -20,8 +20,6 @@ Change-Id: Ic8ae567caa4e4bfd5fd82c3d4be12a5d9171655e
  net/ipv4/tcp_output.c | 1 +
  2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/tcp.h b/include/linux/tcp.h
-index 36e507032..71c405da8 100644
 --- a/include/linux/tcp.h
 +++ b/include/linux/tcp.h
 @@ -226,7 +226,8 @@ struct tcp_sock {
@@ -34,11 +32,9 @@ index 36e507032..71c405da8 100644
  	u32	chrono_start;	/* Start time in jiffies of a TCP chrono */
  	u32	chrono_stat[3];	/* Time in jiffies for chrono_stat stats */
  	u8	chrono_type:2,	/* current chronograph type */
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 33ecf5d9a..de03cd933 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -2869,6 +2869,7 @@ void tcp_send_loss_probe(struct sock *sk)
+@@ -2869,6 +2869,7 @@ void tcp_send_loss_probe(struct sock *sk
  	if (WARN_ON(!skb || !tcp_skb_pcount(skb)))
  		goto rearm_timer;
  
@@ -46,6 +42,3 @@ index 33ecf5d9a..de03cd933 100644
  	if (__tcp_retransmit_skb(sk, skb, 1))
  		goto rearm_timer;
  
--- 
-2.39.3
-
