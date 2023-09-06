@@ -1,0 +1,135 @@
+From 5d878201f1a18961d50b2c08102fbb3cc2319957 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 18 Dec 2022 21:12:42 +0100
+Subject: [PATCH v51 03/25] LRNG - /proc interface
+
+The patch adds the file lrng_type which provides details about
+the LRNG:
+
+- the name of the DRNG that produces the random numbers for /dev/random,
+/dev/urandom, getrandom(2)
+
+- the hash used to produce random numbers from the entropy pool
+
+- the number of secondary DRNG instances
+
+- indicator whether the LRNG operates SP800-90B compliant
+
+- indicator whether a high-resolution timer is identified - only with a
+high-resolution timer the interrupt noise source will deliver sufficient
+entropy
+
+- indicator whether the LRNG has been minimally seeded (i.e. is the
+secondary DRNG seeded with at least 128 bits of entropy)
+
+- indicator whether the LRNG has been fully seeded (i.e. is the
+secondary DRNG seeded with at least 256 bits of entropy)
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Makefile    |  1 +
+ drivers/char/lrng/lrng_proc.c | 74 +++++++++++++++++++++++++++++++++++
+ drivers/char/lrng/lrng_proc.h |  4 ++
+ 3 files changed, 79 insertions(+)
+ create mode 100644 drivers/char/lrng/lrng_proc.c
+
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -8,6 +8,7 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr
+ obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha256.o
+ obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
+ 
++obj-$(CONFIG_SYSCTL)			+= lrng_proc.o
+ obj-$(CONFIG_NUMA)			+= lrng_numa.o
+ 
+ obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
+--- /dev/null
++++ b/drivers/char/lrng/lrng_proc.c
+@@ -0,0 +1,74 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG proc interfaces
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#include <linux/lrng.h>
++#include <linux/module.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++
++#include "lrng_drng_mgr.h"
++#include "lrng_es_aux.h"
++#include "lrng_es_mgr.h"
++#include "lrng_proc.h"
++
++/* Number of online DRNGs */
++static u32 numa_drngs = 1;
++
++void lrng_pool_inc_numa_node(void)
++{
++	numa_drngs++;
++}
++
++static int lrng_proc_type_show(struct seq_file *m, void *v)
++{
++	struct lrng_drng *lrng_drng_init = lrng_drng_init_instance();
++	unsigned char buf[270];
++	u32 i;
++
++	mutex_lock(&lrng_drng_init->lock);
++	snprintf(buf, sizeof(buf),
++		 "DRNG name: %s\n"
++		 "LRNG security strength in bits: %d\n"
++		 "Number of DRNG instances: %u\n"
++		 "Standards compliance: %sNTG.1 (2011%s)\n"
++		 "LRNG minimally seeded: %s\n"
++		 "LRNG fully seeded: %s\n"
++		 "LRNG entropy level: %u\n",
++		 lrng_drng_init->drng_cb->drng_name(),
++		 lrng_security_strength(),
++		 numa_drngs,
++		 lrng_sp80090c_compliant() ? "SP800-90C, " : "",
++		 lrng_ntg1_2022_compliant() ? " / 2022" : "",
++		 lrng_state_min_seeded() ? "true" : "false",
++		 lrng_state_fully_seeded() ? "true" : "false",
++		 lrng_avail_entropy());
++	seq_write(m, buf, strlen(buf));
++
++	for_each_lrng_es(i) {
++		snprintf(buf, sizeof(buf),
++			 "Entropy Source %u properties:\n"
++			 " Name: %s\n",
++			 i, lrng_es[i]->name);
++		seq_write(m, buf, strlen(buf));
++
++		buf[0] = '\0';
++		lrng_es[i]->state(buf, sizeof(buf));
++		seq_write(m, buf, strlen(buf));
++	}
++
++	mutex_unlock(&lrng_drng_init->lock);
++
++	return 0;
++}
++
++static int __init lrng_proc_type_init(void)
++{
++	proc_create_single("lrng_type", 0444, NULL, &lrng_proc_type_show);
++	return 0;
++}
++
++module_init(lrng_proc_type_init);
+--- a/drivers/char/lrng/lrng_proc.h
++++ b/drivers/char/lrng/lrng_proc.h
+@@ -6,6 +6,10 @@
+ #ifndef _LRNG_PROC_H
+ #define _LRNG_PROC_H
+ 
++#ifdef CONFIG_SYSCTL
++void lrng_pool_inc_numa_node(void);
++#else
+ static inline void lrng_pool_inc_numa_node(void) { }
++#endif
+ 
+ #endif /* _LRNG_PROC_H */

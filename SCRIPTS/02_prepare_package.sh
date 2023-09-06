@@ -39,8 +39,12 @@ cp -rf ../PATCH/BBRv3/kernel/* ./target/linux/generic/backport-5.15/
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
 echo '
-CONFIG_LRNG=y
 # CONFIG_RANDOM_DEFAULT_IMPL is not set
+CONFIG_LRNG=y
+CONFIG_LRNG_IRQ=y
+CONFIG_LRNG_JENT=y
+CONFIG_LRNG_CPU=y
+CONFIG_LRNG_SCHED=y
 ' >>./target/linux/generic/config-5.15
 # SSL
 rm -rf ./package/libs/mbedtls
