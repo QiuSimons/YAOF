@@ -11,9 +11,7 @@ CONFIG_DEVEL=y
 CONFIG_KERNEL_BUILD_DOMAIN="buildhost"
 CONFIG_KERNEL_BUILD_USER="builder"
 CONFIG_PACKAGE_r8152-firmware=y
-CONFIG_PACKAGE_arm-trusted-firmware-rk3328=y
-CONFIG_PACKAGE_arm-trusted-firmware-rk3399=y
-CONFIG_PACKAGE_arm-trusted-firmware-rockchip=y
+CONFIG_PACKAGE_trusted-firmware-a-rk3328=y
 
 # GCC
 CONFIG_TOOLCHAINOPTS=y
