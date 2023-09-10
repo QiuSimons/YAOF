@@ -1,10 +1,10 @@
 name: X86-OpenWrt
 
-on:
+on: workflow_dispatch
 #  schedule:
 #    - cron: 5 6 * * 0
-  watch:
-    types: started
+#  watch:
+#    types: started
 
 jobs:
   build:
