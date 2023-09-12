@@ -292,7 +292,7 @@ git clone -b master --depth 1 https://github.com/NateLol/luci-app-oled.git packa
 # homeproxy
 git clone --single-branch --depth 1 -b dev https://github.com/immortalwrt/homeproxy.git package/new/homeproxy
 rm -rf ./feeds/packages/net/sing-box
-cp -rf ../immortalwrt_pkg/net/sing-box ./feeds/packages/net/sing-box
+cp -rf ../passwall_pkg/sing-box ./package/new/sing-box
 # OpenClash
 git clone --single-branch --depth 1 -b dev https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 # Passwall
