@@ -58,12 +58,12 @@ clone_repo $openwrt_repo main openwrt_ma &
 clone_repo $openwrt_repo openwrt-22.03 openwrt_22 &
 clone_repo $openwrt_pkg_repo master openwrt_pkg_ma &
 clone_repo $openwrt_luci_repo master openwrt_luci_ma &
-clone_repo $lienol_repo master Lienol &
+clone_repo $lienol_repo 22.03 Lienol &
 clone_repo $lienol_pkg_repo main Lienol_pkg &
 clone_repo $openwrt_add_repo master OpenWrt-Add &
 clone_repo $openwrt_node_repo master openwrt-node &
 clone_repo $passwall_pkg_repo main passwall_pkg &
-clone_repo $passwall_luci_repo luci passwall_luci &
+clone_repo $passwall_luci_repo main passwall_luci &
 clone_repo $openwrt_third_repo main openwrt-third &
 clone_repo $dockerman_repo master dockerman &
 clone_repo $diskman_repo master diskman &
