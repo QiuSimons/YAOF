@@ -58,7 +58,7 @@ clone_repo $openwrt_repo main openwrt_ma &
 clone_repo $openwrt_repo openwrt-22.03 openwrt_22 &
 clone_repo $openwrt_pkg_repo master openwrt_pkg_ma &
 clone_repo $openwrt_luci_repo master openwrt_luci_ma &
-clone_repo $lienol_repo 22.03 Lienol &
+clone_repo $lienol_repo 23.05 Lienol &
 clone_repo $lienol_pkg_repo main Lienol_pkg &
 clone_repo $openwrt_add_repo master OpenWrt-Add &
 clone_repo $openwrt_node_repo master openwrt-node &
