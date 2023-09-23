@@ -1,0 +1,19 @@
+#!/bin/sh
+
+[ "$ACTION" = ifup -o "$ACTION" = ifupdate ] || exit 0
+[ "$ACTION" = ifupdate -a -z "$IFUPDATE_ADDRESSES" -a -z "$IFUPDATE_DATA" ] && exit 0
+
+if echo "$INTERFACE" | grep -q "wan" && echo "$INTERFACE" | grep -qv "vap"; then
+    logger -t odhcpd "Reloading odhcpd due to $ACTION of $INTERFACE ($DEVICE)"
+    "/etc/init.d/odhcpd" restart
+
+    IPV6_REGEX="\(\([0-9A-Fa-f]\{1,4\}:\)\{1,\}\)\(\([0-9A-Fa-f]\{1,4\}\)\{0,1\}\)\(\(:[0-9A-Fa-f]\{1,4\}\)\{1,\}\)"
+    IPV6_ADDR="$(ip -6 addr show dev "$DEVICE" | grep inet6 | grep -m 1 -o "$IPV6_REGEX")"
+    LOCK_FILE="/tmp/lock/odhcpd_hotplug_lock"
+
+    if [ -n "$IPV6_ADDR" ] && mkdir "$LOCK_FILE" 2>/dev/null; then
+        "/sbin/ifup" lan
+		[ -f '/etc/init.d/miniupnpd' ] && "/etc/init.d/miniupnpd" restart
+        logger -t odhcpd "Reloading lan due to $ACTION of $INTERFACE ($DEVICE)"
+    fi
+fi
