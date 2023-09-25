@@ -265,6 +265,9 @@ cp -rf ../lede_luci/applications/luci-app-frpc ./package/new/luci-app-frpc
 # IPv6 兼容助手
 cp -rf ../lede/package/lean/ipv6-helper ./package/new/ipv6-helper
 patch -p1 <../PATCH/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
+# ODHCPD
+mkdir -p package/network/services/odhcpd/patches
+cp -f ../PATCH/odhcpd/001-config-allow-configuring-limit-of-min-and-max-value.patch ./package/network/services/odhcpd/patches/001-config-allow-configuring-limit-of-min-and-max-value.patch
 # 京东签到 By Jerrykuku
 #git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
 #git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
