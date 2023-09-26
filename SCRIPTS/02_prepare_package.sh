@@ -443,12 +443,14 @@ cp -rf ../immortalwrt_pkg/net/zerotier ./feeds/packages/net/zerotier
 # watchcat
 echo > ./feeds/packages/utils/watchcat/files/watchcat.config
 # sirpdboy
-git clone -b master --depth 1 https://github.com/sirpdboy/luci-app-autotimeset package/sirpdboy/luci-app-autotimeset
+mkdir -p package/sirpdboy
+cp -rf ../sirpdboy/luci-app-autotimeset ./package/sirpdboy/luci-app-autotimeset
 sed -i 's,"control","system",g' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
 sed -i '/firstchild/d' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
 sed -i 's,control,system,g' package/sirpdboy/luci-app-autotimeset/luasrc/view/autotimeset/log.htm
 sed -i '/start()/a \    echo "Service autotimesetrun started!" >/dev/null' package/sirpdboy/luci-app-autotimeset/root/etc/init.d/autotimesetrun
-git clone -b main --depth 1 https://github.com/sirpdboy/luci-app-partexp package/sirpdboy/luci-app-partexp
+rm -rf ./package/sirpdboy/luci-app-autotimeset/po/zh_Hans
+cp -rf ../sirpdboy/luci-app-partexp ./package/sirpdboy/luci-app-partexp
 rm -rf ./package/sirpdboy/luci-app-partexp/po/zh_Hans
 sed -i 's, - !, -o !,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp
 sed -i 's,expquit 1 ,#expquit 1 ,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp
