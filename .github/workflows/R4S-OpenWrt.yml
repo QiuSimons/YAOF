@@ -29,7 +29,7 @@ jobs:
       with:
         swap-size-mb: 512
         temp-reserve-mb: 100
-        root-reserve-mb: 1280
+        root-reserve-mb: 2048
         remove-dotnet: 'true'
         remove-android: 'true'
         remove-haskell: 'true'
@@ -113,8 +113,6 @@ jobs:
         cat openwrt/.config
         echo '================================================================'
         cd openwrt && make -j1 V=s
-    - name: Print Disk Space After
-      run: df -h
     - name: Organize files
       id: organize
       run: |
@@ -142,3 +140,5 @@ jobs:
         replacesArtifacts: true
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: ./artifact/*.zip
+    - name: Print Disk Space After
+      run: df -h
