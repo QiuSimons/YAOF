@@ -340,6 +340,7 @@ git clone -b master --depth 1 https://github.com/tty228/luci-app-wechatpush.git 
 # ShadowsocksR Plus+ 依赖
 rm -rf ./feeds/packages/net/shadowsocks-libev
 cp -rf ../lede_pkg/net/shadowsocks-libev ./package/new/shadowsocks-libev
+cp -rf ../ssrp/shadow-tls ./package/new/shadow-tls
 cp -rf ../ssrp/tuic-client ./package/new/tuic-client
 cp -rf ../ssrp/redsocks2 ./package/new/redsocks2
 cp -rf ../ssrp/trojan ./package/new/trojan
