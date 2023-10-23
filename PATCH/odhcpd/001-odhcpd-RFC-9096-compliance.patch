@@ -1,24 +1,30 @@
-From 9ee21c537eea6321ed644e284a1d9c13de342fef Mon Sep 17 00:00:00 2001
-From: skbeh <60107333+skbeh@users.noreply.github.com>
+From 62a8c0e6db9de52493842c982a723dd155ac7736 Mon Sep 17 00:00:00 2001
 Date: Sat, 16 Sep 2023 15:04:12 +0000
-Subject: [PATCH] config: allow configuring max limit for preferred and valid
- lifetime
+Subject: [PATCH] odhcpd: RFC 9096 compliance
 
+and allow configuring upper limit for preferred and valid lifetime.
 ---
- README          |  5 +++--
- src/config.c    | 32 ++++++++++++++++++++++++++++++++
+ README          |  9 +++++----
+ src/config.c    | 34 +++++++++++++++++++++++++++++++++-
  src/dhcpv6-ia.c |  9 +++++++++
  src/odhcpd.h    |  6 ++++++
- src/router.c    | 37 +++++++++++++++++++++++++++++--------
- 5 files changed, 79 insertions(+), 10 deletions(-)
+ src/router.c    | 23 +++++++++++++++++------
+ src/router.h    |  2 +-
+ 6 files changed, 71 insertions(+), 12 deletions(-)
 
 diff --git a/README b/README
-index 8f0e6a4..ddf8534 100644
+index 8f0e6a4..c899cd5 100644
 --- a/README
 +++ b/README
-@@ -130,8 +130,9 @@ ra_maxinterval		integer	600			Maximum time allowed between
+@@ -126,12 +126,13 @@ ra_slaac		bool	1			Announce slaac for a prefix
+ ra_offlink		bool	0			Announce prefixes off-link
+ ra_preference		string	medium			Route(r) preference
+ 			[medium|high|low]
+-ra_maxinterval		integer	600			Maximum time allowed between
++ra_maxinterval		integer	900			Maximum time allowed between
  							sending unsolicited RA
- ra_mininterval		integer	200			Minimum time allowed between
+-ra_mininterval		integer	200			Minimum time allowed between
++ra_mininterval		integer	300			Minimum time allowed between
  							sending unsolicited RA
 -ra_lifetime		integer	1800			Value to be placed in Router
 -							Lifetime field of RA
@@ -29,7 +35,7 @@ index 8f0e6a4..ddf8534 100644
  							limit for the preferred and
  							valid lifetime of a prefix
 diff --git a/src/config.c b/src/config.c
-index e631814..3281b5f 100644
+index e631814..d8ff6f7 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -92,6 +92,8 @@ enum {
@@ -50,6 +56,15 @@ index e631814..3281b5f 100644
  	[IFACE_ATTR_NTP] = { .name = "ntp", .type = BLOBMSG_TYPE_ARRAY },
  };
  
+@@ -224,7 +228,7 @@ static void set_interface_defaults(struct interface *iface)
+ 	iface->dns_service = true;
+ 	iface->ra_flags = ND_RA_FLAG_OTHER;
+ 	iface->ra_slaac = true;
+-	iface->ra_maxinterval = 600;
++	iface->ra_maxinterval = 900;
+ 	iface->ra_mininterval = iface->ra_maxinterval/3;
+ 	iface->ra_lifetime = -1;
+ 	iface->ra_dns = true;
 @@ -648,6 +652,34 @@ int config_parse_interface(void *data, size_t len, const char *name, bool overwr
  
  	}
@@ -130,27 +145,28 @@ index 08b4920..58ab155 100644
  	// DHCP
  	uint32_t dhcp_leasetime;
 diff --git a/src/router.c b/src/router.c
-index d5ef7f8..55eaa6d 100644
+index d5ef7f8..b4d52aa 100644
 --- a/src/router.c
 +++ b/src/router.c
-@@ -452,7 +452,8 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
+@@ -371,7 +371,7 @@ static int calc_adv_interval(struct interface *iface, uint32_t minvalid,
+ 
+ static uint32_t calc_ra_lifetime(struct interface *iface, uint32_t maxival)
+ {
+-	uint32_t lifetime = 3*maxival;
++	uint32_t lifetime = maxival * 3;
+ 
+ 	if (iface->ra_lifetime >= 0) {
+ 		lifetime = iface->ra_lifetime;
+@@ -452,7 +452,7 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
  	size_t dns_sz = 0, search_sz = 0, pref64_sz = 0;
  	size_t pfxs_cnt = 0, routes_cnt = 0;
  	ssize_t valid_addr_cnt = 0, invalid_addr_cnt = 0;
 -	uint32_t minvalid = UINT32_MAX, maxival, lifetime;
-+	uint32_t minvalid = UINT32_MAX, maxival, lifetime, max_prefix_vlt = ND_VALID_LIMIT;
-+	uint32_t calculated_ra_lifetime;
++	uint32_t minvalid = ND_VALID_LIMIT, maxival, lifetime;
  	int msecs, mtu = iface->ra_mtu, hlim = iface->ra_hoplimit;
  	bool default_route = false;
  	bool valid_prefix = false;
-@@ -598,10 +599,24 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
- 		if (addr->valid > (uint32_t)now) {
- 			valid = TIME_LEFT(addr->valid, now);
- 
-+			if (valid < max_prefix_vlt)
-+				max_prefix_vlt = valid;
-+
- 			if (iface->ra_useleasetime && valid > iface->dhcp_leasetime)
+@@ -602,6 +602,17 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
  				valid = iface->dhcp_leasetime;
  		}
  
@@ -168,25 +184,13 @@ index d5ef7f8..55eaa6d 100644
  		if (minvalid > valid)
  			minvalid = valid;
  
-@@ -629,24 +644,30 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
- 
- 	/* Calculate periodic transmit */
- 	msecs = calc_adv_interval(iface, minvalid, &maxival);
--	lifetime = calc_ra_lifetime(iface, maxival);
-+	calculated_ra_lifetime = min(calc_ra_lifetime(iface, maxival), UINT16_MAX);
-+	lifetime = min(calculated_ra_lifetime, max_prefix_vlt);
- 
- 	if (!iface->have_link_local) {
- 		syslog(LOG_NOTICE, "Skip sending a RA on %s as no link local address is available", iface->name);
- 		goto out;
+@@ -637,15 +648,15 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
  	}
  
--	if (default_route && valid_prefix) {
+ 	if (default_route && valid_prefix) {
 -		adv.h.nd_ra_router_lifetime = htons(lifetime < UINT16_MAX ? lifetime : UINT16_MAX);
--	} else {
-+	/* RFC9096: CE routers SHOULD set the "Router Lifetime" of Router Advertisement (RA) messages to ND_PREFERRED_LIMIT. */
-+	adv.h.nd_ra_router_lifetime = htons(ND_PREFERRED_LIMIT);
-+	if (!(default_route && valid_prefix)) {
++		adv.h.nd_ra_router_lifetime = htons(lifetime);
+ 	} else {
  		adv.h.nd_ra_router_lifetime = 0;
  
  		if (default_route) {
@@ -197,15 +201,9 @@ index d5ef7f8..55eaa6d 100644
 -			syslog(LOG_WARNING, "No default route present, overriding ra_lifetime!");
 +			syslog(LOG_WARNING, "No default route present, setting ra_lifetime to zero!");
  		}
-+	} else if (iface->ra_lifetime >= 0) {
-+		adv.h.nd_ra_router_lifetime = htons(calculated_ra_lifetime);
-+		if (calculated_ra_lifetime == 0)
-+			syslog(LOG_WARNING, "A default route is present and there is public prefix "
-+						"but ra_lifetime on iface was set to zero, setting ra_lifetime to zero!");
  	}
  
- 	syslog(LOG_DEBUG, "Using a RA lifetime of %d seconds on %s", ntohs(adv.h.nd_ra_router_lifetime), iface->name);
-@@ -710,7 +731,7 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
+@@ -710,7 +721,7 @@ static int send_router_advert(struct interface *iface, const struct in6_addr *fr
  
  	if (iface->pref64_length) {
  		/* RFC 8781 § 4.1 rounding up lifetime to multiply of 8 */
@@ -214,5 +212,18 @@ index d5ef7f8..55eaa6d 100644
  		uint8_t prefix_length_code;
  		uint32_t mask_a1, mask_a2;
  
+diff --git a/src/router.h b/src/router.h
+index 0444da8..a994892 100644
+--- a/src/router.h
++++ b/src/router.h
+@@ -32,7 +32,7 @@ struct icmpv6_opt {
+ 
+ #define MaxInitialRtrAdvInterval	16
+ #define MaxInitialRtAdvs		3
+-#define MaxRtrAdvInterval		1800
++#define MaxRtrAdvInterval		2700
+ #define MinRtrAdvInterval		3
+ 
+ #define ND_RA_FLAG_PROXY		0x4
 -- 
 2.42.0
