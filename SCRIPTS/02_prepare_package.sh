@@ -150,24 +150,7 @@ cp -rf ../linkease/applications/luci-app-ap-modem ./package/new/luci-app-ap-mode
 cp -rf ../OpenWrt-Add/luci-app-irqbalance ./package/new/luci-app-irqbalance
 # 更换 Nodejs 版本
 rm -rf ./feeds/packages/lang/node
-cp -rf ../openwrt-node/node ./feeds/packages/lang/node
-rm -rf ./feeds/packages/lang/node-arduino-firmata
-cp -rf ../openwrt-node/node-arduino-firmata ./feeds/packages/lang/node-arduino-firmata
-rm -rf ./feeds/packages/lang/node-cylon
-cp -rf ../openwrt-node/node-cylon ./feeds/packages/lang/node-cylon
-rm -rf ./feeds/packages/lang/node-hid
-cp -rf ../openwrt-node/node-hid ./feeds/packages/lang/node-hid
-rm -rf ./feeds/packages/lang/node-homebridge
-cp -rf ../openwrt-node/node-homebridge ./feeds/packages/lang/node-homebridge
-rm -rf ./feeds/packages/lang/node-serialport
-cp -rf ../openwrt-node/node-serialport ./feeds/packages/lang/node-serialport
-rm -rf ./feeds/packages/lang/node-serialport-bindings
-cp -rf ../openwrt-node/node-serialport-bindings ./feeds/packages/lang/node-serialport-bindings
-rm -rf ./feeds/packages/lang/node-yarn
-cp -rf ../openwrt-node/node-yarn ./feeds/packages/lang/node-yarn
-ln -sf ../../../feeds/packages/lang/node-yarn ./package/feeds/packages/node-yarn
-cp -rf ../openwrt-node/node-serialport-bindings-cpp ./feeds/packages/lang/node-serialport-bindings-cpp
-ln -sf ../../../feeds/packages/lang/node-serialport-bindings-cpp ./package/feeds/packages/node-serialport-bindings-cpp
+git clone https://github.com/sbwml/feeds_packages_lang_node-prebuilt feeds/packages/lang/node
 # R8168驱动
 git clone -b master --depth 1 https://github.com/BROBIRD/openwrt-r8168.git package/new/r8168
 patch -p1 <../PATCH/r8168/r8168-fix_LAN_led-for_r4s-from_TL.patch
@@ -398,10 +381,6 @@ cp -rf ../immortalwrt_pkg/libs/toml11 ./feeds/packages/libs/toml11
 ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
 # 网易云音乐解锁
 git clone -b js --depth 1 https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
-sed -i 's, +node,,g' package/new/UnblockNeteaseMusic/Makefile
-pushd package/new/UnblockNeteaseMusic
-wget -qO - https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic/commit/a880428.patch | patch -p1
-popd
 # uwsgi
 sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
 sed -i 's,buffer-size = 10000,buffer-size = 131072,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
