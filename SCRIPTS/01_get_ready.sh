@@ -70,7 +70,7 @@ clone_repo $dockerman_repo master dockerman &
 clone_repo $diskman_repo master diskman &
 clone_repo $docker_lib_repo master docker_lib &
 clone_repo $mosdns_repo master mosdns &
-clone_repo $ssrp_repo master ssrp &
+clone_repo $ssrp_repo main ssrp &
 clone_repo $zxlhhyccc_repo master zxlhhyccc &
 clone_repo $linkease_repo main linkease &
 clone_repo $linkease_pkg_repo istoreos-21.02 linkease_pkg &
