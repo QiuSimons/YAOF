@@ -116,6 +116,8 @@ cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
 cp -rf ../immortalwrt_pkg/net/daed ./feeds/packages/net/daed
 ln -sf ../../../feeds/packages/net/daed ./package/feeds/packages/daed
+cp -rf ../lucidaednext/daed-next ./package/new/daed-next
+cp -rf ../lucidaednext/luci-app-daed-next ./package/new/luci-app-daed-next
 git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
 # btf
 wget -qO - https://github.com/immortalwrt/immortalwrt/commit/73e5679.patch | patch -p1
