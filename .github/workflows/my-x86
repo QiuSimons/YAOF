@@ -70,7 +70,7 @@ jobs:
     - name: QTMDFW4
       run: |
         cd openwrt
-        cp -rf ../SEED/X86/config.seed .config
+        cp -rf ../SEED/X86/myconfig.seed .config
         /bin/bash 07_fw3.sh
     - name: Convert Translation
       run: |
