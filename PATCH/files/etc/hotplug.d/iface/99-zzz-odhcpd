@@ -9,6 +9,7 @@ if echo "$INTERFACE" | grep -q "wan" && echo "$INTERFACE" | grep -qv "vap"; then
 	LOCK_FILE="/tmp/lock/odhcpd_hotplug_lock"
 
 	if [ -n "$IPV6_ADDR" ] && mkdir "$LOCK_FILE" 2>/dev/null; then
+		sleep 10
 		[ -f '/etc/init.d/miniupnpd' ] && "/etc/init.d/miniupnpd" stop 2>&1
 		"/sbin/ifup" lan 2>&1
 		[ -f '/etc/init.d/miniupnpd' ] && "/etc/init.d/miniupnpd" start 2>&1 &
