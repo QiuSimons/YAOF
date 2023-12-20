@@ -1,7 +1,7 @@
-From 184d5c8c38acb6163022fd6b3b2278723b121a68 Mon Sep 17 00:00:00 2001
+From d1107f1a8aa98ce0e522724cb66f23a078a5149a Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:39:02 +0200
-Subject: [PATCH v51 12/25] scheduler - add entropy sampling hook
+Subject: [PATCH v52 12/25] scheduler - add entropy sampling hook
 
 The scheduler can be used as a source of entropy. This requires the
 presence of a hook that invokes the entropy source implementation.

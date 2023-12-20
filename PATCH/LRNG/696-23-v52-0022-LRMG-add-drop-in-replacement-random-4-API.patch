@@ -1,7 +1,7 @@
-From d6808e4e8d7cc04abdebe7e7a510984b2494bd5e Mon Sep 17 00:00:00 2001
+From 0ca6117a882ac13027440c6b6da5e38217ff135d Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Mon, 20 Feb 2023 22:12:04 +0100
-Subject: [PATCH v51 22/25] LRMG - add drop-in replacement random(4) API
+Subject: [PATCH v52 22/25] LRMG - add drop-in replacement random(4) API
 
 The LRNG is intended to be a full replacement of the existing random.c.
 This also includes the providing of a full API and ABI compliant drop-in

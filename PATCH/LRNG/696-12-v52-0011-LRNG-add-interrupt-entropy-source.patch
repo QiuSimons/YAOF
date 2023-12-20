@@ -1,7 +1,7 @@
-From 63814bcff8f176b8b4e10645fe66243b091572cb Mon Sep 17 00:00:00 2001
+From 554ec5e0d0cf96f0079f7676af254d38d66af71e Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Tue, 25 Apr 2023 23:03:39 +0200
-Subject: [PATCH v51 11/25] LRNG - add interrupt entropy source
+Subject: [PATCH v52 11/25] LRNG - add interrupt entropy source
 
 The interrupt entropy source (ES) consumes the events triggered by the
 kernel invoked with the add_interrupt_randomness. Its main goal is:

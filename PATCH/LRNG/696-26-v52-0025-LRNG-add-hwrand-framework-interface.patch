@@ -1,7 +1,7 @@
-From f93c4b25e02cc7286cc16c3d737dc55bb9b610a9 Mon Sep 17 00:00:00 2001
+From f752142842c1ecb242b845ba72a365588d33c9e3 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:43:30 +0200
-Subject: [PATCH v51 25/25] LRNG - add hwrand framework interface
+Subject: [PATCH v52 25/25] LRNG - add hwrand framework interface
 
 The LRNG can be registered with the hardware random number generator
 framework. This offers a random number generator with the name "lrng"

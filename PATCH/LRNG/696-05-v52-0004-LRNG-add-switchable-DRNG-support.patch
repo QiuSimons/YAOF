@@ -1,7 +1,7 @@
-From 07628d0a6064a378834c9b7d0267257882d439ba Mon Sep 17 00:00:00 2001
+From 91c62ad7f9324d8a2f6d2592549151a1b30eb297 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Mon, 20 Feb 2023 22:02:06 +0100
-Subject: [PATCH v51 04/25] LRNG - add switchable DRNG support
+Subject: [PATCH v52 04/25] LRNG - add switchable DRNG support
 
 The DRNG switch support allows replacing the DRNG mechanism of the
 LRNG. The switching support rests on the interface definition of

@@ -1,7 +1,7 @@
-From 8bdd38dc610164f3c45f25e762309fa230812d06 Mon Sep 17 00:00:00 2001
+From 17a83dd3592b3f32289d06f2588a635128e568df Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 31 Jul 2022 22:34:51 +0200
-Subject: [PATCH v51 21/25] LRNG - sysctls and /proc interface
+Subject: [PATCH v52 21/25] LRNG - sysctls and /proc interface
 
 The LRNG sysctl interface provides the same controls as the existing
 /dev/random implementation. These sysctls behave identically and are

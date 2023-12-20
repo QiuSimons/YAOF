@@ -1,7 +1,7 @@
-From eb2e337bf75a5f93d168d39554736ca74983a5e1 Mon Sep 17 00:00:00 2001
+From eef1a20d6dd591dd9bebd167e7373cb94a61f434 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:01:44 +0200
-Subject: [PATCH v51 05/25] LRNG - add common generic hash support
+Subject: [PATCH v52 05/25] LRNG - add common generic hash support
 
 The LRNG switchable DRNG support also allows the replacement of the hash
 implementation used as conditioning component. The common generic hash

@@ -1,7 +1,7 @@
-From 6e85e7c499da71af62d3a74739b21543a2e5dbf5 Mon Sep 17 00:00:00 2001
+From 61d4fa3b590f7ec3d33fce2d5fb1cd0ca65a7869 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Tue, 25 Apr 2023 23:13:30 +0200
-Subject: [PATCH v51 14/25] LRNG - add SP800-90B compliant health tests
+Subject: [PATCH v52 14/25] LRNG - add SP800-90B compliant health tests
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

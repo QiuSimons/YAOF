@@ -1,6 +1,6 @@
 --- a/drivers/char/lrng/lrng_es_cpu.c
 +++ b/drivers/char/lrng/lrng_es_cpu.c
-@@ -65,8 +65,7 @@ static u32 lrng_cpu_poolsize(void)
+@@ -66,8 +66,7 @@ static u32 lrng_cpu_poolsize(void)
  
  static u32 lrng_get_cpu_data(u8 *outbuf, u32 requested_bits)
  {
@@ -10,7 +10,7 @@
  
  	/* operate on full blocks */
  	BUILD_BUG_ON(LRNG_DRNG_SECURITY_STRENGTH_BYTES % sizeof(unsigned long));
-@@ -74,14 +73,10 @@ static u32 lrng_get_cpu_data(u8 *outbuf, u32 requested_bits)
+@@ -75,14 +74,10 @@ static u32 lrng_get_cpu_data(u8 *outbuf,
  	/* ensure we have aligned buffers */
  	BUILD_BUG_ON(LRNG_KCAPI_ALIGN % sizeof(unsigned long));
  
@@ -29,7 +29,7 @@
  			cpu_entropy = 0;
  			return 0;
  		}
-@@ -180,7 +175,7 @@ static u32 lrng_cpu_multiplier(void)
+@@ -181,7 +176,7 @@ static u32 lrng_cpu_multiplier(void)
  	if (data_multiplier > 0)
  		return data_multiplier;
  
@@ -40,7 +40,7 @@
  		 * one reseed making it logically equivalent to RDSEED.
 --- a/drivers/char/lrng/lrng_es_mgr.c
 +++ b/drivers/char/lrng/lrng_es_mgr.c
-@@ -376,19 +376,12 @@ void __init lrng_rand_initialize_early(v
+@@ -390,19 +390,12 @@ void __init lrng_rand_initialize_early(v
  				    sizeof(unsigned long))];
  		struct new_utsname utsname;
  	} seed __aligned(LRNG_KCAPI_ALIGN);

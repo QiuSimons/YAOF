@@ -1,7 +1,7 @@
-From 15fd57b6c83c70e21bf39371e57f137c269703de Mon Sep 17 00:00:00 2001
+From 05352a391b7eff6716690d5627e9e71c8d744819 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 18:39:30 +0200
-Subject: [PATCH v51 24/25] LRNG - add /dev/lrng device file support
+Subject: [PATCH v52 24/25] LRNG - add /dev/lrng device file support
 
 The LRNG can create a character device file that operates identically
 to /dev/random including IOCTL, read and write operations.

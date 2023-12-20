@@ -1,7 +1,7 @@
-From 14f38276f0aeef88457d6076075d1a1e5b1038c9 Mon Sep 17 00:00:00 2001
+From d420cc9e9d53fe28c186ad34de2bac64bbfe6b51 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Wed, 22 Feb 2023 07:05:59 +0100
-Subject: [PATCH v51 13/25] LRNG - add scheduler-based entropy source
+Subject: [PATCH v52 13/25] LRNG - add scheduler-based entropy source
 
 The scheduler-based entropy source (ES) consumes the events triggered by
 the kernel invoked with the add_sched_randomness. Its main goal is:
