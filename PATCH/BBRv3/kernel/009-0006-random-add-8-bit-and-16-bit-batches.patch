@@ -1,0 +1,44 @@
+From 585cd5fe9f7378601b1d4915ad6e9088333b5e5e Mon Sep 17 00:00:00 2001
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Date: Wed, 28 Sep 2022 18:47:30 +0200
+Subject: [PATCH] random: add 8-bit and 16-bit batches
+
+There are numerous places in the kernel that would be sped up by having
+smaller batches. Currently those callsites do `get_random_u32() & 0xff`
+or similar. Since these are pretty spread out, and will require patches
+to multiple different trees, let's get ahead of the curve and lay the
+foundation for `get_random_u8()` and `get_random_u16()`, so that it's
+then possible to start submitting conversion patches leisurely.
+
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+---
+ drivers/char/random.c  | 2 ++
+ include/linux/random.h | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/drivers/char/random.c b/drivers/char/random.c
+index f2aa3ab1b458a9..64ee16ffb8b76b 100644
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -506,6 +506,8 @@ EXPORT_SYMBOL(get_random_ ##type);
+ 
+ DEFINE_BATCHED_ENTROPY(u64)
+ DEFINE_BATCHED_ENTROPY(u32)
++DEFINE_BATCHED_ENTROPY(u16)
++DEFINE_BATCHED_ENTROPY(u8)
+ 
+ #ifdef CONFIG_SMP
+ /*
+diff --git a/include/linux/random.h b/include/linux/random.h
+index a9e6e16f977419..2c130f8f18e538 100644
+--- a/include/linux/random.h
++++ b/include/linux/random.h
+@@ -38,6 +38,8 @@ static inline int unregister_random_vmfork_notifier(struct notifier_block *nb) {
+ 
+ void get_random_bytes(void *buf, size_t len);
+ size_t __must_check get_random_bytes_arch(void *buf, size_t len);
++u8 get_random_u8(void);
++u16 get_random_u16(void);
+ u32 get_random_u32(void);
+ u64 get_random_u64(void);
+ static inline unsigned int get_random_int(void)

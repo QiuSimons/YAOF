@@ -1,7 +1,7 @@
-From 45c18820a190e8f028cbbe76ef99cbe08b913e2e Mon Sep 17 00:00:00 2001
+From ad14b4ef5ffb6597e6b69b986badd182c98d1497 Mon Sep 17 00:00:00 2001
 From: Mubashir Adnan Qureshi <mubashirq@google.com>
 Date: Wed, 26 Oct 2022 13:51:12 +0000
-Subject: [PATCH 18/21] tcp: add PLB functionality for TCP
+Subject: [PATCH 2/2] tcp: add PLB functionality for TCP
 
 Congestion control algorithms track PLB state and cause the connection
 to trigger a path change when either of the 2 conditions is satisfied:
@@ -34,7 +34,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -2173,6 +2173,34 @@ extern void tcp_rack_advance(struct tcp_
+@@ -2120,6 +2120,34 @@ extern void tcp_rack_advance(struct tcp_
  extern void tcp_rack_reo_timeout(struct sock *sk);
  extern void tcp_rack_update_reo_wnd(struct sock *sk, struct rate_sample *rs);
  
@@ -82,7 +82,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  	     inet_fragment.o ping.o ip_tunnel_core.o gre_offload.o \
 --- a/net/ipv4/tcp_ipv4.c
 +++ b/net/ipv4/tcp_ipv4.c
-@@ -3211,7 +3211,7 @@ static int __net_init tcp_sk_init(struct
+@@ -3212,7 +3212,7 @@ static int __net_init tcp_sk_init(struct
  	net->ipv4.sysctl_tcp_plb_rehash_rounds = 12;
  	net->ipv4.sysctl_tcp_plb_suspend_rto_sec = 60;
  	/* Default congestion threshold for PLB to mark a round is 50% */

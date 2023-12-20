@@ -39,76 +39,6 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  net/ipv4/tcp_output.c                      | 2 +-
  10 files changed, 16 insertions(+), 10 deletions(-)
 
---- a/drivers/net/ethernet/amd/xgbe/xgbe.h
-+++ b/drivers/net/ethernet/amd/xgbe/xgbe.h
-@@ -151,7 +151,8 @@
- #define XGBE_TX_MAX_BUF_SIZE	(0x3fff & ~(64 - 1))
- 
- /* Descriptors required for maximum contiguous TSO/GSO packet */
--#define XGBE_TX_MAX_SPLIT	((GSO_MAX_SIZE / XGBE_TX_MAX_BUF_SIZE) + 1)
-+#define XGBE_TX_MAX_SPLIT	\
-+	((GSO_LEGACY_MAX_SIZE / XGBE_TX_MAX_BUF_SIZE) + 1)
- 
- /* Maximum possible descriptors needed for an SKB:
-  * - Maximum number of SKB frags
---- a/drivers/net/ethernet/sfc/falcon/tx.c
-+++ b/drivers/net/ethernet/sfc/falcon/tx.c
-@@ -98,7 +98,8 @@ unsigned int ef4_tx_max_skb_descs(struct
- 	/* Possibly more for PCIe page boundaries within input fragments */
- 	if (PAGE_SIZE > EF4_PAGE_SIZE)
- 		max_descs += max_t(unsigned int, MAX_SKB_FRAGS,
--				   DIV_ROUND_UP(GSO_MAX_SIZE, EF4_PAGE_SIZE));
-+				   DIV_ROUND_UP(GSO_LEGACY_MAX_SIZE,
-+						EF4_PAGE_SIZE));
- 
- 	return max_descs;
- }
---- a/drivers/net/ethernet/sfc/tx_common.c
-+++ b/drivers/net/ethernet/sfc/tx_common.c
-@@ -416,7 +416,8 @@ unsigned int efx_tx_max_skb_descs(struct
- 	/* Possibly more for PCIe page boundaries within input fragments */
- 	if (PAGE_SIZE > EFX_PAGE_SIZE)
- 		max_descs += max_t(unsigned int, MAX_SKB_FRAGS,
--				   DIV_ROUND_UP(GSO_MAX_SIZE, EFX_PAGE_SIZE));
-+				   DIV_ROUND_UP(GSO_LEGACY_MAX_SIZE,
-+						EFX_PAGE_SIZE));
- 
- 	return max_descs;
- }
---- a/drivers/net/ethernet/synopsys/dwc-xlgmac.h
-+++ b/drivers/net/ethernet/synopsys/dwc-xlgmac.h
-@@ -38,7 +38,8 @@
- #define XLGMAC_RX_DESC_MAX_DIRTY	(XLGMAC_RX_DESC_CNT >> 3)
- 
- /* Descriptors required for maximum contiguous TSO/GSO packet */
--#define XLGMAC_TX_MAX_SPLIT	((GSO_MAX_SIZE / XLGMAC_TX_MAX_BUF_SIZE) + 1)
-+#define XLGMAC_TX_MAX_SPLIT	\
-+	((GSO_LEGACY_MAX_SIZE / XLGMAC_TX_MAX_BUF_SIZE) + 1)
- 
- /* Maximum possible descriptors needed for a SKB */
- #define XLGMAC_TX_MAX_DESC_NR	(MAX_SKB_FRAGS + XLGMAC_TX_MAX_SPLIT + 2)
---- a/drivers/net/hyperv/rndis_filter.c
-+++ b/drivers/net/hyperv/rndis_filter.c
-@@ -1347,7 +1347,7 @@ static int rndis_netdev_set_hwcaps(struc
- 	struct net_device_context *net_device_ctx = netdev_priv(net);
- 	struct ndis_offload hwcaps;
- 	struct ndis_offload_params offloads;
--	unsigned int gso_max_size = GSO_MAX_SIZE;
-+	unsigned int gso_max_size = GSO_LEGACY_MAX_SIZE;
- 	int ret;
- 
- 	/* Find HW offload capabilities */
---- a/drivers/scsi/fcoe/fcoe.c
-+++ b/drivers/scsi/fcoe/fcoe.c
-@@ -666,7 +666,7 @@ static void fcoe_netdev_features_change(
- 
- 	if (netdev->features & NETIF_F_FSO) {
- 		lport->seq_offload = 1;
--		lport->lso_max = netdev->gso_max_size;
-+		lport->lso_max = min(netdev->gso_max_size, GSO_LEGACY_MAX_SIZE);
- 		FCOE_NETDEV_DBG(netdev, "Supports LSO for max len 0x%x\n",
- 				lport->lso_max);
- 	} else {
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
 @@ -2251,7 +2251,9 @@ struct net_device {
@@ -135,7 +65,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	}
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -10838,7 +10838,7 @@ struct net_device *alloc_netdev_mqs(int
+@@ -10858,7 +10858,7 @@ struct net_device *alloc_netdev_mqs(int
  
  	dev_net_set(dev, &init_net);
  
@@ -144,9 +74,39 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	dev->gso_max_segs = GSO_MAX_SEGS;
  	dev->upper_level = 1;
  	dev->lower_level = 1;
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -2163,6 +2163,19 @@ void sk_free_unlock_clone(struct sock *s
+ }
+ EXPORT_SYMBOL_GPL(sk_free_unlock_clone);
+ 
++static void sk_trim_gso_size(struct sock *sk)
++{
++	if (sk->sk_gso_max_size <= GSO_LEGACY_MAX_SIZE)
++		return;
++#if IS_ENABLED(CONFIG_IPV6)
++	if (sk->sk_family == AF_INET6 &&
++	    sk_is_tcp(sk) &&
++	    !ipv6_addr_v4mapped(&sk->sk_v6_rcv_saddr))
++		return;
++#endif
++	sk->sk_gso_max_size = GSO_LEGACY_MAX_SIZE;
++}
++
+ void sk_setup_caps(struct sock *sk, struct dst_entry *dst)
+ {
+ 	u32 max_segs = 1;
+@@ -2177,6 +2190,7 @@ void sk_setup_caps(struct sock *sk, stru
+ 		} else {
+ 			sk->sk_route_caps |= NETIF_F_SG | NETIF_F_HW_CSUM;
+ 			sk->sk_gso_max_size = dst->dev->gso_max_size;
++			sk_trim_gso_size(sk);
+ 			max_segs = max_t(u32, dst->dev->gso_max_segs, 1);
+ 		}
+ 	}
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1553,7 +1553,7 @@ int tcp_fragment(struct sock *sk, enum t
+@@ -1548,7 +1548,7 @@ int tcp_fragment(struct sock *sk, enum t
  	 * SO_SNDBUF values.
  	 * Also allow first and last skb in retransmit queue to be split.
  	 */
@@ -155,3 +115,15 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	if (unlikely((sk->sk_wmem_queued >> 1) > limit &&
  		     tcp_queue != TCP_FRAG_IN_WRITE_QUEUE &&
  		     skb != tcp_rtx_queue_head(sk) &&
+--- a/net/sctp/output.c
++++ b/net/sctp/output.c
+@@ -134,7 +134,8 @@ void sctp_packet_config(struct sctp_pack
+ 		dst_hold(tp->dst);
+ 		sk_setup_caps(sk, tp->dst);
+ 	}
+-	packet->max_size = sk_can_gso(sk) ? tp->dst->dev->gso_max_size
++	packet->max_size = sk_can_gso(sk) ? min(READ_ONCE(tp->dst->dev->gso_max_size),
++						GSO_LEGACY_MAX_SIZE)
+ 					  : asoc->pathmtu;
+ 	rcu_read_unlock();
+ }

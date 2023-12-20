@@ -1,7 +1,7 @@
-From 2db599c7a175276638aa9179ff7ce0de8610e096 Mon Sep 17 00:00:00 2001
+From 7dfb3eea0800505a94fa39b26188647f39fb8e32 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Wed, 1 May 2019 20:16:25 -0400
-Subject: [PATCH 08/21] net-tcp_bbr: v2: adjust skb tx.in_flight upon split in
+Subject: [PATCH 08/18] net-tcp_bbr: v2: adjust skb tx.in_flight upon split in
  tcp_fragment()
 
 When we fragment an skb that has already been sent, we need to update
@@ -23,6 +23,7 @@ Origin-9xx-SHA1: 385f1ddc610798fab2837f9f372857438b25f874
 Origin-9xx-SHA1: a0eb099690af net-tcp_bbr: v2: fix tcp_fragment() tx.in_flight recomputation [prod feb 8 2021; use as a fixup]
 Origin-9xx-SHA1: 885503228153ff0c9114e net-tcp_bbr: v2: introduce tcp_skb_tx_in_flight_is_suspicious() helper for warnings
 Change-Id: I617f8cab4e9be7a0b8e8d30b047bf8645393354d
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/net/tcp.h     | 15 +++++++++++++++
  net/ipv4/tcp_output.c | 26 +++++++++++++++++++++++++-
@@ -30,7 +31,7 @@ Change-Id: I617f8cab4e9be7a0b8e8d30b047bf8645393354d
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1176,6 +1176,21 @@ static inline bool tcp_skb_sent_after(u6
+@@ -1183,6 +1183,21 @@ static inline bool tcp_skb_sent_after(u6
  	return t1 > t2 || (t1 == t2 && after(seq1, seq2));
  }
  
@@ -54,7 +55,7 @@ Change-Id: I617f8cab4e9be7a0b8e8d30b047bf8645393354d
   * between different flows.
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -1534,7 +1534,7 @@ int tcp_fragment(struct sock *sk, enum t
+@@ -1531,7 +1531,7 @@ int tcp_fragment(struct sock *sk, enum t
  {
  	struct tcp_sock *tp = tcp_sk(sk);
  	struct sk_buff *buff;
@@ -63,7 +64,7 @@ Change-Id: I617f8cab4e9be7a0b8e8d30b047bf8645393354d
  	long limit;
  	int nlen;
  	u8 flags;
-@@ -1613,6 +1613,30 @@ int tcp_fragment(struct sock *sk, enum t
+@@ -1610,6 +1610,30 @@ int tcp_fragment(struct sock *sk, enum t
  
  		if (diff)
  			tcp_adjust_pcount(sk, skb, diff);

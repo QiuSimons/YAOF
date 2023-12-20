@@ -1,7 +1,7 @@
-From 962ec6509e8793040cb97da051a52a8d6319887c Mon Sep 17 00:00:00 2001
+From 8e2c994ff58869f6a803945b931e38f1be3ce9e1 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Tue, 11 Jun 2019 12:54:22 -0400
-Subject: [PATCH 19/21] net-tcp_bbr: v3: update TCP "bbr" congestion control
+Subject: [PATCH 16/18] net-tcp_bbr: v3: update TCP "bbr" congestion control
  module to BBRv3
 
 BBR v3 is an enhacement to the BBR v1 algorithm. It's designed to aim for lower
@@ -129,13 +129,14 @@ o Internal notes:
 Effort: net-tcp_bbr
 Origin-9xx-SHA1: 2c84098e60bed6d67dde23cd7538c51dee273102
 Change-Id: I125cf26ba2a7a686f2fa5e87f4c2afceb65f7a05
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/net/inet_connection_sock.h |    4 +-
  include/net/tcp.h                  |    2 +-
  include/uapi/linux/inet_diag.h     |   23 +
  net/ipv4/Kconfig                   |   21 +-
- net/ipv4/tcp_bbr.c                 | 2214 +++++++++++++++++++++-------
- 5 files changed, 1740 insertions(+), 524 deletions(-)
+ net/ipv4/tcp_bbr.c                 | 2217 +++++++++++++++++++++-------
+ 5 files changed, 1742 insertions(+), 525 deletions(-)
 
 --- a/include/net/inet_connection_sock.h
 +++ b/include/net/inet_connection_sock.h
@@ -152,7 +153,7 @@ Change-Id: I125cf26ba2a7a686f2fa5e87f4c2afceb65f7a05
  #define ICSK_TIME_RETRANS	1	/* Retransmit timer */
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -2188,7 +2188,7 @@ struct tcp_plb_state {
+@@ -2195,7 +2195,7 @@ struct tcp_plb_state {
  	u8	consec_cong_rounds:5, /* consecutive congested rounds */
  		unused:3;
  	u32	pause_until; /* jiffies32 when PLB can resume rerouting */
@@ -1948,10 +1949,10 @@ Change-Id: I125cf26ba2a7a686f2fa5e87f4c2afceb65f7a05
 +
 +	/* Decide the random round-trip bound for wait until probe: */
 +	bbr->rounds_since_probe =
-+		prandom_u32_max(bbr_param(sk, bw_probe_rand_rounds));
++		get_random_u32_below(bbr_param(sk, bw_probe_rand_rounds));
 +	/* Decide the random wall clock bound for wait until probe: */
 +	bbr->probe_wait_us = bbr_param(sk, bw_probe_base_us) +
-+			     prandom_u32_max(bbr_param(sk, bw_probe_rand_us));
++			     get_random_u32_below(bbr_param(sk, bw_probe_rand_us));
 +}
 +
 +static void bbr_set_cycle_idx(struct sock *sk, int cycle_idx)

@@ -1,7 +1,7 @@
-From b3cbcc29ea192bfc6174e92eb833d999551608f8 Mon Sep 17 00:00:00 2001
+From 8a3478c7911f3912b6b9e34444fb00580f5987f6 Mon Sep 17 00:00:00 2001
 From: Jianfeng Wang <jfwang@google.com>
 Date: Fri, 19 Jun 2020 17:33:45 +0000
-Subject: [PATCH 12/21] net-tcp_bbr: v2: record app-limited status of
+Subject: [PATCH 12/18] net-tcp_bbr: v2: record app-limited status of
  TLP-repaired flight
 
 When sending a TLP retransmit, record whether the outstanding flight
@@ -15,6 +15,7 @@ very different information:
 
 Effort: net-tcp_bbr
 Change-Id: Ic8ae567caa4e4bfd5fd82c3d4be12a5d9171655e
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/linux/tcp.h   | 3 ++-
  net/ipv4/tcp_output.c | 1 +
@@ -34,7 +35,7 @@ Change-Id: Ic8ae567caa4e4bfd5fd82c3d4be12a5d9171655e
  	u8	chrono_type:2,	/* current chronograph type */
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -2869,6 +2869,7 @@ void tcp_send_loss_probe(struct sock *sk
+@@ -2879,6 +2879,7 @@ void tcp_send_loss_probe(struct sock *sk
  	if (WARN_ON(!skb || !tcp_skb_pcount(skb)))
  		goto rearm_timer;
  

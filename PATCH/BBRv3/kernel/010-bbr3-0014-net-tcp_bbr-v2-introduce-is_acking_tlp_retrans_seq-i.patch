@@ -1,7 +1,7 @@
-From 75174504fa6181dbea412b841f3804c19a1599ec Mon Sep 17 00:00:00 2001
+From 9bc8bc1f80d52c2e952e72bb3aaf1bca99052208 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Mon, 21 Sep 2020 14:46:26 -0400
-Subject: [PATCH 14/21] net-tcp_bbr: v2: introduce is_acking_tlp_retrans_seq
+Subject: [PATCH 14/18] net-tcp_bbr: v2: introduce is_acking_tlp_retrans_seq
  into rate_sample
 
 Introduce is_acking_tlp_retrans_seq into rate_sample. This bool will
@@ -13,6 +13,7 @@ this ACK is for the original or the TLP retransmit.
 
 Effort: net-tcp_bbr
 Change-Id: I2e6494332167e75efcbdc99bd5c119034e9c39b4
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/net/tcp.h    |  1 +
  net/ipv4/tcp_input.c | 12 +++++++++---
@@ -20,7 +21,7 @@ Change-Id: I2e6494332167e75efcbdc99bd5c119034e9c39b4
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1051,6 +1051,7 @@ struct rate_sample {
+@@ -1058,6 +1058,7 @@ struct rate_sample {
  	u32  last_end_seq;	/* end_seq of most recently ACKed packet */
  	bool is_app_limited;	/* is sample from packet with bubble in pipe? */
  	bool is_retrans;	/* is sample from retransmission? */
@@ -30,7 +31,7 @@ Change-Id: I2e6494332167e75efcbdc99bd5c119034e9c39b4
  };
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3696,7 +3696,8 @@ static void tcp_replace_ts_recent(struct
+@@ -3707,7 +3707,8 @@ static void tcp_replace_ts_recent(struct
  /* This routine deals with acks during a TLP episode and ends an episode by
   * resetting tlp_high_seq. Ref: TLP algorithm in draft-ietf-tcpm-rack
   */
@@ -40,7 +41,7 @@ Change-Id: I2e6494332167e75efcbdc99bd5c119034e9c39b4
  {
  	struct tcp_sock *tp = tcp_sk(sk);
  
-@@ -3724,6 +3725,11 @@ static void tcp_process_tlp_ack(struct s
+@@ -3735,6 +3736,11 @@ static void tcp_process_tlp_ack(struct s
  			     FLAG_NOT_DUP | FLAG_DATA_SACKED))) {
  		/* Pure dupack: original and TLP probe arrived; no loss */
  		tp->tlp_high_seq = 0;
@@ -52,7 +53,7 @@ Change-Id: I2e6494332167e75efcbdc99bd5c119034e9c39b4
  	}
  }
  
-@@ -3903,7 +3909,7 @@ static int tcp_ack(struct sock *sk, cons
+@@ -3914,7 +3920,7 @@ static int tcp_ack(struct sock *sk, cons
  	tcp_rack_update_reo_wnd(sk, &rs);
  
  	if (tp->tlp_high_seq)
@@ -61,7 +62,7 @@ Change-Id: I2e6494332167e75efcbdc99bd5c119034e9c39b4
  
  	if (tcp_ack_is_dubious(sk, flag)) {
  		if (!(flag & (FLAG_SND_UNA_ADVANCED |
-@@ -3947,7 +3953,7 @@ no_queue:
+@@ -3958,7 +3964,7 @@ no_queue:
  	tcp_ack_probe(sk);
  
  	if (tp->tlp_high_seq)

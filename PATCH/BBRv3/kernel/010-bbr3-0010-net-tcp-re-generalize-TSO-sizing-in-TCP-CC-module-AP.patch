@@ -26,7 +26,7 @@ Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1078,6 +1078,9 @@ struct tcp_congestion_ops {
+@@ -1085,6 +1085,9 @@ struct tcp_congestion_ops {
  	/* override sysctl_tcp_min_tso_segs */
  	u32 (*min_tso_segs)(struct sock *sk);
  
@@ -95,7 +95,7 @@ Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
  };
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -2011,13 +2011,12 @@ static u32 tcp_tso_autosize(const struct
+@@ -2008,13 +2008,12 @@ static u32 tcp_tso_autosize(const struct
  static u32 tcp_tso_segs(struct sock *sk, unsigned int mss_now)
  {
  	const struct tcp_congestion_ops *ca_ops = inet_csk(sk)->icsk_ca_ops;

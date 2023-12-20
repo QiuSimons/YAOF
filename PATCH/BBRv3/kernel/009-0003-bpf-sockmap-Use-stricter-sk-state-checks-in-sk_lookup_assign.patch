@@ -1,0 +1,85 @@
+From 40a34121ac1dc52ed9cd34a8f4e48e32517a52fd Mon Sep 17 00:00:00 2001
+From: John Fastabend <john.fastabend@gmail.com>
+Date: Wed, 3 Nov 2021 13:47:32 -0700
+Subject: [PATCH] bpf, sockmap: Use stricter sk state checks in
+ sk_lookup_assign
+
+In order to fix an issue with sockets in TCP sockmap redirect cases we plan
+to allow CLOSE state sockets to exist in the sockmap. However, the check in
+bpf_sk_lookup_assign() currently only invalidates sockets in the
+TCP_ESTABLISHED case relying on the checks on sockmap insert to ensure we
+never SOCK_CLOSE state sockets in the map.
+
+To prepare for this change we flip the logic in bpf_sk_lookup_assign() to
+explicitly test for the accepted cases. Namely, a tcp socket in TCP_LISTEN
+or a udp socket in TCP_CLOSE state. This also makes the code more resilent
+to future changes.
+
+Suggested-by: Jakub Sitnicki <jakub@cloudflare.com>
+Signed-off-by: John Fastabend <john.fastabend@gmail.com>
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+Reviewed-by: Jakub Sitnicki <jakub@cloudflare.com>
+Link: https://lore.kernel.org/bpf/20211103204736.248403-2-john.fastabend@gmail.com
+---
+ include/linux/skmsg.h | 12 ++++++++++++
+ net/core/filter.c     |  6 ++++--
+ net/core/sock_map.c   |  6 ------
+ 3 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/include/linux/skmsg.h b/include/linux/skmsg.h
+index b4256847c70791..584d94be9c8b06 100644
+--- a/include/linux/skmsg.h
++++ b/include/linux/skmsg.h
+@@ -507,6 +507,18 @@ static inline bool sk_psock_strp_enabled(struct sk_psock *psock)
+ 	return !!psock->saved_data_ready;
+ }
+ 
++static inline bool sk_is_tcp(const struct sock *sk)
++{
++	return sk->sk_type == SOCK_STREAM &&
++	       sk->sk_protocol == IPPROTO_TCP;
++}
++
++static inline bool sk_is_udp(const struct sock *sk)
++{
++	return sk->sk_type == SOCK_DGRAM &&
++	       sk->sk_protocol == IPPROTO_UDP;
++}
++
+ #if IS_ENABLED(CONFIG_NET_SOCK_MSG)
+ 
+ #define BPF_F_STRPARSER	(1UL << 1)
+diff --git a/net/core/filter.c b/net/core/filter.c
+index 8e8d3b49c29767..a68418268e9265 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -10423,8 +10423,10 @@ BPF_CALL_3(bpf_sk_lookup_assign, struct bpf_sk_lookup_kern *, ctx,
+ 		return -EINVAL;
+ 	if (unlikely(sk && sk_is_refcounted(sk)))
+ 		return -ESOCKTNOSUPPORT; /* reject non-RCU freed sockets */
+-	if (unlikely(sk && sk->sk_state == TCP_ESTABLISHED))
+-		return -ESOCKTNOSUPPORT; /* reject connected sockets */
++	if (unlikely(sk && sk_is_tcp(sk) && sk->sk_state != TCP_LISTEN))
++		return -ESOCKTNOSUPPORT; /* only accept TCP socket in LISTEN */
++	if (unlikely(sk && sk_is_udp(sk) && sk->sk_state != TCP_CLOSE))
++		return -ESOCKTNOSUPPORT; /* only accept UDP socket in CLOSE */
+ 
+ 	/* Check if socket is suitable for packet L3/L4 protocol */
+ 	if (sk && sk->sk_protocol != ctx->protocol)
+diff --git a/net/core/sock_map.c b/net/core/sock_map.c
+index e252b8ec2b85e9..f39ef79ced679d 100644
+--- a/net/core/sock_map.c
++++ b/net/core/sock_map.c
+@@ -511,12 +511,6 @@ static bool sock_map_op_okay(const struct bpf_sock_ops_kern *ops)
+ 	       ops->op == BPF_SOCK_OPS_TCP_LISTEN_CB;
+ }
+ 
+-static bool sk_is_tcp(const struct sock *sk)
+-{
+-	return sk->sk_type == SOCK_STREAM &&
+-	       sk->sk_protocol == IPPROTO_TCP;
+-}
+-
+ static bool sock_map_redirect_allowed(const struct sock *sk)
+ {
+ 	if (sk_is_tcp(sk))

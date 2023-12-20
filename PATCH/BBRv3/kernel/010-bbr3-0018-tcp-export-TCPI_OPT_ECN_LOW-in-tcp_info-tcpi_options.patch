@@ -1,7 +1,7 @@
-From 9e4a6a6a35617746e9e88d2212abc3403246245a Mon Sep 17 00:00:00 2001
+From 0be8827d9af6570c076d797d91614f51062c9503 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Sun, 23 Jul 2023 23:25:34 -0400
-Subject: [PATCH 21/21] tcp: export TCPI_OPT_ECN_LOW in tcp_info tcpi_options
+Subject: [PATCH 18/18] tcp: export TCPI_OPT_ECN_LOW in tcp_info tcpi_options
  field
 
 Analogous to other important ECN information, export TCPI_OPT_ECN_LOW
@@ -9,6 +9,7 @@ in tcp_info tcpi_options field.
 
 Signed-off-by: Neal Cardwell <ncardwell@google.com>
 Change-Id: I08d8d8c7e8780e6e37df54038ee50301ac5a0320
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/uapi/linux/tcp.h | 1 +
  net/ipv4/tcp.c           | 2 ++
