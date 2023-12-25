@@ -27,12 +27,6 @@ Signed-off-by: Alexander Duyck <alexanderduyck@fb.com>
 Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/net/ethernet/amd/xgbe/xgbe.h       | 3 ++-
- drivers/net/ethernet/sfc/falcon/tx.c       | 3 ++-
- drivers/net/ethernet/sfc/tx_common.c       | 3 ++-
- drivers/net/ethernet/synopsys/dwc-xlgmac.h | 3 ++-
- drivers/net/hyperv/rndis_filter.c          | 2 +-
- drivers/scsi/fcoe/fcoe.c                   | 2 +-
  include/linux/netdevice.h                  | 4 +++-
  net/bpf/test_run.c                         | 2 +-
  net/core/dev.c                             | 2 +-
@@ -74,36 +68,6 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	dev->gso_max_segs = GSO_MAX_SEGS;
  	dev->upper_level = 1;
  	dev->lower_level = 1;
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -2163,6 +2163,19 @@ void sk_free_unlock_clone(struct sock *s
- }
- EXPORT_SYMBOL_GPL(sk_free_unlock_clone);
- 
-+static void sk_trim_gso_size(struct sock *sk)
-+{
-+	if (sk->sk_gso_max_size <= GSO_LEGACY_MAX_SIZE)
-+		return;
-+#if IS_ENABLED(CONFIG_IPV6)
-+	if (sk->sk_family == AF_INET6 &&
-+	    sk_is_tcp(sk) &&
-+	    !ipv6_addr_v4mapped(&sk->sk_v6_rcv_saddr))
-+		return;
-+#endif
-+	sk->sk_gso_max_size = GSO_LEGACY_MAX_SIZE;
-+}
-+
- void sk_setup_caps(struct sock *sk, struct dst_entry *dst)
- {
- 	u32 max_segs = 1;
-@@ -2177,6 +2190,7 @@ void sk_setup_caps(struct sock *sk, stru
- 		} else {
- 			sk->sk_route_caps |= NETIF_F_SG | NETIF_F_HW_CSUM;
- 			sk->sk_gso_max_size = dst->dev->gso_max_size;
-+			sk_trim_gso_size(sk);
- 			max_segs = max_t(u32, dst->dev->gso_max_segs, 1);
- 		}
- 	}
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
 @@ -1548,7 +1548,7 @@ int tcp_fragment(struct sock *sk, enum t
