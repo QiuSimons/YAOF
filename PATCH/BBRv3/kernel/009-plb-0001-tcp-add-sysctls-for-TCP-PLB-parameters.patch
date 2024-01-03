@@ -1,0 +1,205 @@
+From 945918a4e7fdac837f3589e51296683857909403 Mon Sep 17 00:00:00 2001
+From: Mubashir Adnan Qureshi <mubashirq@google.com>
+Date: Wed, 26 Oct 2022 13:51:11 +0000
+Subject: [PATCH 1/2] tcp: add sysctls for TCP PLB parameters
+
+PLB (Protective Load Balancing) is a host based mechanism for load
+balancing across switch links. It leverages congestion signals(e.g. ECN)
+from transport layer to randomly change the path of the connection
+experiencing congestion. PLB changes the path of the connection by
+changing the outgoing IPv6 flow label for IPv6 connections (implemented
+in Linux by calling sk_rethink_txhash()). Because of this implementation
+mechanism, PLB can currently only work for IPv6 traffic. For more
+information, see the SIGCOMM 2022 paper:
+  https://doi.org/10.1145/3544216.3544226
+
+This commit adds new sysctl knobs and sets their default values for
+TCP PLB.
+
+Signed-off-by: Mubashir Adnan Qureshi <mubashirq@google.com>
+Signed-off-by: Yuchung Cheng <ycheng@google.com>
+Signed-off-by: Neal Cardwell <ncardwell@google.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
+---
+ Documentation/networking/ip-sysctl.rst | 75 ++++++++++++++++++++++++++
+ include/net/netns/ipv4.h               |  5 ++
+ net/ipv4/sysctl_net_ipv4.c             | 43 +++++++++++++++
+ net/ipv4/tcp_ipv4.c                    |  8 +++
+ 4 files changed, 131 insertions(+)
+
+--- a/Documentation/networking/ip-sysctl.rst
++++ b/Documentation/networking/ip-sysctl.rst
+@@ -999,6 +999,81 @@ tcp_rx_skb_cache - BOOLEAN
+ 
+ 	Default: 0 (disabled)
+ 
++tcp_plb_enabled - BOOLEAN
++	If set and the underlying congestion control (e.g. DCTCP) supports
++	and enables PLB feature, TCP PLB (Protective Load Balancing) is
++	enabled. PLB is described in the following paper:
++	https://doi.org/10.1145/3544216.3544226. Based on PLB parameters,
++	upon sensing sustained congestion, TCP triggers a change in
++	flow label field for outgoing IPv6 packets. A change in flow label
++	field potentially changes the path of outgoing packets for switches
++	that use ECMP/WCMP for routing.
++
++	PLB changes socket txhash which results in a change in IPv6 Flow Label
++	field, and currently no-op for IPv4 headers. It is possible
++	to apply PLB for IPv4 with other network header fields (e.g. TCP
++	or IPv4 options) or using encapsulation where outer header is used
++	by switches to determine next hop. In either case, further host
++	and switch side changes will be needed.
++
++	When set, PLB assumes that congestion signal (e.g. ECN) is made
++	available and used by congestion control module to estimate a
++	congestion measure (e.g. ce_ratio). PLB needs a congestion measure to
++	make repathing decisions.
++
++	Default: FALSE
++
++tcp_plb_idle_rehash_rounds - INTEGER
++	Number of consecutive congested rounds (RTT) seen after which
++	a rehash can be performed, given there are no packets in flight.
++	This is referred to as M in PLB paper:
++	https://doi.org/10.1145/3544216.3544226.
++
++	Possible Values: 0 - 31
++
++	Default: 3
++
++tcp_plb_rehash_rounds - INTEGER
++	Number of consecutive congested rounds (RTT) seen after which
++	a forced rehash can be performed. Be careful when setting this
++	parameter, as a small value increases the risk of retransmissions.
++	This is referred to as N in PLB paper:
++	https://doi.org/10.1145/3544216.3544226.
++
++	Possible Values: 0 - 31
++
++	Default: 12
++
++tcp_plb_suspend_rto_sec - INTEGER
++	Time, in seconds, to suspend PLB in event of an RTO. In order to avoid
++	having PLB repath onto a connectivity "black hole", after an RTO a TCP
++	connection suspends PLB repathing for a random duration between 1x and
++	2x of this parameter. Randomness is added to avoid concurrent rehashing
++	of multiple TCP connections. This should be set corresponding to the
++	amount of time it takes to repair a failed link.
++
++	Possible Values: 0 - 255
++
++	Default: 60
++
++tcp_plb_cong_thresh - INTEGER
++	Fraction of packets marked with congestion over a round (RTT) to
++	tag that round as congested. This is referred to as K in the PLB paper:
++	https://doi.org/10.1145/3544216.3544226.
++
++	The 0-1 fraction range is mapped to 0-256 range to avoid floating
++	point operations. For example, 128 means that if at least 50% of
++	the packets in a round were marked as congested then the round
++	will be tagged as congested.
++
++	Setting threshold to 0 means that PLB repaths every RTT regardless
++	of congestion. This is not intended behavior for PLB and should be
++	used only for experimentation purpose.
++
++	Possible Values: 0 - 256
++
++	Default: 128
++
+ UDP variables
+ =============
+ 
+--- a/include/net/netns/ipv4.h
++++ b/include/net/netns/ipv4.h
+@@ -176,6 +176,11 @@ struct netns_ipv4 {
+ 	unsigned int sysctl_tcp_fastopen_blackhole_timeout;
+ 	atomic_t tfo_active_disable_times;
+ 	unsigned long tfo_active_disable_stamp;
++	u8 sysctl_tcp_plb_enabled;
++	u8 sysctl_tcp_plb_idle_rehash_rounds;
++	u8 sysctl_tcp_plb_rehash_rounds;
++	u8 sysctl_tcp_plb_suspend_rto_sec;
++	int sysctl_tcp_plb_cong_thresh;
+ 
+ 	int sysctl_udp_wmem_min;
+ 	int sysctl_udp_rmem_min;
+--- a/net/ipv4/sysctl_net_ipv4.c
++++ b/net/ipv4/sysctl_net_ipv4.c
+@@ -53,6 +53,8 @@ static u32 u32_max_div_HZ = UINT_MAX / H
+ static int one_day_secs = 24 * 3600;
+ static u32 fib_multipath_hash_fields_all_mask __maybe_unused =
+ 	FIB_MULTIPATH_HASH_FIELD_ALL_MASK;
++static int tcp_plb_max_rounds = 31;
++static int tcp_plb_max_cong_thresh = 256;
+ 
+ /* obsolete */
+ static int sysctl_tcp_low_latency __read_mostly;
+@@ -1362,6 +1364,47 @@ static struct ctl_table ipv4_net_table[]
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= &two,
+ 	},
++	{
++		.procname       = "tcp_plb_enabled",
++		.data           = &init_net.ipv4.sysctl_tcp_plb_enabled,
++		.maxlen         = sizeof(u8),
++		.mode           = 0644,
++		.proc_handler   = proc_dou8vec_minmax,
++		.extra1         = SYSCTL_ZERO,
++		.extra2         = SYSCTL_ONE,
++	},
++	{
++		.procname       = "tcp_plb_idle_rehash_rounds",
++		.data           = &init_net.ipv4.sysctl_tcp_plb_idle_rehash_rounds,
++		.maxlen         = sizeof(u8),
++		.mode           = 0644,
++		.proc_handler   = proc_dou8vec_minmax,
++		.extra2		= &tcp_plb_max_rounds,
++	},
++	{
++		.procname       = "tcp_plb_rehash_rounds",
++		.data           = &init_net.ipv4.sysctl_tcp_plb_rehash_rounds,
++		.maxlen         = sizeof(u8),
++		.mode           = 0644,
++		.proc_handler   = proc_dou8vec_minmax,
++		.extra2         = &tcp_plb_max_rounds,
++	},
++	{
++		.procname       = "tcp_plb_suspend_rto_sec",
++		.data           = &init_net.ipv4.sysctl_tcp_plb_suspend_rto_sec,
++		.maxlen         = sizeof(u8),
++		.mode           = 0644,
++		.proc_handler   = proc_dou8vec_minmax,
++	},
++	{
++		.procname       = "tcp_plb_cong_thresh",
++		.data           = &init_net.ipv4.sysctl_tcp_plb_cong_thresh,
++		.maxlen         = sizeof(int),
++		.mode           = 0644,
++		.proc_handler   = proc_dointvec_minmax,
++		.extra1         = SYSCTL_ZERO,
++		.extra2         = &tcp_plb_max_cong_thresh,
++	},
+ 	{ }
+ };
+ 
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -3206,6 +3206,14 @@ static int __net_init tcp_sk_init(struct
+ 	net->ipv4.sysctl_tcp_fastopen_blackhole_timeout = 0;
+ 	atomic_set(&net->ipv4.tfo_active_disable_times, 0);
+ 
++	/* Set default values for PLB */
++	net->ipv4.sysctl_tcp_plb_enabled = 0; /* Disabled by default */
++	net->ipv4.sysctl_tcp_plb_idle_rehash_rounds = 3;
++	net->ipv4.sysctl_tcp_plb_rehash_rounds = 12;
++	net->ipv4.sysctl_tcp_plb_suspend_rto_sec = 60;
++	/* Default congestion threshold for PLB to mark a round is 50% */
++	net->ipv4.sysctl_tcp_plb_cong_thresh = 128;
++
+ 	/* Reno is always built in */
+ 	if (!net_eq(net, &init_net) &&
+ 	    bpf_try_module_get(init_net.ipv4.tcp_congestion_control,

@@ -1,0 +1,88 @@
+From 05352a391b7eff6716690d5627e9e71c8d744819 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 18:39:30 +0200
+Subject: [PATCH v52 24/25] LRNG - add /dev/lrng device file support
+
+The LRNG can create a character device file that operates identically
+to /dev/random including IOCTL, read and write operations.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Kconfig              | 18 ++++++-------
+ drivers/char/lrng/Makefile             |  1 +
+ drivers/char/lrng/lrng_interface_dev.c | 35 ++++++++++++++++++++++++++
+ 3 files changed, 45 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/char/lrng/lrng_interface_dev.c
+
+--- a/drivers/char/lrng/Kconfig
++++ b/drivers/char/lrng/Kconfig
+@@ -111,15 +111,15 @@ config LRNG_KCAPI_IF
+ # 	  with the name "lrng" that is accessible via the framework.
+ # 	  For example it allows pulling data from the LRNG via the
+ # 	  /dev/hwrng file.
+-#
+-# config LRNG_DEV_IF
+-# 	bool "Character device file interface"
+-# 	select LRNG_COMMON_DEV_IF
+-# 	help
+-# 	  The LRNG can create a character device file that operates
+-# 	  identically to /dev/random including IOCTL, read and write
+-# 	  operations.
+-#
++
++config LRNG_DEV_IF
++	bool "Character device file interface"
++	select LRNG_COMMON_DEV_IF
++	help
++	  The LRNG can create a character device file that operates
++	  identically to /dev/random including IOCTL, read and write
++	  operations.
++
+ endmenu # "LRNG Interfaces"
+ 
+ menu "Entropy Source Configuration"
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -35,3 +35,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_in
+ 					   lrng_interface_random_kernel.o \
+ 					   lrng_interface_aux.o
+ obj-$(CONFIG_LRNG_KCAPI_IF)		+= lrng_interface_kcapi.o
++obj-$(CONFIG_LRNG_DEV_IF)		+= lrng_interface_dev.o
+--- /dev/null
++++ b/drivers/char/lrng/lrng_interface_dev.c
+@@ -0,0 +1,35 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG user space device file interface
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#include <linux/miscdevice.h>
++#include <linux/module.h>
++
++#include "lrng_interface_dev_common.h"
++
++static const struct file_operations lrng_fops = {
++	.read  = lrng_drng_read_block,
++	.write = lrng_drng_write,
++	.poll  = lrng_random_poll,
++	.unlocked_ioctl = lrng_ioctl,
++	.compat_ioctl = compat_ptr_ioctl,
++	.fasync = lrng_fasync,
++	.llseek = noop_llseek,
++};
++
++static struct miscdevice lrng_miscdev = {
++	.minor          = MISC_DYNAMIC_MINOR,
++	.name           = "lrng",
++	.nodename       = "lrng",
++	.fops           = &lrng_fops,
++	.mode		= 0666
++};
++
++static int __init lrng_dev_if_mod_init(void)
++{
++	return misc_register(&lrng_miscdev);
++}
++device_initcall(lrng_dev_if_mod_init);

@@ -1,0 +1,93 @@
+From 9fffe7e05bb0da5aef700cc246a71fc33672c81e Mon Sep 17 00:00:00 2001
+From: Alexander Duyck <alexanderduyck@fb.com>
+Date: Fri, 13 May 2022 11:33:57 -0700
+Subject: [PATCH 16/21] net: allow gso_max_size to exceed 65536
+
+The code for gso_max_size was added originally to allow for debugging and
+workaround of buggy devices that couldn't support TSO with blocks 64K in
+size. The original reason for limiting it to 64K was because that was the
+existing limits of IPv4 and non-jumbogram IPv6 length fields.
+
+With the addition of Big TCP we can remove this limit and allow the value
+to potentially go up to UINT_MAX and instead be limited by the tso_max_size
+value.
+
+So in order to support this we need to go through and clean up the
+remaining users of the gso_max_size value so that the values will cap at
+64K for non-TCPv6 flows. In addition we can clean up the GSO_MAX_SIZE value
+so that 64K becomes GSO_LEGACY_MAX_SIZE and UINT_MAX will now be the upper
+limit for GSO_MAX_SIZE.
+
+v6: (edumazet) fixed a compile error if CONFIG_IPV6=n,
+               in a new sk_trim_gso_size() helper.
+               netif_set_tso_max_size() caps the requested TSO size
+               with GSO_MAX_SIZE.
+
+Signed-off-by: Alexander Duyck <alexanderduyck@fb.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ include/linux/netdevice.h                  | 4 +++-
+ net/bpf/test_run.c                         | 2 +-
+ net/core/dev.c                             | 2 +-
+ net/ipv4/tcp_output.c                      | 2 +-
+ 10 files changed, 16 insertions(+), 10 deletions(-)
+
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -2251,7 +2251,9 @@ struct net_device {
+ 	const struct rtnl_link_ops *rtnl_link_ops;
+ 
+ 	/* for setting kernel sock attribute on TCP connection setup */
+-#define GSO_MAX_SIZE		65536
++#define GSO_LEGACY_MAX_SIZE	65536u
++#define GSO_MAX_SIZE		UINT_MAX
++
+ 	unsigned int		gso_max_size;
+ #define GSO_MAX_SEGS		65535
+ 	u16			gso_max_segs;
+--- a/net/bpf/test_run.c
++++ b/net/bpf/test_run.c
+@@ -524,7 +524,7 @@ static int convert___skb_to_skb(struct s
+ 		cb->pkt_len = skb->len;
+ 	} else {
+ 		if (__skb->wire_len < skb->len ||
+-		    __skb->wire_len > GSO_MAX_SIZE)
++		    __skb->wire_len > GSO_LEGACY_MAX_SIZE)
+ 			return -EINVAL;
+ 		cb->pkt_len = __skb->wire_len;
+ 	}
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -10858,7 +10858,7 @@ struct net_device *alloc_netdev_mqs(int
+ 
+ 	dev_net_set(dev, &init_net);
+ 
+-	dev->gso_max_size = GSO_MAX_SIZE;
++	dev->gso_max_size = GSO_LEGACY_MAX_SIZE;
+ 	dev->gso_max_segs = GSO_MAX_SEGS;
+ 	dev->upper_level = 1;
+ 	dev->lower_level = 1;
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1548,7 +1548,7 @@ int tcp_fragment(struct sock *sk, enum t
+ 	 * SO_SNDBUF values.
+ 	 * Also allow first and last skb in retransmit queue to be split.
+ 	 */
+-	limit = sk->sk_sndbuf + 2 * SKB_TRUESIZE(GSO_MAX_SIZE);
++	limit = sk->sk_sndbuf + 2 * SKB_TRUESIZE(GSO_LEGACY_MAX_SIZE);
+ 	if (unlikely((sk->sk_wmem_queued >> 1) > limit &&
+ 		     tcp_queue != TCP_FRAG_IN_WRITE_QUEUE &&
+ 		     skb != tcp_rtx_queue_head(sk) &&
+--- a/net/sctp/output.c
++++ b/net/sctp/output.c
+@@ -134,7 +134,8 @@ void sctp_packet_config(struct sctp_pack
+ 		dst_hold(tp->dst);
+ 		sk_setup_caps(sk, tp->dst);
+ 	}
+-	packet->max_size = sk_can_gso(sk) ? tp->dst->dev->gso_max_size
++	packet->max_size = sk_can_gso(sk) ? min(READ_ONCE(tp->dst->dev->gso_max_size),
++						GSO_LEGACY_MAX_SIZE)
+ 					  : asoc->pathmtu;
+ 	rcu_read_unlock();
+ }
