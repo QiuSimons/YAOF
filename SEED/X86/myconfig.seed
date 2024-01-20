@@ -13,7 +13,6 @@ CONFIG_KERNEL_BUILD_USER="builder"
 
 # GCC
 CONFIG_TOOLCHAINOPTS=y
-CONFIG_GCC_USE_VERSION_11=y
 
 # DAE
 CONFIG_KERNEL_DEBUG_INFO=y
@@ -29,6 +28,9 @@ CONFIG_PACKAGE_luci-app-daed-next=y
 
 # SAVING RAM FOR DAE
 CONFIG_PACKAGE_zram-swap=y
+CONFIG_PACKAGE_kmod-lib-lz4=y
+CONFIG_PACKAGE_kmod-lib-lzo=y
+CONFIG_PACKAGE_kmod-lib-zstd=y
 
 ### AGGRESSIVE ###
 CONFIG_USE_GC_SECTIONS=y
@@ -44,6 +46,8 @@ CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_autocore=y
 CONFIG_PACKAGE_ethtool=y
 CONFIG_PACKAGE_dnsmasq-full=y
+CONFIG_PACKAGE_dnsmasq_full_ipset=y
+# CONFIG_PACKAGE_dnsmasq_full_broken_rtc is not set
 # CONFIG_PACKAGE_dnsmasq is not set
 CONFIG_PACKAGE_kmod-fs-f2fs=y
 CONFIG_PACKAGE_libustream-openssl=y
@@ -59,29 +63,34 @@ CONFIG_PACKAGE_kmod-drm-i915=y
 CONFIG_PACKAGE_kmod-i915-gvt=y
 
 ### DDNS ###
-### CONFIG_PACKAGE_luci-app-ddns=y
-### CONFIG_PACKAGE_ddns-scripts=y
-### CONFIG_PACKAGE_ddns-scripts-cloudflare=y
-### CONFIG_PACKAGE_ddns-scripts-dnspod=y
-### CONFIG_PACKAGE_ddns-scripts-services=y
-### CONFIG_PACKAGE_ddns-scripts_aliyun=y
-### CONFIG_PACKAGE_bind-host=y
+CONFIG_PACKAGE_luci-app-ddns=n
+CONFIG_PACKAGE_ddns-scripts=n
+CONFIG_PACKAGE_ddns-scripts-cloudflare=n
+CONFIG_PACKAGE_ddns-scripts-dnspod=n
+CONFIG_PACKAGE_ddns-scripts-services=n
+CONFIG_PACKAGE_ddns-scripts_aliyun=n
+CONFIG_PACKAGE_bind-host=n
 
 ### 22.03 ###
 # CONFIG_PACKAGE_firewall is not set
 CONFIG_PACKAGE_firewall4=y
-CONFIG_PACKAGE_kmod-ipt-offload=y
-CONFIG_DEFAULT_kmod-nft-offload=y
+CONFIG_PACKAGE_kmod-nft-offload=y
+CONFIG_PACKAGE_kmod-nft-fullcone=y
 # CONFIG_PACKAGE_arptables-legacy is not set
 CONFIG_PACKAGE_arptables-nft=y
 # CONFIG_PACKAGE_ebtables-legacy is not set
 CONFIG_PACKAGE_ebtables-nft=y
 # CONFIG_PACKAGE_ip6tables-legacy is not set
-CONFIG_PACKAGE_ip6tables-mod-fullconenat=y
 CONFIG_PACKAGE_ip6tables-nft=y
+# CONFIG_PACKAGE_xtables-legacy is not set
+CONFIG_PACKAGE_xtables-nft=y
 # CONFIG_PACKAGE_iptables-legacy is not set
 CONFIG_PACKAGE_iptables-nft=y
-CONFIG_PACKAGE_kmod-nft-fullcone=y
+CONFIG_PACKAGE_iptables-mod-conntrack-extra=y
+CONFIG_PACKAGE_iptables-mod-iprange=y
+CONFIG_PACKAGE_iptables-mod-nat-extra=y
+CONFIG_PACKAGE_iptables-mod-socket=y
+CONFIG_PACKAGE_iptables-mod-tproxy=y
 # CONFIG_PACKAGE_miniupnpd-iptables is not set
 CONFIG_PACKAGE_miniupnpd-nftables=y
 
@@ -94,59 +103,59 @@ CONFIG_PACKAGE_luci-nginx=y
 CONFIG_PACKAGE_luci-compat=y
 
 ### APPLICATION ###
-### CONFIG_PACKAGE_luci-app-homeproxy=y
-### CONFIG_PACKAGE_luci-app-ap-modem=y
-### CONFIG_PACKAGE_luci-proto-wireguard=y
-CONFIG_PACKAGE_qrencode=y
-### CONFIG_PACKAGE_luci-app-socat=y
-### CONFIG_PACKAGE_luci-app-argon-config=y
-CONFIG_PACKAGE_luci-app-arpbind=y
+CONFIG_PACKAGE_luci-app-homeproxy=n
+CONFIG_PACKAGE_luci-app-ap-modem=n
+CONFIG_PACKAGE_luci-proto-wireguard=n
+CONFIG_PACKAGE_qrencode=n
+CONFIG_PACKAGE_luci-app-socat=n
+CONFIG_PACKAGE_luci-app-argon-config=n
+CONFIG_PACKAGE_luci-app-arpbind=n
 CONFIG_PACKAGE_luci-app-autotimeset=y
-CONFIG_PACKAGE_luci-app-partexp=y
-### CONFIG_PACKAGE_luci-app-airconnect=y
-### CONFIG_PACKAGE_luci-app-mosdns=y
+CONFIG_PACKAGE_luci-app-partexp=n
+CONFIG_PACKAGE_luci-app-airconnect=n
+CONFIG_PACKAGE_luci-app-mosdns=n
 CONFIG_PACKAGE_luci-app-cpufreq=y
 CONFIG_PACKAGE_luci-app-cpulimit=y
-### CONFIG_PACKAGE_luci-app-frpc=y
-### CONFIG_PACKAGE_frpc=y
-### CONFIG_PACKAGE_luci-app-frps=y
-### CONFIG_PACKAGE_frps=y
-### CONFIG_PACKAGE_luci-app-openclash=y
+CONFIG_PACKAGE_luci-app-frpc=n
+CONFIG_PACKAGE_frpc=n
+CONFIG_PACKAGE_luci-app-frps=n
+CONFIG_PACKAGE_frps=n
+CONFIG_PACKAGE_luci-app-openclash=n
 CONFIG_PACKAGE_luci-app-opkg=y
 CONFIG_PACKAGE_luci-app-ramfree=y
-### CONFIG_PACKAGE_luci-app-wechatpush=y
-CONFIG_PACKAGE_luci-app-sqm=y
-### CONFIG_PACKAGE_luci-app-vlmcsd=y
-### CONFIG_PACKAGE_luci-app-unblockneteasemusic=y
-### CONFIG_PACKAGE_luci-app-upnp=y
-### CONFIG_PACKAGE_luci-app-usb-printer=y
-### CONFIG_PACKAGE_luci-app-services-wolplus=y
-CONFIG_PACKAGE_luci-app-wrtbwmon=y
-### CONFIG_PACKAGE_luci-app-xlnetacc=y
-### CONFIG_PACKAGE_luci-app-zerotier=y
-### CONFIG_PACKAGE_luci-app-watchcat=y
-### CONFIG_PACKAGE_zerotier=y
-CONFIG_PACKAGE_coremark=y
-CONFIG_PACKAGE_htop=y
-CONFIG_PACKAGE_subconverter=y
-CONFIG_PACKAGE_kmod-shortcut-fe-cm=y
+CONFIG_PACKAGE_luci-app-wechatpush=n
+CONFIG_PACKAGE_luci-app-sqm=n
+CONFIG_PACKAGE_luci-app-vlmcsd=n
+CONFIG_PACKAGE_luci-app-unblockneteasemusic=n
+CONFIG_PACKAGE_luci-app-upnp=n
+CONFIG_PACKAGE_luci-app-usb-printer=n
+CONFIG_PACKAGE_luci-app-services-wolplus=n
+CONFIG_PACKAGE_luci-app-wrtbwmon=n
+CONFIG_PACKAGE_luci-app-xlnetacc=n
+CONFIG_PACKAGE_luci-app-zerotier=n
+CONFIG_PACKAGE_luci-app-watchcat=n
+CONFIG_PACKAGE_zerotier=n
+CONFIG_PACKAGE_coremark=n
+CONFIG_PACKAGE_htop=n
+CONFIG_PACKAGE_subconverter=n
+CONFIG_PACKAGE_kmod-shortcut-fe-cm=n
 
 ### SSRP ###
-### CONFIG_PACKAGE_luci-app-ssr-plus=y
-### CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Shadowsocks_Rust_Client=y
-### CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Shadowsocks_Rust_Server=y
-### CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Xray=y
-### CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Tuic_Client=y
-### CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Kcptun=y
-### CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_ShadowsocksR_Libev_Client=y
-### CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_ShadowsocksR_Libev_Server=y
+CONFIG_PACKAGE_luci-app-ssr-plus=n
+CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Shadowsocks_Rust_Client=n
+CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Shadowsocks_Rust_Server=n
+CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Xray=n
+CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Tuic_Client=n
+CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_Kcptun=n
+CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_ShadowsocksR_Libev_Client=n
+CONFIG_PACKAGE_luci-app-ssr-plus_INCLUDE_ShadowsocksR_Libev_Server=n
 
 ### PASSWALL ###
 CONFIG_PACKAGE_luci-app-passwall=y
 CONFIG_PACKAGE_luci-app-passwall_Nftables_Transparent_Proxy=y
 CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Brook=n
 CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Haproxy=y
-CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Hysteria=y
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Hysteria=n
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Libev_Client is not set
 # CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Libev_Server is not set
 CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Rust_Client=y
@@ -179,9 +188,11 @@ CONFIG_OPENSSL_ENGINE=y
 CONFIG_OPENSSL_OPTIMIZE_SPEED=y
 CONFIG_OPENSSL_WITH_ASM=y
 # CONFIG_OPENSSL_WITH_ERROR_MESSAGES is not set
-CONFIG_PACKAGE_libopenssl-devcrypto=y
+CONFIG_PACKAGE_libopenssl-afalg=y
 CONFIG_PACKAGE_libopenssl-conf=y
+CONFIG_PACKAGE_libopenssl-devcrypto=y
 CONFIG_PACKAGE_libopenssl-legacy=y
+CONFIG_PACKAGE_libopenssl-padlock=y
 CONFIG_PACKAGE_libcurl=y
 CONFIG_LIBCURL_OPENSSL=y
 # CONFIG_LIBCURL_MBEDTLS is not set
@@ -190,14 +201,14 @@ CONFIG_LIBCURL_OPENSSL=y
 # CONFIG_LIBCURL_NOSSL is not set
 
 ### DOCKER ###
-### CONFIG_PACKAGE_luci-app-dockerman=y
-### CONFIG_PACKAGE_luci-app-diskman=y
-### CONFIG_PACKAGE_block-mount=y
-### CONFIG_DOCKER_CGROUP_OPTIONS=y
-### CONFIG_DOCKER_OPTIONAL_FEATURES=y
-### CONFIG_DOCKER_NET_ENCRYPT=y
-### CONFIG_DOCKER_NET_MACVLAN=y
-### CONFIG_DOCKER_NET_OVERLAY=y
-### CONFIG_DOCKER_NET_TFTP=y
-### CONFIG_DOCKER_STO_BTRFS=y
-### CONFIG_DOCKER_STO_EXT4=y
+CONFIG_PACKAGE_luci-app-dockerman=n
+CONFIG_PACKAGE_luci-app-diskman=n
+CONFIG_PACKAGE_block-mount=n
+CONFIG_DOCKER_CGROUP_OPTIONS=n
+CONFIG_DOCKER_OPTIONAL_FEATURES=n
+CONFIG_DOCKER_NET_ENCRYPT=n
+CONFIG_DOCKER_NET_MACVLAN=n
+CONFIG_DOCKER_NET_OVERLAY=n
+CONFIG_DOCKER_NET_TFTP=n
+CONFIG_DOCKER_STO_BTRFS=n
+CONFIG_DOCKER_STO_EXT4=n
