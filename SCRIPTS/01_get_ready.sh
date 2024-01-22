@@ -42,6 +42,7 @@ linkease_luci_repo="https://github.com/jjm2473/luci"
 sirpdboy_repo="https://github.com/sirpdboy/sirpdboy-package"
 sbwdaednext_repo="https://github.com/sbwml/luci-app-daed-next"
 lucidaednext_repo="https://github.com/QiuSimons/luci-app-daed-next"
+sbwfw876_repo="https://github.com/sbwml/openwrt_helloworld"
 
 # 开始克隆仓库，并行执行
 clone_repo $openwrt_repo $latest_release openwrt &
@@ -80,6 +81,7 @@ clone_repo $linkease_luci_repo istoreos-21.02 linkease_luci &
 clone_repo $sirpdboy_repo main sirpdboy &
 clone_repo $sbwdaednext_repo main sbwdaednext &
 clone_repo $lucidaednext_repo rebase lucidaednext &
+clone_repo $sbwfw876_repo v5 sbwfw876 &
 
 # 等待所有后台任务完成
 wait
