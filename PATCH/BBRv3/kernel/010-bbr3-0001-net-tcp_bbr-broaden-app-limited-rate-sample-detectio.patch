@@ -1,7 +1,7 @@
-From ee5316263c5ba74198729ad83aeef714a11b767b Mon Sep 17 00:00:00 2001
+From 247736e1b64c6acb6a0e2040f630bb9e8dd8312c Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Tue, 11 Jun 2019 12:26:55 -0400
-Subject: [PATCH 01/21] net-tcp_bbr: broaden app-limited rate sample detection
+Subject: [PATCH 01/18] net-tcp_bbr: broaden app-limited rate sample detection
 
 This commit is a bug fix for the Linux TCP app-limited
 (application-limited) logic that is used for collecting rate
@@ -24,6 +24,7 @@ can't know whether inflight was fully using the old cwnd.
 
 Origin-9xx-SHA1: 3fe9b53291e018407780fb8c356adb5666722cbc
 Change-Id: I37221506f5166877c2b110753d39bb0757985e68
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  net/ipv4/tcp_input.c | 1 +
  net/ipv4/tcp_timer.c | 1 +
@@ -31,7 +32,7 @@ Change-Id: I37221506f5166877c2b110753d39bb0757985e68
 
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3811,6 +3811,7 @@ static int tcp_ack(struct sock *sk, cons
+@@ -3822,6 +3822,7 @@ static int tcp_ack(struct sock *sk, cons
  
  	prior_fack = tcp_is_sack(tp) ? tcp_highest_sack_seq(tp) : tp->snd_una;
  	rs.prior_in_flight = tcp_packets_in_flight(tp);
@@ -41,7 +42,7 @@ Change-Id: I37221506f5166877c2b110753d39bb0757985e68
  	 * is in window.
 --- a/net/ipv4/tcp_timer.c
 +++ b/net/ipv4/tcp_timer.c
-@@ -611,6 +611,7 @@ void tcp_write_timer_handler(struct sock
+@@ -629,6 +629,7 @@ void tcp_write_timer_handler(struct sock
  		goto out;
  	}
  

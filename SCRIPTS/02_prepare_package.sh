@@ -21,8 +21,10 @@ sed -i 's,-SNAPSHOT,,g' package/base-files/image-config.in
 #sed -i '/mirror02/d' scripts/download.pl
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 # Nginx
+sed -i "s/large_client_header_buffers 2 1k/large_client_header_buffers 4 32k/g" feeds/packages/net/nginx-util/files/uci.conf.template
 sed -i "s/client_max_body_size 128M/client_max_body_size 2048M/g" feeds/packages/net/nginx-util/files/uci.conf.template
 sed -i '/client_max_body_size/a\\tclient_body_buffer_size 8192M;' feeds/packages/net/nginx-util/files/uci.conf.template
+sed -i '/client_max_body_size/a\\tserver_names_hash_bucket_size 128;' feeds/packages/net/nginx-util/files/uci.conf.template
 sed -i '/ubus_parallel_req/a\        ubus_script_timeout 600;' feeds/packages/net/nginx/files-luci-support/60_nginx-luci-support
 sed -ri "/luci-webui.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
 sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
@@ -34,17 +36,17 @@ cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.15/
 cp -rf ../PATCH/backport/x86_csum/* ./target/linux/generic/backport-5.15/
 # Patch arm64 型号名称
 cp -rf ../immortalwrt/target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch ./target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
-# BBRv2
+# BBRv3
 cp -rf ../PATCH/BBRv3/kernel/* ./target/linux/generic/backport-5.15/
 # LRNG
 cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
 echo '
 # CONFIG_RANDOM_DEFAULT_IMPL is not set
 CONFIG_LRNG=y
-CONFIG_LRNG_IRQ=y
+# CONFIG_LRNG_IRQ is not set
 CONFIG_LRNG_JENT=y
 CONFIG_LRNG_CPU=y
-CONFIG_LRNG_SCHED=y
+# CONFIG_LRNG_SCHED is not set
 ' >>./target/linux/generic/config-5.15
 # SSL
 rm -rf ./package/libs/mbedtls
@@ -109,14 +111,13 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
-# netifd
-mkdir -p package/network/config/netifd/patches
-cp -f ../PATCH/netifd/100-system-linux-fix-autoneg-for-2.5G-5G-10G.patch ./package/network/config/netifd/patches/100-system-linux-fix-autoneg-for-2.5G-5G-10G.patch
 # dae ready
 cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
 cp -rf ../immortalwrt_pkg/net/daed ./feeds/packages/net/daed
 ln -sf ../../../feeds/packages/net/daed ./package/feeds/packages/daed
+cp -rf ../lucidaednext/daed-next ./package/new/daed-next
+cp -rf ../lucidaednext/luci-app-daed-next ./package/new/luci-app-daed-next
 git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
 # btf
 wget -qO - https://github.com/immortalwrt/immortalwrt/commit/73e5679.patch | patch -p1
@@ -145,32 +146,17 @@ cp -rf ../immortalwrt_pkg/utils/coremark ./feeds/packages/utils/coremark
 sed -i "s,-O3,-Ofast -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las,g" feeds/packages/utils/coremark/Makefile
 cp -rf ../immortalwrt_23/package/utils/mhz ./package/utils/mhz
 # Airconnect
-cp -rf ../OpenWrt-Add/airconnect ./package/new/airconnect
-cp -rf ../OpenWrt-Add/luci-app-airconnect ./package/new/luci-app-airconnect
+git clone https://github.com/sbwml/luci-app-airconnect package/new/airconnect
+sed -i 's,respawn,respawn 3600 5 0,g' package/new/airconnect/airconnect/files/airconnect.init
+#cp -rf ../OpenWrt-Add/airconnect ./package/new/airconnect
+#cp -rf ../OpenWrt-Add/luci-app-airconnect ./package/new/luci-app-airconnect
 # luci-app-ap-modem
 cp -rf ../linkease/applications/luci-app-ap-modem ./package/new/luci-app-ap-modem
 # luci-app-irqbalance
 cp -rf ../OpenWrt-Add/luci-app-irqbalance ./package/new/luci-app-irqbalance
 # 更换 Nodejs 版本
 rm -rf ./feeds/packages/lang/node
-cp -rf ../openwrt-node/node ./feeds/packages/lang/node
-rm -rf ./feeds/packages/lang/node-arduino-firmata
-cp -rf ../openwrt-node/node-arduino-firmata ./feeds/packages/lang/node-arduino-firmata
-rm -rf ./feeds/packages/lang/node-cylon
-cp -rf ../openwrt-node/node-cylon ./feeds/packages/lang/node-cylon
-rm -rf ./feeds/packages/lang/node-hid
-cp -rf ../openwrt-node/node-hid ./feeds/packages/lang/node-hid
-rm -rf ./feeds/packages/lang/node-homebridge
-cp -rf ../openwrt-node/node-homebridge ./feeds/packages/lang/node-homebridge
-rm -rf ./feeds/packages/lang/node-serialport
-cp -rf ../openwrt-node/node-serialport ./feeds/packages/lang/node-serialport
-rm -rf ./feeds/packages/lang/node-serialport-bindings
-cp -rf ../openwrt-node/node-serialport-bindings ./feeds/packages/lang/node-serialport-bindings
-rm -rf ./feeds/packages/lang/node-yarn
-cp -rf ../openwrt-node/node-yarn ./feeds/packages/lang/node-yarn
-ln -sf ../../../feeds/packages/lang/node-yarn ./package/feeds/packages/node-yarn
-cp -rf ../openwrt-node/node-serialport-bindings-cpp ./feeds/packages/lang/node-serialport-bindings-cpp
-ln -sf ../../../feeds/packages/lang/node-serialport-bindings-cpp ./package/feeds/packages/node-serialport-bindings-cpp
+git clone https://github.com/sbwml/feeds_packages_lang_node-prebuilt feeds/packages/lang/node
 # R8168驱动
 git clone -b master --depth 1 https://github.com/BROBIRD/openwrt-r8168.git package/new/r8168
 patch -p1 <../PATCH/r8168/r8168-fix_LAN_led-for_r4s-from_TL.patch
@@ -268,6 +254,9 @@ cp -rf ../lede_luci/applications/luci-app-frpc ./package/new/luci-app-frpc
 # IPv6 兼容助手
 cp -rf ../lede/package/lean/ipv6-helper ./package/new/ipv6-helper
 patch -p1 <../PATCH/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
+# ODHCPD
+mkdir -p package/network/services/odhcpd/patches
+cp -f ../PATCH/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/network/services/odhcpd/patches/0001-odhcpd-improve-RFC-9096-compliance.patch
 # 京东签到 By Jerrykuku
 #git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
 #git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
@@ -294,7 +283,7 @@ git clone --single-branch --depth 1 -b dev https://github.com/immortalwrt/homepr
 rm -rf ./feeds/packages/net/sing-box
 cp -rf ../immortalwrt_pkg/net/sing-box ./feeds/packages/net/sing-box
 # OpenClash
-git clone --single-branch --depth 1 -b dev https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
+git clone --single-branch --depth 1 -b master https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
 # Passwall
 cp -rf ../passwall_luci/luci-app-passwall ./package/new/luci-app-passwall
 wget -P package/new/luci-app-passwall/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
@@ -340,36 +329,37 @@ git clone -b master --depth 1 https://github.com/tty228/luci-app-wechatpush.git 
 # ShadowsocksR Plus+ 依赖
 rm -rf ./feeds/packages/net/shadowsocks-libev
 cp -rf ../lede_pkg/net/shadowsocks-libev ./package/new/shadowsocks-libev
-cp -rf ../ssrp/tuic-client ./package/new/tuic-client
-cp -rf ../ssrp/redsocks2 ./package/new/redsocks2
-cp -rf ../ssrp/trojan ./package/new/trojan
-cp -rf ../ssrp/tcping ./package/new/tcping
-cp -rf ../ssrp/dns2tcp ./package/new/dns2tcp
-cp -rf ../ssrp/gn ./package/new/gn
-cp -rf ../ssrp/shadowsocksr-libev ./package/new/shadowsocksr-libev
-cp -rf ../ssrp/simple-obfs ./package/new/simple-obfs
-cp -rf ../ssrp/naiveproxy ./package/new/naiveproxy
-cp -rf ../ssrp/v2ray-core ./package/new/v2ray-core
+cp -rf ../sbwfw876/shadow-tls ./package/new/shadow-tls
+cp -rf ../sbwfw876/v2dat ./package/new/v2dat
+cp -rf ../sbwfw876/tuic-client ./package/new/tuic-client
+cp -rf ../sbwfw876/redsocks2 ./package/new/redsocks2
+cp -rf ../sbwfw876/trojan ./package/new/trojan
+cp -rf ../sbwfw876/tcping ./package/new/tcping
+cp -rf ../sbwfw876/dns2tcp ./package/new/dns2tcp
+cp -rf ../sbwfw876/gn ./package/new/gn
+cp -rf ../sbwfw876/shadowsocksr-libev ./package/new/shadowsocksr-libev
+cp -rf ../sbwfw876/simple-obfs ./package/new/simple-obfs
+cp -rf ../sbwfw876/naiveproxy ./package/new/naiveproxy
+cp -rf ../sbwfw876/v2ray-core ./package/new/v2ray-core
 cp -rf ../passwall_pkg/hysteria ./package/new/hysteria
-cp -rf ../ssrp/sagernet-core ./package/new/sagernet-core
+cp -rf ../sbwfw876/sagernet-core ./package/new/sagernet-core
 rm -rf ./feeds/packages/net/xray-core
 cp -rf ../immortalwrt_pkg/net/xray-core ./feeds/packages/net/xray-core
 sed -i '/CURDIR/d' feeds/packages/net/xray-core/Makefile
-cp -rf ../ssrp/v2ray-plugin ./package/new/v2ray-plugin
-cp -rf ../ssrp/shadowsocks-rust ./package/new/shadowsocks-rust
-cp -rf ../ssrp/lua-neturl ./package/new/lua-neturl
+cp -rf ../sbwfw876/v2ray-plugin ./package/new/v2ray-plugin
+cp -rf ../sbwfw876/shadowsocks-rust ./package/new/shadowsocks-rust
+cp -rf ../sbwfw876/lua-neturl ./package/new/lua-neturl
 rm -rf ./feeds/packages/net/kcptun
 cp -rf ../immortalwrt_pkg/net/kcptun ./feeds/packages/net/kcptun
 ln -sf ../../../feeds/packages/net/kcptun ./package/feeds/packages/kcptun
 # ShadowsocksR Plus+
-cp -rf ../ssrp/luci-app-ssr-plus ./package/new/luci-app-ssr-plus
+cp -rf ../sbwfw876/luci-app-ssr-plus ./package/new/luci-app-ssr-plus
 rm -rf ./package/new/luci-app-ssr-plus/po/zh_Hans
 pushd package/new
 wget -qO - https://github.com/fw876/helloworld/commit/5bbf6e7.patch | patch -p1
-grep -qF "shadowsocksr_server" luci-app-ssr-plus/root/etc/init.d/shadowsocksr || wget -qO - https://github.com/fw876/helloworld/pull/1249.patch | patch -p1
 popd
 pushd package/new/luci-app-ssr-plus
-sed -i '/Clang.CN.CIDR/a\o:value("https://gh.404delivr.workers.dev/https://github.com/QiuSimons/Chnroute/raw/master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
+sed -i '/Clang.CN.CIDR/a\o:value("https://fastly.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
 popd
 # v2raya
 git clone --depth 1 https://github.com/zxlhhyccc/luci-app-v2raya.git package/new/luci-app-v2raya
@@ -397,10 +387,6 @@ cp -rf ../immortalwrt_pkg/libs/toml11 ./feeds/packages/libs/toml11
 ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
 # 网易云音乐解锁
 git clone -b js --depth 1 https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
-sed -i 's, +node,,g' package/new/UnblockNeteaseMusic/Makefile
-pushd package/new/UnblockNeteaseMusic
-wget -qO - https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic/commit/a880428.patch | patch -p1
-popd
 # uwsgi
 sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
 sed -i 's,buffer-size = 10000,buffer-size = 131072,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
@@ -443,12 +429,14 @@ cp -rf ../immortalwrt_pkg/net/zerotier ./feeds/packages/net/zerotier
 # watchcat
 echo > ./feeds/packages/utils/watchcat/files/watchcat.config
 # sirpdboy
-git clone -b master --depth 1 https://github.com/sirpdboy/luci-app-autotimeset package/sirpdboy/luci-app-autotimeset
+mkdir -p package/sirpdboy
+cp -rf ../sirpdboy/luci-app-autotimeset ./package/sirpdboy/luci-app-autotimeset
 sed -i 's,"control","system",g' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
 sed -i '/firstchild/d' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
 sed -i 's,control,system,g' package/sirpdboy/luci-app-autotimeset/luasrc/view/autotimeset/log.htm
 sed -i '/start()/a \    echo "Service autotimesetrun started!" >/dev/null' package/sirpdboy/luci-app-autotimeset/root/etc/init.d/autotimesetrun
-git clone -b main --depth 1 https://github.com/sirpdboy/luci-app-partexp package/sirpdboy/luci-app-partexp
+rm -rf ./package/sirpdboy/luci-app-autotimeset/po/zh_Hans
+cp -rf ../sirpdboy/luci-app-partexp ./package/sirpdboy/luci-app-partexp
 rm -rf ./package/sirpdboy/luci-app-partexp/po/zh_Hans
 sed -i 's, - !, -o !,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp
 sed -i 's,expquit 1 ,#expquit 1 ,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp

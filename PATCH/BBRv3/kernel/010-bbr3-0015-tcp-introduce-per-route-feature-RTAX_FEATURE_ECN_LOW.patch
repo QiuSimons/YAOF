@@ -1,7 +1,7 @@
-From f461af1920b21e171e0fa300811e3950f4d16f38 Mon Sep 17 00:00:00 2001
+From 3f6375204ee0ce5c884a07fa1fcccb984b4a3315 Mon Sep 17 00:00:00 2001
 From: David Morley <morleyd@google.com>
 Date: Fri, 14 Jul 2023 11:07:56 -0400
-Subject: [PATCH 15/21] tcp: introduce per-route feature RTAX_FEATURE_ECN_LOW
+Subject: [PATCH 15/18] tcp: introduce per-route feature RTAX_FEATURE_ECN_LOW
 
 Define and implement a new per-route feature, RTAX_FEATURE_ECN_LOW.
 
@@ -23,6 +23,7 @@ Signed-off-by: Neal Cardwell <ncardwell@google.com>
 Signed-off-by: Yuchung Cheng <ycheng@google.com>
 Tested-by: David Morley <morleyd@google.com>
 Change-Id: I6bc06e9c6cb426fbae7243fc71c9a8c18175f5d3
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/net/tcp.h              | 10 ++++++++++
  include/uapi/linux/rtnetlink.h |  4 +++-
@@ -32,7 +33,7 @@ Change-Id: I6bc06e9c6cb426fbae7243fc71c9a8c18175f5d3
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -360,6 +360,7 @@ static inline void tcp_dec_quickack_mode
+@@ -364,6 +364,7 @@ static inline void tcp_dec_quickack_mode
  #define	TCP_ECN_QUEUE_CWR	2
  #define	TCP_ECN_DEMAND_CWR	4
  #define	TCP_ECN_SEEN		8
@@ -40,7 +41,7 @@ Change-Id: I6bc06e9c6cb426fbae7243fc71c9a8c18175f5d3
  
  enum tcp_tw_status {
  	TCP_TW_SUCCESS = 0,
-@@ -704,6 +705,15 @@ static inline void tcp_fast_path_check(s
+@@ -708,6 +709,15 @@ static inline void tcp_fast_path_check(s
  		tcp_fast_path_on(tp);
  }
  
@@ -84,7 +85,7 @@ Change-Id: I6bc06e9c6cb426fbae7243fc71c9a8c18175f5d3
  
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -323,10 +323,9 @@ static void tcp_ecn_send_syn(struct sock
+@@ -322,10 +322,9 @@ static void tcp_ecn_send_syn(struct sock
  	bool bpf_needs_ecn = tcp_bpf_ca_needs_ecn(sk);
  	bool use_ecn = READ_ONCE(sock_net(sk)->ipv4.sysctl_tcp_ecn) == 1 ||
  		tcp_ca_needs_ecn(sk) || bpf_needs_ecn;
@@ -96,7 +97,7 @@ Change-Id: I6bc06e9c6cb426fbae7243fc71c9a8c18175f5d3
  		if (dst && dst_feature(dst, RTAX_FEATURE_ECN))
  			use_ecn = true;
  	}
-@@ -338,6 +337,9 @@ static void tcp_ecn_send_syn(struct sock
+@@ -337,6 +336,9 @@ static void tcp_ecn_send_syn(struct sock
  		tp->ecn_flags = TCP_ECN_OK;
  		if (tcp_ca_needs_ecn(sk) || bpf_needs_ecn)
  			INET_ECN_xmit(sk);

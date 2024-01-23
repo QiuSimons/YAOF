@@ -1,0 +1,125 @@
+From f752142842c1ecb242b845ba72a365588d33c9e3 Mon Sep 17 00:00:00 2001
+From: Stephan Mueller <smueller@chronox.de>
+Date: Sun, 15 May 2022 18:43:30 +0200
+Subject: [PATCH v52 25/25] LRNG - add hwrand framework interface
+
+The LRNG can be registered with the hardware random number generator
+framework. This offers a random number generator with the name "lrng"
+that is accessible via the framework. For example it allows pulling
+data from the LRNG via the /dev/hwrng file.
+
+Signed-off-by: Stephan Mueller <smueller@chronox.de>
+---
+ drivers/char/lrng/Kconfig                 | 20 +++----
+ drivers/char/lrng/Makefile                |  1 +
+ drivers/char/lrng/lrng_interface_hwrand.c | 68 +++++++++++++++++++++++
+ 3 files changed, 79 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/char/lrng/lrng_interface_hwrand.c
+
+--- a/drivers/char/lrng/Kconfig
++++ b/drivers/char/lrng/Kconfig
+@@ -101,16 +101,16 @@ config LRNG_KCAPI_IF
+ 	  is intended to be higher than the existing RNG
+ 	  implementations.
+ 
+-# config LRNG_HWRAND_IF
+-# 	tristate "Interface with Hardware Random Number Generator Framework"
+-# 	depends on HW_RANDOM
+-# 	select LRNG_DRNG_ATOMIC
+-# 	help
+-# 	  The LRNG can be registered with the hardware random number
+-# 	  generator framework. This offers a random number generator
+-# 	  with the name "lrng" that is accessible via the framework.
+-# 	  For example it allows pulling data from the LRNG via the
+-# 	  /dev/hwrng file.
++config LRNG_HWRAND_IF
++	tristate "Interface with Hardware Random Number Generator Framework"
++	depends on HW_RANDOM
++	select LRNG_DRNG_ATOMIC
++	help
++	  The LRNG can be registered with the hardware random number
++	  generator framework. This offers a random number generator
++	  with the name "lrng" that is accessible via the framework.
++	  For example it allows pulling data from the LRNG via the
++	  /dev/hwrng file.
+ 
+ config LRNG_DEV_IF
+ 	bool "Character device file interface"
+--- a/drivers/char/lrng/Makefile
++++ b/drivers/char/lrng/Makefile
+@@ -36,3 +36,4 @@ obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_in
+ 					   lrng_interface_aux.o
+ obj-$(CONFIG_LRNG_KCAPI_IF)		+= lrng_interface_kcapi.o
+ obj-$(CONFIG_LRNG_DEV_IF)		+= lrng_interface_dev.o
++obj-$(CONFIG_LRNG_HWRAND_IF)		+= lrng_interface_hwrand.o
+--- /dev/null
++++ b/drivers/char/lrng/lrng_interface_hwrand.c
+@@ -0,0 +1,68 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++/*
++ * LRNG interface with the HW-Random framework
++ *
++ * Copyright (C) 2022, Stephan Mueller <smueller@chronox.de>
++ */
++
++#include <linux/lrng.h>
++#include <linux/hw_random.h>
++#include <linux/module.h>
++
++static int lrng_hwrand_if_random(struct hwrng *rng, void *buf, size_t max,
++				 bool wait)
++{
++	/*
++	 * lrng_get_random_bytes_full not called as we cannot block.
++	 *
++	 * Note: We should either adjust .quality below depending on
++	 * rng_is_initialized() or block here, but neither is not supported by
++	 * the hw_rand framework.
++	 */
++	lrng_get_random_bytes(buf, max);
++	return (int)max;
++}
++
++static struct hwrng lrng_hwrand = {
++	.name		= "lrng",
++	.init		= NULL,
++	.cleanup	= NULL,
++	.read		= lrng_hwrand_if_random,
++
++	/*
++	 * We set .quality only in case the LRNG does not provide the common
++	 * interfaces or does not use the legacy RNG as entropy source. This
++	 * shall avoid that the LRNG automatically spawns the hw_rand
++	 * framework's hwrng kernel thread to feed data into
++	 * add_hwgenerator_randomness. When the LRNG implements the common
++	 * interfaces, this function feeds the data directly into the LRNG.
++	 * If the LRNG uses the legacy RNG as entropy source,
++	 * add_hwgenerator_randomness is implemented by the legacy RNG, but
++	 * still eventually feeds the data into the LRNG. We should avoid such
++	 * circular loops.
++	 *
++	 * We can specify full entropy here, because the LRNG is designed
++	 * to provide full entropy.
++	 */
++#if !defined(CONFIG_LRNG_RANDOM_IF) && \
++    !defined(CONFIG_LRNG_KERNEL_RNG)
++	.quality	= 1024,
++#endif
++};
++
++static int __init lrng_hwrand_if_mod_init(void)
++{
++	return hwrng_register(&lrng_hwrand);
++}
++
++static void __exit lrng_hwrand_if_mod_exit(void)
++{
++	hwrng_unregister(&lrng_hwrand);
++}
++
++module_init(lrng_hwrand_if_mod_init);
++module_exit(lrng_hwrand_if_mod_exit);
++
++MODULE_LICENSE("Dual BSD/GPL");
++MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
++MODULE_DESCRIPTION("Entropy Source and DRNG Manager HW-Random Interface");

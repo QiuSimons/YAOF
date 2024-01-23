@@ -1,7 +1,7 @@
-From 6c8b2fee61ff1cfe0c6d58bee1167263adfaa147 Mon Sep 17 00:00:00 2001
+From cfd423c94521560983a41696f5cb9aa2bd1d44d1 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Sat, 5 Aug 2017 11:49:50 -0400
-Subject: [PATCH 03/21] net-tcp_bbr: v2: snapshot packets in flight at transmit
+Subject: [PATCH 03/18] net-tcp_bbr: v2: snapshot packets in flight at transmit
  time and pass in rate_sample
 
 CC algorithms may want to snapshot the number of packets in flight at
@@ -18,25 +18,16 @@ Origin-9xx-SHA1: b3eb4f2d20efab4ca001f32c9294739036c493ea
 Origin-9xx-SHA1: e880fc907d06ea7354333f60f712748ebce9497b
 Origin-9xx-SHA1: 330f825a08a6fe92cef74d799cc468864c479f63
 Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
- include/net/tcp.h     |  9 +++++++--
+ include/net/tcp.h     |  6 ++++++
  net/ipv4/tcp_output.c |  1 +
  net/ipv4/tcp_rate.c   | 20 ++++++++++++++++++++
- 3 files changed, 28 insertions(+), 2 deletions(-)
+ 3 files changed, 27 insertions(+)
 
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -873,8 +873,7 @@ struct tcp_skb_cb {
- 	union {
- 		struct {
- 			/* There is space for up to 24 bytes */
--			__u32 in_flight:30,/* Bytes in flight at transmit */
--			      is_app_limited:1, /* cwnd not fully used? */
-+			__u32 is_app_limited:1, /* cwnd not fully used? */
- 			      unused:1;
- 			/* pkts S/ACKed so far upon tx of skb, incl retrans: */
- 			__u32 delivered;
-@@ -882,6 +881,10 @@ struct tcp_skb_cb {
+@@ -887,6 +887,10 @@ struct tcp_skb_cb {
  			u32 first_tx_mstamp;
  			/* when we reached the "delivered" count */
  			u32 delivered_mstamp;
@@ -47,15 +38,15 @@ Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
  		} tx;   /* only used for outgoing skbs */
  		union {
  			struct inet_skb_parm	h4;
-@@ -1027,6 +1030,7 @@ struct ack_sample {
- struct rate_sample {
+@@ -1033,6 +1037,7 @@ struct rate_sample {
  	u64  prior_mstamp; /* starting timestamp for interval */
  	u32  prior_delivered;	/* tp->delivered at "prior_mstamp" */
+ 	u32  prior_delivered_ce;/* tp->delivered_ce at "prior_mstamp" */
 +	u32 tx_in_flight;	/* packets in flight at starting timestamp */
  	s32  delivered;		/* number of packets delivered over interval */
+ 	s32  delivered_ce;	/* number of packets delivered w/ CE marks*/
  	long interval_us;	/* time for tp->delivered to incr "delivered" */
- 	u32 snd_interval_us;	/* snd interval for delivered packets */
-@@ -1151,6 +1155,7 @@ static inline void tcp_ca_event(struct s
+@@ -1158,6 +1163,7 @@ static inline void tcp_ca_event(struct s
  }
  
  /* From tcp_rate.c */
@@ -65,7 +56,7 @@ Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
  			    struct rate_sample *rs);
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -2633,6 +2633,7 @@ static bool tcp_write_xmit(struct sock *
+@@ -2642,6 +2642,7 @@ static bool tcp_write_xmit(struct sock *
  			skb->skb_mstamp_ns = tp->tcp_wstamp_ns = tp->tcp_clock_cache;
  			list_move_tail(&skb->tcp_tsorted_anchor, &tp->tsorted_sent_queue);
  			tcp_init_tso_segs(skb, mss_now);
@@ -100,15 +91,15 @@ Change-Id: I7314047d0ff14dd261a04b1969a46dc658c8836a
  /* Snapshot the current delivery information in the skb, to generate
   * a rate sample later when the skb is (s)acked in tcp_rate_skb_delivered().
   */
-@@ -66,6 +84,7 @@ void tcp_rate_skb_sent(struct sock *sk,
- 	TCP_SKB_CB(skb)->tx.delivered_mstamp	= tp->delivered_mstamp;
+@@ -67,6 +85,7 @@ void tcp_rate_skb_sent(struct sock *sk,
  	TCP_SKB_CB(skb)->tx.delivered		= tp->delivered;
+ 	TCP_SKB_CB(skb)->tx.delivered_ce	= tp->delivered_ce;
  	TCP_SKB_CB(skb)->tx.is_app_limited	= tp->app_limited ? 1 : 0;
 +	tcp_set_tx_in_flight(sk, skb);
  }
  
  /* When an skb is sacked or acked, we fill in the rate sample with the (prior)
-@@ -94,6 +113,7 @@ void tcp_rate_skb_delivered(struct sock
+@@ -96,6 +115,7 @@ void tcp_rate_skb_delivered(struct sock
  		rs->prior_mstamp     = scb->tx.delivered_mstamp;
  		rs->is_app_limited   = scb->tx.is_app_limited;
  		rs->is_retrans	     = scb->sacked & TCPCB_RETRANS;
