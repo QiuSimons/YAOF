@@ -1,0 +1,13 @@
+diff -Nuar a/root/sbin/fw4 b/root/sbin/fw4
+--- a/root/sbin/fw4	2024-01-24 17:32:33.847733300 +0800
++++ b/root/sbin/fw4	2024-01-24 17:35:17.777739247 +0800
+@@ -34,6 +34,9 @@
+ 
+ 		ACTION=start \
+ 			utpl -S $MAIN | nft $VERBOSE -f $STDIN
++			nft 'insert rule inet fw4 forward tcp sport 5223 ct state related,established accept'
++			nft 'insert rule inet fw4 forward tcp dport 5223 ct state related,established accept'
++			nft 'insert rule inet fw4 forward udp sport 53 accept'
+ 
+ 		ACTION=includes \
+ 			utpl -S $MAIN
