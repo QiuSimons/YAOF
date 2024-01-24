@@ -1,0 +1,17 @@
+diff --git a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+index 1c85684848..9b6d7b1139 100644
+--- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -62,6 +62,12 @@ return view.extend({
+ 		o = s.option(form.Flag, 'fullcone', _('Enable FullCone NAT'));
+ 		o = s.option(form.Flag, 'fullcone6', _('Enable FullCone NAT6'));
+ 
++		if (L.hasSystemFeature('ipv6')) {
++			o = s.option(form.Flag, 'nat6',
++			_('IPv6 NAT'),
++			_('Applicable to internet environments where the router is not assigned an IPv6 prefix, such as when using an upstream optical modem for dial-up'));
++		};
++
+ 		var p = [
+ 			s.option(form.ListValue, 'input', _('Input')),
+ 			s.option(form.ListValue, 'output', _('Output')),

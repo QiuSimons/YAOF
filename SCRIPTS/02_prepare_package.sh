@@ -469,6 +469,13 @@ wget -qO - https://github.com/coolsnowwolf/lede/commit/eb70dad.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/7ba3ec0.patch | patch -p1
 cp -rf ../lede/package/lean/shortcut-fe/simulated-driver ./package/lean/shortcut-fe/simulated-driver
 
+# NAT6
+git clone --depth 1 https://github.com/sbwml/packages_new_nat6 package/new/packages_new_nat6
+# Patch LuCI 以增添 NAT6 开关
+pushd feeds/luci
+patch -p1 <../../../PATCH/firewall/luci-app-firewall_add_ipv6-nat_fw4.patch
+popd
+
 #LTO/GC
 # Grub 2
 sed -i 's,no-lto,no-lto no-gc-sections,g' package/boot/grub2/Makefile
