@@ -488,13 +488,16 @@ pushd feeds/luci
 patch -p1 <../../../PATCH/firewall/luci-app-firewall_add_ipv6-nat_fw4.patch
 popd
 
+# MOLD
+wget -qO - https://github.com/openwrt/openwrt/pull/11895.patch | patch -p1
+
 #LTO/GC
 # Grub 2
 sed -i 's,no-lto,no-lto no-gc-sections,g' package/boot/grub2/Makefile
 # openssl disable LTO
-sed -i 's,no-mips16 gc-sections,no-mips16 gc-sections no-lto,g' package/libs/openssl/Makefile
+sed -i 's,no-mips16 gc-sections,no-mips16 gc-sections no-lto no-mold,g' package/libs/openssl/Makefile
 # nginx
-sed -i 's,gc-sections,gc-sections no-lto,g' feeds/packages/net/nginx/Makefile
+sed -i 's,gc-sections,gc-sections no-lto no-mold,g' feeds/packages/net/nginx/Makefile
 # libsodium
-sed -i 's,no-mips16,no-mips16 no-lto,g' feeds/packages/libs/libsodium/Makefile
+sed -i 's,no-mips16,no-mips16 no-lto no-mold,g' feeds/packages/libs/libsodium/Makefile
 #exit 0
