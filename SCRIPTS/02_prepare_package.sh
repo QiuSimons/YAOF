@@ -471,7 +471,7 @@ patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
 # Shortcut-FE 相关组件
 mkdir ./package/lean
 mkdir ./package/lean/shortcut-fe
-cp -rf ../lede/package/lean/shortcut-fe/fast-classifier ./package/lean/shortcut-fe/fast-classifier
+cp -rf ../lede/package/qca/shortcut-fe/fast-classifier ./package/lean/shortcut-fe/fast-classifier
 wget -qO - https://github.com/coolsnowwolf/lede/commit/331f04f.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/232b8b4.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/ec795c9.patch | patch -p1
