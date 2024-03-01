@@ -133,6 +133,7 @@ CONFIG_PACKAGE_luci-app-xlnetacc=y
 CONFIG_PACKAGE_luci-app-zerotier=y
 CONFIG_PACKAGE_luci-app-watchcat=y
 CONFIG_PACKAGE_luci-app-natmap=y
+CONFIG_PACKAGE_luci-app-oaf=y
 CONFIG_PACKAGE_zerotier=y
 CONFIG_PACKAGE_coremark=y
 CONFIG_PACKAGE_htop=y
