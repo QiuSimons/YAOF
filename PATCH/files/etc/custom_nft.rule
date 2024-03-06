@@ -1,3 +1,1 @@
-nft 'insert rule inet fw4 forward tcp sport 5223 ct state related,established accept'
-nft 'insert rule inet fw4 forward tcp dport 5223 ct state related,established accept'
-nft 'insert rule inet fw4 forward udp sport 53 accept'
+
