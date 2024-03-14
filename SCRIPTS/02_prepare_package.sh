@@ -503,9 +503,11 @@ cp -rf ../lede/package/qca/shortcut-fe/simulated-driver ./package/lean/shortcut-
 
 # NAT6
 git clone --depth 1 https://github.com/sbwml/packages_new_nat6 package/new/packages_new_nat6
-# Patch LuCI 以增添 NAT6 开关
 pushd feeds/luci
+# Patch LuCI 以增添 NAT6 开关
 patch -p1 <../../../PATCH/firewall/03-luci-app-firewall_add_ipv6-nat.patch
+# Patch LuCI 以支持自定义 nft 规则
+patch -p1 <../../../PATCH/firewall/04-luci-add-firewall4-nft-rules-file.patch
 popd
 
 #LTO/GC
