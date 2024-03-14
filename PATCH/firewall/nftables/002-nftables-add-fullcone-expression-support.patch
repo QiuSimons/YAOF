@@ -51,7 +51,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -1473,6 +1473,53 @@ out_err:
+@@ -1471,6 +1471,53 @@ out_err:
  	stmt_free(stmt);
  }
  
@@ -115,7 +115,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  	{ .name = "queue",	.parse = netlink_parse_queue },
 --- a/src/netlink_linearize.c
 +++ b/src/netlink_linearize.c
-@@ -1221,6 +1221,13 @@ static void netlink_gen_nat_stmt(struct
+@@ -1222,6 +1222,13 @@ static void netlink_gen_nat_stmt(struct
  		nftnl_reg_pmin = NFTNL_EXPR_MASQ_REG_PROTO_MIN;
  		nftnl_reg_pmax = NFTNL_EXPR_MASQ_REG_PROTO_MAX;
  		break;
@@ -131,7 +131,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -621,6 +621,7 @@ int nft_lex(void *, void *, void *);
+@@ -623,6 +623,7 @@ int nft_lex(void *, void *, void *);
  %token SNAT			"snat"
  %token DNAT			"dnat"
  %token MASQUERADE		"masquerade"
@@ -139,7 +139,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  %token REDIRECT			"redirect"
  %token RANDOM			"random"
  %token FULLY_RANDOM		"fully-random"
-@@ -755,8 +756,8 @@ int nft_lex(void *, void *, void *);
+@@ -757,8 +758,8 @@ int nft_lex(void *, void *, void *);
  %type <val>			limit_burst_pkts limit_burst_bytes limit_mode limit_bytes time_unit quota_mode
  %type <stmt>			reject_stmt reject_stmt_alloc
  %destructor { stmt_free($$); }	reject_stmt reject_stmt_alloc
@@ -150,7 +150,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  %type <val>			nf_nat_flags nf_nat_flag offset_opt
  %type <stmt>			tproxy_stmt
  %destructor { stmt_free($$); }	tproxy_stmt
-@@ -3064,6 +3065,7 @@ stmt			:	verdict_stmt
+@@ -3070,6 +3071,7 @@ stmt			:	verdict_stmt
  			|	queue_stmt
  			|	ct_stmt
  			|	masq_stmt	close_scope_nat
@@ -158,7 +158,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  			|	redir_stmt	close_scope_nat
  			|	dup_stmt	close_scope_dup
  			|	fwd_stmt	close_scope_fwd
-@@ -3976,6 +3978,28 @@ masq_stmt_args		:	TO 	COLON	stmt_expr
+@@ -3982,6 +3984,28 @@ masq_stmt_args		:	TO 	COLON	stmt_expr
  			{
  				$<stmt>0->nat.proto = $3;
  			}
@@ -189,7 +189,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  				$<stmt>0->nat.proto = $3;
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -460,6 +460,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr
+@@ -463,6 +463,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr
  "snat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return SNAT; }
  "dnat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return DNAT; }
  "masquerade"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return MASQUERADE; }
@@ -199,7 +199,7 @@ Signed-off-by: Syrone Wong <wong.syrone@gmail.com>
  <SCANSTATE_STMT_NAT>{
 --- a/src/statement.c
 +++ b/src/statement.c
-@@ -681,6 +681,7 @@ const char *nat_etype2str(enum nft_nat_e
+@@ -678,6 +678,7 @@ const char *nat_etype2str(enum nft_nat_e
  		[NFT_NAT_SNAT]	= "snat",
  		[NFT_NAT_DNAT]	= "dnat",
  		[NFT_NAT_MASQ]	= "masquerade",

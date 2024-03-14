@@ -1,0 +1,179 @@
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1474,12 +1474,16 @@ enum nft_tproxy_attributes {
+  * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
+  * @NFTA_MASQ_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
+  * @NFTA_MASQ_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
++ * @NFTA_MASQ_REG_ADDR_MIN: source register of address range start (NLA_U32: nft_registers) non zero to enable bcm fullcone
++ * @NFTA_MASQ_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
+  */
+ enum nft_masq_attributes {
+ 	NFTA_MASQ_UNSPEC,
+ 	NFTA_MASQ_FLAGS,
+ 	NFTA_MASQ_REG_PROTO_MIN,
+ 	NFTA_MASQ_REG_PROTO_MAX,
++	NFTA_MASQ_REG_ADDR_MIN,
++	NFTA_MASQ_REG_ADDR_MAX,
+ 	__NFTA_MASQ_MAX
+ };
+ #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1430,6 +1430,7 @@ static void netlink_parse_masq(struct ne
+ {
+ 	enum nft_registers reg1, reg2;
+ 	struct expr *proto;
++	struct expr *addr;
+ 	struct stmt *stmt;
+ 	uint32_t flags = 0;
+ 
+@@ -1465,6 +1466,29 @@ static void netlink_parse_masq(struct ne
+ 		stmt->nat.proto = proto;
+ 	}
+ 
++	addr = NULL;
++	reg1 = netlink_parse_register(nle, NFTNL_EXPR_MASQ_REG_ADDR_MIN);
++	if (reg1) {
++		addr = netlink_get_register(ctx, loc, reg1);
++		if (addr != NULL) {
++			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
++			stmt->nat.addr = addr;
++		}
++	}
++
++	reg2 = netlink_parse_register(nle, NFTNL_EXPR_NAT_REG_ADDR_MAX);
++	if (reg2 && reg2 != reg1) {
++		addr = netlink_get_register(ctx, loc, reg2);
++		if (addr != NULL) {
++			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
++			if (stmt->nat.addr != NULL) {
++				addr = range_expr_alloc(loc, stmt->nat.addr, addr);
++				addr = range_expr_to_prefix(addr);
++			}
++			stmt->nat.addr = addr;
++		}
++	}
++
+ 	ctx->stmt = stmt;
+ 	return;
+ out_err:
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -1201,7 +1201,10 @@ static void netlink_gen_nat_stmt(struct
+ 	int registers = 0;
+ 	int nftnl_flag_attr;
+ 	int nftnl_reg_pmin, nftnl_reg_pmax;
++	int nftnl_reg_amin, nftnl_reg_amax;
+ 
++	nftnl_reg_amin = NFTNL_EXPR_NAT_REG_ADDR_MIN;
++	nftnl_reg_amax = NFTNL_EXPR_NAT_REG_ADDR_MAX;
+ 	switch (stmt->nat.type) {
+ 	case NFT_NAT_SNAT:
+ 	case NFT_NAT_DNAT:
+@@ -1221,6 +1224,8 @@ static void netlink_gen_nat_stmt(struct
+ 		nftnl_flag_attr = NFTNL_EXPR_MASQ_FLAGS;
+ 		nftnl_reg_pmin = NFTNL_EXPR_MASQ_REG_PROTO_MIN;
+ 		nftnl_reg_pmax = NFTNL_EXPR_MASQ_REG_PROTO_MAX;
++		nftnl_reg_amin = NFTNL_EXPR_MASQ_REG_ADDR_MIN;
++		nftnl_reg_amax = NFTNL_EXPR_MASQ_REG_ADDR_MAX;
+ 		break;
+ 	case NFT_NAT_FULLCONE:
+ 		nle = alloc_nft_expr("fullcone");
+@@ -1254,13 +1259,13 @@ static void netlink_gen_nat_stmt(struct
+ 
+ 			netlink_gen_expr(ctx, stmt->nat.addr->left, amin_reg);
+ 			netlink_gen_expr(ctx, stmt->nat.addr->right, amax_reg);
+-			netlink_put_register(nle, NFTNL_EXPR_NAT_REG_ADDR_MIN,
++			netlink_put_register(nle, nftnl_reg_amin,
+ 					     amin_reg);
+-			netlink_put_register(nle, NFTNL_EXPR_NAT_REG_ADDR_MAX,
++			netlink_put_register(nle, nftnl_reg_amax,
+ 					     amax_reg);
+ 		} else {
+ 			netlink_gen_expr(ctx, stmt->nat.addr, amin_reg);
+-			netlink_put_register(nle, NFTNL_EXPR_NAT_REG_ADDR_MIN,
++			netlink_put_register(nle, nftnl_reg_amin,
+ 					     amin_reg);
+ 			if (stmt->nat.addr->etype == EXPR_MAP &&
+ 			    stmt->nat.addr->mappings->set->data->flags & EXPR_F_INTERVAL) {
+@@ -1269,7 +1274,7 @@ static void netlink_gen_nat_stmt(struct
+ 					netlink_put_register(nle, nftnl_reg_pmin,
+ 							     amin_reg);
+ 				} else {
+-					netlink_put_register(nle, NFTNL_EXPR_NAT_REG_ADDR_MAX,
++					netlink_put_register(nle, nftnl_reg_amax,
+ 							     amin_reg);
+ 				}
+ 			}
+@@ -1285,7 +1290,7 @@ static void netlink_gen_nat_stmt(struct
+ 
+ 			if (stmt->nat.type_flags & STMT_NAT_F_INTERVAL) {
+ 				pmin_reg += netlink_register_space(nat_addrlen(family));
+-				netlink_put_register(nle, NFTNL_EXPR_NAT_REG_ADDR_MAX,
++				netlink_put_register(nle, nftnl_reg_amax,
+ 						     pmin_reg);
+ 			}
+ 
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -624,6 +624,7 @@ int nft_lex(void *, void *, void *);
+ %token DNAT			"dnat"
+ %token MASQUERADE		"masquerade"
+ %token FULLCONE		"fullcone"
++%token BRCMFULLCONE		"brcmfullcone"
+ %token REDIRECT			"redirect"
+ %token RANDOM			"random"
+ %token FULLY_RANDOM		"fully-random"
+@@ -3993,6 +3994,15 @@ masq_stmt_args		:	TO 	COLON	stmt_expr
+ 			{
+ 				$<stmt>0->nat.flags = $1;
+ 			}
++			|	BRCMFULLCONE
++			{
++				/* set addr to non zero to enable brcmfullcone, we pass YES -> 0x4E5 */
++				char str[64];
++				snprintf(str, sizeof(str), "%" PRIu64, 0x4E5);
++				$<stmt>0->nat.addr = symbol_expr_alloc(&@$, SYMBOL_VALUE,
++									       current_scope(state),
++									       str);
++			}
+ 			;
+ 
+ fullcone_stmt		:	fullcone_stmt_alloc		fullcone_stmt_args
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -464,6 +464,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr
+ "dnat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return DNAT; }
+ "masquerade"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return MASQUERADE; }
+ "fullcone"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return FULLCONE; }
++"brcmfullcone"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return BRCMFULLCONE; }
+ "redirect"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return REDIRECT; }
+ "random"		{ return RANDOM; }
+ <SCANSTATE_STMT_NAT>{
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -687,6 +687,7 @@ const char *nat_etype2str(enum nft_nat_e
+ 
+ static void nat_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ {
++	bool isbrcmfullcone = stmt->nat.addr && stmt->nat.type == NFT_NAT_MASQ;
+ 	nft_print(octx, "%s", nat_etype2str(stmt->nat.type));
+ 	if (stmt->nat.addr || stmt->nat.proto) {
+ 		switch (stmt->nat.family) {
+@@ -700,11 +701,13 @@ static void nat_stmt_print(const struct
+ 
+ 		if (stmt->nat.type_flags & STMT_NAT_F_PREFIX)
+ 			nft_print(octx, " prefix");
+-
+-		nft_print(octx, " to");
++		if (!isbrcmfullcone)
++			nft_print(octx, " to");
++		else
++			nft_print(octx, " brcmfullcone");
+ 	}
+ 
+-	if (stmt->nat.addr) {
++	if (stmt->nat.addr && !isbrcmfullcone) {
+ 		nft_print(octx, " ");
+ 		if (stmt->nat.proto) {
+ 			if (stmt->nat.addr->etype == EXPR_VALUE &&
