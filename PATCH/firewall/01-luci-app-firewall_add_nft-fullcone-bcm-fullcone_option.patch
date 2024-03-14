@@ -1,0 +1,18 @@
+--- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -58,6 +58,15 @@ return view.extend({
+ 
+ 		o = s.option(form.Flag, 'drop_invalid', _('Drop invalid packets'));
+ 
++		if (L.hasSystemFeature('fullcone')) {
++			o = s.option(form.Flag, 'fullcone', _('Enable FullCone NAT'));
++
++			o = s.option(form.Flag, 'brcmfullcone', _('BCM FullCone NAT scheme'),
++			_('Use the Broadcom FullCone NAT scheme if enabled, and use the NFT FullCone scheme if the option is disabled.'));
++			o.modalonly = true;
++			o.depends('fullcone', '1');
++		};
++
+ 		var p = [
+ 			s.option(form.ListValue, 'input', _('Input')),
+ 			s.option(form.ListValue, 'output', _('Output')),

@@ -1,0 +1,67 @@
+diff --git a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/custom.js b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/custom.js
+index 1997a72..b3183d6 100644
+--- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/custom.js
++++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/custom.js
+@@ -5,13 +5,13 @@
+ 
+ return view.extend({
+ 	load: function() {
+-		return L.resolveDefault(fs.read('/etc/firewall.user'), '');
++		return L.resolveDefault(fs.read('/etc/firewall4.user'), '');
+ 	},
+ 
+ 	handleSave: function(ev) {
+ 		var value = (document.querySelector('textarea').value || '').trim().replace(/\r\n/g, '\n') + '\n';
+ 
+-		return fs.write('/etc/firewall.user', value).then(function(rc) {
++		return fs.write('/etc/firewall4.user', value).then(function(rc) {
+ 			document.querySelector('textarea').value = value;
+ 			ui.addNotification(null, E('p', _('Contents have been saved.')), 'info');
+ 			fs.exec('/etc/init.d/firewall', ['restart']);
+@@ -23,7 +23,7 @@ return view.extend({
+ 	render: function(fwuser) {
+ 		return E([
+ 			E('h2', _('Firewall - Custom Rules')),
+-			E('p', {}, _('Custom rules allow you to execute arbitrary iptables commands which are not otherwise covered by the firewall framework. The commands are executed after each firewall restart, right after the default ruleset has been loaded.')),
++			E('p', {}, _('Custom rules allow you to execute arbitrary nft commands which are not otherwise covered by the firewall framework. The rules are executed after each firewall restart, right after the default ruleset has been loaded.')),
+ 			E('p', {}, E('textarea', { 'style': 'width:100%', 'rows': 25 }, [ fwuser != null ? fwuser : '' ]))
+ 		]);
+ 	},
+diff --git a/applications/luci-app-firewall/root/usr/share/luci/menu.d/luci-app-firewall.json b/applications/luci-app-firewall/root/usr/share/luci/menu.d/luci-app-firewall.json
+index f024dcf..8aea702 100644
+--- a/applications/luci-app-firewall/root/usr/share/luci/menu.d/luci-app-firewall.json
++++ b/applications/luci-app-firewall/root/usr/share/luci/menu.d/luci-app-firewall.json
+@@ -64,9 +64,6 @@
+ 		"action": {
+ 			"type": "view",
+ 			"path": "firewall/custom"
+-		},
+-		"depends": {
+-			"fs": { "/usr/share/fw3/helpers.conf": "file" }
+ 		}
+ 	}
+ }
+diff --git a/applications/luci-app-firewall/root/usr/share/rpcd/acl.d/luci-app-firewall.json b/applications/luci-app-firewall/root/usr/share/rpcd/acl.d/luci-app-firewall.json
+index 17d1fba..7e06de7 100644
+--- a/applications/luci-app-firewall/root/usr/share/rpcd/acl.d/luci-app-firewall.json
++++ b/applications/luci-app-firewall/root/usr/share/rpcd/acl.d/luci-app-firewall.json
+@@ -3,7 +3,8 @@
+ 		"description": "Grant access to firewall configuration",
+ 		"read": {
+ 			"file": {
+-				"/etc/firewall.user": [ "read" ]
++				"/etc/firewall.user": [ "read" ],
++				"/etc/firewall4.user": [ "read" ]
+ 			},
+ 			"ubus": {
+ 				"file": [ "read" ],
+@@ -13,7 +14,8 @@
+ 		},
+ 		"write": {
+ 			"file": {
+-				"/etc/firewall.user": [ "write" ]
++				"/etc/firewall.user": [ "write" ],
++				"/etc/firewall4.user": [ "write" ]
+ 			},
+ 			"ubus": {
+ 				"file": [ "write" ]

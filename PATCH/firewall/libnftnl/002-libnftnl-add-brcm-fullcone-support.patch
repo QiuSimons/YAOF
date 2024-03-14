@@ -1,0 +1,123 @@
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -242,6 +242,8 @@ enum {
+ 	NFTNL_EXPR_MASQ_FLAGS		= NFTNL_EXPR_BASE,
+ 	NFTNL_EXPR_MASQ_REG_PROTO_MIN,
+ 	NFTNL_EXPR_MASQ_REG_PROTO_MAX,
++	NFTNL_EXPR_MASQ_REG_ADDR_MIN,
++	NFTNL_EXPR_MASQ_REG_ADDR_MAX,
+ };
+ 
+ enum {
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1453,12 +1453,16 @@ enum nft_tproxy_attributes {
+  * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
+  * @NFTA_MASQ_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
+  * @NFTA_MASQ_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
++ * @NFTA_MASQ_REG_ADDR_MIN: source register of address range start (NLA_U32: nft_registers) non zero to enable bcm fullcone
++ * @NFTA_MASQ_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
+  */
+ enum nft_masq_attributes {
+ 	NFTA_MASQ_UNSPEC,
+ 	NFTA_MASQ_FLAGS,
+ 	NFTA_MASQ_REG_PROTO_MIN,
+ 	NFTA_MASQ_REG_PROTO_MAX,
++	NFTA_MASQ_REG_ADDR_MIN,
++	NFTA_MASQ_REG_ADDR_MAX,
+ 	__NFTA_MASQ_MAX
+ };
+ #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
+--- a/src/expr/masq.c
++++ b/src/expr/masq.c
+@@ -24,6 +24,8 @@ struct nftnl_expr_masq {
+ 	uint32_t		flags;
+ 	enum nft_registers	sreg_proto_min;
+ 	enum nft_registers	sreg_proto_max;
++	enum nft_registers	sreg_addr_min;
++	enum nft_registers	sreg_addr_max;
+ };
+ 
+ static int
+@@ -42,6 +44,12 @@ nftnl_expr_masq_set(struct nftnl_expr *e
+ 	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
+ 		memcpy(&masq->sreg_proto_max, data, sizeof(masq->sreg_proto_max));
+ 		break;
++	case NFTNL_EXPR_MASQ_REG_ADDR_MIN:
++		memcpy(&masq->sreg_addr_min, data, sizeof(masq->sreg_addr_min));
++		break;
++	case NFTNL_EXPR_MASQ_REG_ADDR_MAX:
++		memcpy(&masq->sreg_addr_max, data, sizeof(masq->sreg_addr_max));
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -64,6 +72,12 @@ nftnl_expr_masq_get(const struct nftnl_e
+ 	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
+ 		*data_len = sizeof(masq->sreg_proto_max);
+ 		return &masq->sreg_proto_max;
++	case NFTNL_EXPR_MASQ_REG_ADDR_MIN:
++		*data_len = sizeof(masq->sreg_addr_min);
++		return &masq->sreg_addr_min;
++	case NFTNL_EXPR_MASQ_REG_ADDR_MAX:
++		*data_len = sizeof(masq->sreg_addr_max);
++		return &masq->sreg_addr_max;
+ 	}
+ 	return NULL;
+ }
+@@ -80,6 +94,8 @@ static int nftnl_expr_masq_cb(const stru
+ 	case NFTA_MASQ_REG_PROTO_MIN:
+ 	case NFTA_MASQ_REG_PROTO_MAX:
+ 	case NFTA_MASQ_FLAGS:
++	case NFTA_MASQ_REG_ADDR_MIN:
++	case NFTA_MASQ_REG_ADDR_MAX:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -102,6 +118,12 @@ nftnl_expr_masq_build(struct nlmsghdr *n
+ 	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
+ 		mnl_attr_put_u32(nlh, NFTA_MASQ_REG_PROTO_MAX,
+ 				 htobe32(masq->sreg_proto_max));
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_ADDR_MIN))
++		mnl_attr_put_u32(nlh, NFTA_MASQ_REG_ADDR_MIN,
++				 htonl(masq->sreg_addr_min));
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_ADDR_MAX))
++		mnl_attr_put_u32(nlh, NFTA_MASQ_REG_ADDR_MAX,
++				 htonl(masq->sreg_addr_max));
+ }
+ 
+ static int
+@@ -127,6 +149,16 @@ nftnl_expr_masq_parse(struct nftnl_expr
+ 			be32toh(mnl_attr_get_u32(tb[NFTA_MASQ_REG_PROTO_MAX]));
+ 		e->flags |= (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX);
+ 	}
++	if (tb[NFTA_MASQ_REG_ADDR_MIN]) {
++		masq->sreg_addr_min =
++			ntohl(mnl_attr_get_u32(tb[NFTA_MASQ_REG_ADDR_MIN]));
++		e->flags |= (1 << NFTNL_EXPR_MASQ_REG_ADDR_MIN);
++	}
++	if (tb[NFTA_MASQ_REG_ADDR_MAX]) {
++		masq->sreg_addr_max =
++			ntohl(mnl_attr_get_u32(tb[NFTA_MASQ_REG_ADDR_MAX]));
++		e->flags |= (1 << NFTNL_EXPR_MASQ_REG_ADDR_MAX);
++	}
+ 
+ 	return 0;
+ }
+@@ -151,6 +183,16 @@ static int nftnl_expr_masq_snprintf(char
+ 		ret = snprintf(buf + offset, remain, "flags 0x%x ", masq->flags);
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 	}
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_ADDR_MIN)) {
++		ret = snprintf(buf + offset, remain,
++			       "addr_min reg %u ", masq->sreg_addr_min);
++		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++	}
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_ADDR_MAX)) {
++		ret = snprintf(buf + offset, remain,
++			       "addr_max reg %u ", masq->sreg_addr_max);
++		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++	}
+ 
+ 	return offset;
+ }

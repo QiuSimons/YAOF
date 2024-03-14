@@ -1,8 +1,6 @@
-diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
-index 06ef932..0a40e02 100644
 --- a/root/usr/share/ucode/fw4.uc
 +++ b/root/usr/share/ucode/fw4.uc
-@@ -2049,8 +2049,8 @@ return {
+@@ -2045,8 +2045,8 @@ return {
  					});
  				}
  

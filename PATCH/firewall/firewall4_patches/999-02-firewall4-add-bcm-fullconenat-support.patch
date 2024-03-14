@@ -1,0 +1,129 @@
+--- a/root/etc/config/firewall
++++ b/root/etc/config/firewall
+@@ -6,6 +6,9 @@ config defaults
+ # Uncomment this line to disable ipv6 rules
+ #	option disable_ipv6	1
+ 	option fullcone '1'
++# 0 - use nft_fullcone originated from Chion82
++# 1 - use bcm fullconenat from broadcom ASUS Merlin
++	option brcmfullcone '0'
+ 
+ config zone
+ 	option name		lan
+--- a/root/usr/share/firewall4/templates/ruleset.uc
++++ b/root/usr/share/firewall4/templates/ruleset.uc
+@@ -323,11 +323,13 @@ table inet fw4 {
+ {%   for (let redirect in fw4.redirects(`dstnat_${zone.name}`)): %}
+ 		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
+ {%   endfor %}
+-{%   if (zone.fullcone4): %}
++{%   if (fw4.default_option("brcmfullcone") == 0): %}
++{%     if (zone.fullcone4): %}
+ 		{%+ include("zone-fullcone.uc", { fw4, zone, family: 4, direction: "dstnat" }) %}
+-{%   endif %}
+-{%   if (zone.fullcone6): %}
++{%     endif %}
++{%     if (zone.fullcone6): %}
+ 		{%+ include("zone-fullcone.uc", { fw4, zone, family: 6, direction: "dstnat" }) %}
++{%     endif %}
+ {%   endif %}
+ {%   fw4.includes('chain-append', `dstnat_${zone.name}`) %}
+ 	}
+@@ -353,11 +355,18 @@ table inet fw4 {
+ {%     endfor %}
+ {%    endfor %}
+ {%   endif %}
+-{%   if (zone.fullcone4): %}
++{%   if (fw4.default_option("brcmfullcone") == 0): %}
++{%     if (zone.fullcone4): %}
+ 		{%+ include("zone-fullcone.uc", { fw4, zone, family: 4, direction: "srcnat" }) %}
+-{%   endif %}
+-{%   if (zone.fullcone6): %}
++{%     endif %}
++{%     if (zone.fullcone6): %}
+ 		{%+ include("zone-fullcone.uc", { fw4, zone, family: 6, direction: "srcnat" }) %}
++{%     endif %}
++{%   endif %}
++{%   if (fw4.default_option("brcmfullcone") == 1): %}
++{%     if (zone.fullcone4): %}
++		{%+ include("zone-brcmfullcone.uc", { fw4, zone, family: 4, direction: "srcnat" }) %}
++{%     endif %}
+ {%   endif %}
+ {%   fw4.includes('chain-append', `srcnat_${zone.name}`) %}
+ 	}
+--- a/root/usr/share/ucode/fw4.uc
++++ b/root/usr/share/ucode/fw4.uc
+@@ -510,6 +510,20 @@ function nft_try_fullcone() {
+ 	return ok;
+ }
+ 
++function nft_try_brcmfullcone() {
++	let nft_test =
++		'add table inet fw4-brcmfullcone-test; ' +
++		'add chain inet fw4-brcmfullcone-test srcnat { ' +
++			'type nat hook postrouting priority -100; policy accept; ' +
++			'meta nfproto ipv4 masquerade brcmfullcone; ' +
++		'}; ';
++	let cmd = sprintf("/usr/sbin/nft -c '%s' 2>/dev/null", replace(nft_test, "'", "'\\''"));
++	let ok = system(cmd) == 0;
++	if (!ok) {
++		warn("nft_try_fullcone: cmd "+ cmd + "\n");
++	}
++	return ok;
++}
+ 
+ return {
+ 	read_kernel_version: function() {
+@@ -1972,6 +1986,7 @@ return {
+ 		}
+ 
+ 		let defs = this.parse_options(data, {
++			brcmfullcone: [ "int", "0" ],
+ 			fullcone: [ "bool", "0" ],
+ 			input: [ "policy", "drop" ],
+ 			output: [ "policy", "drop" ],
+@@ -2007,9 +2022,20 @@ return {
+ 
+ 		delete defs.syn_flood;
+ 
+-		if (!nft_try_fullcone()) {
+-			delete defs.fullcone;
+-			warn("nft_try_fullcone failed, disable fullcone globally\n");
++		if (defs.brcmfullcone == 0) {
++			if (!nft_try_fullcone()) {
++				delete defs.fullcone;
++				this.warn("nft_try_fullcone failed, disable fullcone globally\n");
++			} else {
++				this.warn("nft_try_fullcone success");
++			}
++		} else if (defs.brcmfullcone == 1) {
++			if (!nft_try_brcmfullcone()) {
++				delete defs.fullcone;
++				this.warn("nft_try_brcmfullcone failed, disable fullcone globally\n");
++			} else {
++				this.warn("nft_try_brcmfullcone success");
++			}
+ 		}
+ 
+ 		this.state.defaults = defs;
+@@ -2075,6 +2101,10 @@ return {
+ 			zone.fullcone4 = false;
+ 			zone.fullcone6 = false;
+ 		}
++		if (this.state.defaults && this.state.defaults.brcmfullcone == 1) {
++			this.warn_section(data, "using brcmfullcone, IPv4 only, ignore IPv6 setting");
++			zone.fullcone6 = false;
++		}
+ 		if (zone.fullcone4) {
+ 			this.myinfo_section(data, "IPv4 fullcone enabled for zone '" + zone.name + "'");
+ 		}
+@@ -2259,6 +2289,9 @@ return {
+ 		if (zone.masq || zone.masq6)
+ 			zone.dflags.snat = true;
+ 
++		if (this.state.defaults && this.state.defaults.brcmfullcone == 1)
++			zone.dflags.dnat = false;
++
+ 		if ((zone.auto_helper && !(zone.masq || zone.masq6 || zone.fullcone4 || zone.fullcone6)) || length(zone.helper)) {
+ 			zone.dflags.helper = true;
+ 

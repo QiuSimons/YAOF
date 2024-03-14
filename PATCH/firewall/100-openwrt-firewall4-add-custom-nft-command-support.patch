@@ -1,0 +1,63 @@
+From 16eb81b40f5b5f6a6200ec584d9aa6aacdbafa54 Mon Sep 17 00:00:00 2001
+From: sbwml <admin@cooluc.com>
+Date: Thu, 14 Mar 2024 12:16:11 +0800
+Subject: [PATCH] firewall4: add custom nft command support
+
+Signed-off-by: sbwml <admin@cooluc.com>
+---
+ package/network/config/firewall4/Makefile     |  1 +
+ ...0-fw4-add-custom-nft-command-support.patch | 30 +++++++++++++++++++
+ 2 files changed, 31 insertions(+)
+ create mode 100644 package/network/config/firewall4/patches/100-fw4-add-custom-nft-command-support.patch
+
+diff --git a/package/network/config/firewall4/Makefile b/package/network/config/firewall4/Makefile
+index 8764f5a..0cde6a6 100644
+--- a/package/network/config/firewall4/Makefile
++++ b/package/network/config/firewall4/Makefile
+@@ -38,6 +38,7 @@ endef
+ define Package/firewall4/conffiles
+ /etc/config/firewall
+ /etc/nftables.d/
++/etc/firewall4.user
+ endef
+ 
+ define Package/firewall4/install
+diff --git a/package/network/config/firewall4/patches/100-fw4-add-custom-nft-command-support.patch b/package/network/config/firewall4/patches/100-fw4-add-custom-nft-command-support.patch
+new file mode 100644
+index 0000000..6030936
+--- /dev/null
++++ b/package/network/config/firewall4/patches/100-fw4-add-custom-nft-command-support.patch
+@@ -0,0 +1,30 @@
++From c359ce4457ac48bb65767ae5415f296e3d25a51d Mon Sep 17 00:00:00 2001
++From: sbwml <admin@cooluc.com>
++Date: Thu, 14 Mar 2024 12:10:03 +0800
++Subject: [PATCH] fw4: add custom nft command support
++
++Signed-off-by: sbwml <admin@cooluc.com>
++---
++ root/etc/firewall4.user | 3 +++
++ root/sbin/fw4           | 3 ++-
++ 2 files changed, 5 insertions(+), 1 deletion(-)
++ create mode 100644 root/etc/firewall4.user
++
++--- /dev/null
+++++ b/root/etc/firewall4.user
++@@ -0,0 +1,3 @@
+++# This file is interpreted as shell script.
+++# Put your custom nft rules here, they will
+++# be executed with each firewall (re-)start.
++--- a/root/sbin/fw4
+++++ b/root/sbin/fw4
++@@ -33,7 +33,8 @@ start() {
++ 		esac
++ 
++ 		ACTION=start \
++-			utpl -S $MAIN | nft $VERBOSE -f $STDIN
+++			utpl -S $MAIN | nft $VERBOSE -f $STDIN \
+++			; /bin/sh /etc/firewall4.user
++ 
++ 		ACTION=includes \
++ 			utpl -S $MAIN
+-- 
+2.42.0
+

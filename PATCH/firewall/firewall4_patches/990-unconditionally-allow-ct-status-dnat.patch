@@ -9,9 +9,9 @@ Subject: [PATCH] test: unconditionally allow ct status dnat
 
 --- a/root/usr/share/firewall4/templates/ruleset.uc
 +++ b/root/usr/share/firewall4/templates/ruleset.uc
-@@ -215,9 +215,7 @@ table inet fw4 {
+@@ -224,9 +224,7 @@ table inet fw4 {
  {%  for (let rule in fw4.rules(`input_${zone.name}`)): %}
- 		{%+ include("rule.uc", { fw4, rule }) %}
+ 		{%+ include("rule.uc", { fw4, zone, rule }) %}
  {%  endfor %}
 -{%  if (zone.dflags.dnat): %}
  		ct status dnat accept comment "!fw4: Accept port redirections"
@@ -19,13 +19,13 @@ Subject: [PATCH] test: unconditionally allow ct status dnat
  {%  fw4.includes('chain-append', `input_${zone.name}`) %}
  		jump {{ zone.input }}_from_{{ zone.name }}
  	}
-@@ -236,9 +234,7 @@ table inet fw4 {
+@@ -245,9 +243,7 @@ table inet fw4 {
  {%  for (let rule in fw4.rules(`forward_${zone.name}`)): %}
- 		{%+ include("rule.uc", { fw4, rule }) %}
+ 		{%+ include("rule.uc", { fw4, zone, rule }) %}
  {%  endfor %}
 -{%  if (zone.dflags.dnat): %}
  		ct status dnat accept comment "!fw4: Accept port forwards"
 -{%  endif %}
  {%  fw4.includes('chain-append', `forward_${zone.name}`) %}
  		jump {{ zone.forward }}_to_{{ zone.name }}
- 	}
+ {%  if (fw4.forward_policy() != "accept" && (zone.log & 1)): %}
