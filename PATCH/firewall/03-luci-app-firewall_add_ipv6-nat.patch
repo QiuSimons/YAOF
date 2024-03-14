@@ -1,0 +1,15 @@
+--- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -67,6 +67,12 @@ return view.extend({
+ 			o.depends('fullcone', '1');
+ 		};
+ 
++		if (L.hasSystemFeature('ipv6')) {
++			o = s.option(form.Flag, 'nat6',
++			_('IPv6 NAT'),
++			_('Applicable to internet environments where the router is not assigned an IPv6 prefix, such as when using an upstream optical modem for dial-up.'));
++		};
++
+ 		var p = [
+ 			s.option(form.ListValue, 'input', _('Input')),
+ 			s.option(form.ListValue, 'output', _('Output')),

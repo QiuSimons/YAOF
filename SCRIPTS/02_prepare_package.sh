@@ -86,7 +86,7 @@ cp -rf ../lede/package/network/utils/iptables/patches/900-bcm-fullconenat.patch 
 wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
 # Patch LuCI 以增添 FullCone 开关
 pushd feeds/luci
-patch -p1 <../../../PATCH/firewall/luci-app-firewall_add_fullcone_fw4.patch
+patch -p1 <../../../PATCH/firewall/01-luci-app-firewall_add_nft-fullcone-bcm-fullcone_option.patch
 popd
 # FullCone PKG
 git clone --depth 1 https://github.com/fullcone-nat-nftables/nft-fullcone package/new/nft-fullcone
@@ -505,7 +505,7 @@ cp -rf ../lede/package/qca/shortcut-fe/simulated-driver ./package/lean/shortcut-
 git clone --depth 1 https://github.com/sbwml/packages_new_nat6 package/new/packages_new_nat6
 # Patch LuCI 以增添 NAT6 开关
 pushd feeds/luci
-patch -p1 <../../../PATCH/firewall/luci-app-firewall_add_ipv6-nat_fw4.patch
+patch -p1 <../../../PATCH/firewall/03-luci-app-firewall_add_ipv6-nat.patch
 popd
 
 #LTO/GC
