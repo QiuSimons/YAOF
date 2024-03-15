@@ -51,6 +51,13 @@
  {%   endif %}
  {%   fw4.includes('chain-append', `srcnat_${zone.name}`) %}
  	}
+--- /dev/null
++++ b/root/usr/share/firewall4/templates/zone-brcmfullcone.uc
+@@ -0,0 +1,4 @@
++{# /usr/share/firewall4/templates/zone-brcmfullcone.uc This is ipv4 only #}
++		meta nfproto ipv4 masquerade brcmfullcone comment "!fw4: Handle {{
++		zone.name
++}} IPv4 BCM fullcone NAT {{ direction }} traffic, IPv4 ONLY"
 --- a/root/usr/share/ucode/fw4.uc
 +++ b/root/usr/share/ucode/fw4.uc
 @@ -510,6 +510,20 @@ function nft_try_fullcone() {
