@@ -67,7 +67,7 @@ cp -a ../PATCH/bcmfullcone/*.patch target/linux/generic/hack-5.15/
 
 # FW4
 mkdir -p package/network/config/firewall4/patches
-cp -f ../PATCH/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/
+cp -f ../PATCH/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
 mkdir -p package/libs/libnftnl/patches
 cp -f ../PATCH/firewall/libnftnl/*.patch ./package/libs/libnftnl/patches/
 sed -i '/PKG_INSTALL:=/iPKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
