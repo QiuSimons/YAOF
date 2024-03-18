@@ -85,7 +85,7 @@ clone_repo $sbwdaednext_repo main sbwdaednext &
 clone_repo $lucidaednext_repo rebase lucidaednext &
 clone_repo $sbwfw876_repo v5 sbwfw876 &
 clone_repo $sbw_pkg_repo main sbw_pkg &
-clone_repo $natmap_repo main natmap &
+clone_repo $natmap_repo master natmap &
 
 # 等待所有后台任务完成
 wait
