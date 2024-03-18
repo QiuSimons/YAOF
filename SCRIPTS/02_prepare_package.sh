@@ -101,6 +101,7 @@ rm -rf ./package/boot/uboot-rockchip
 cp -rf ../immortalwrt_23/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
 rm -rf ./package/boot/arm-trusted-firmware-rockchip
 cp -rf ../immortalwrt_23/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
+sed -i '/REQUIRE_IMAGE_METADATA/d' target/linux/rockchip/armv8/base-files/lib/upgrade/platform.sh
 # 在下个release时删掉
 wget -qO - https://github.com/immortalwrt/immortalwrt/commit/4e7e1e851ff3c9b9af9dda83d4a7baea83c8ebdf.patch | patch -Rp1
 #intel-firmware
