@@ -1,0 +1,22 @@
+--- linux-5.15.86/drivers/char/lrng/lrng_interface_random_kernel.c.orig	2023-01-07 21:29:56.529021762 +0100
++++ linux-5.15.86/drivers/char/lrng/lrng_interface_random_kernel.c	2023-01-07 21:31:30.445338357 +0100
+@@ -34,15 +34,17 @@ static int __init lrng_parse_trust_bootl
+ }
+ early_param("random.trust_bootloader", lrng_parse_trust_bootloader);
+ 
+-void __init random_init_early(const char *command_line)
++static void __init random_init_early(const char *command_line)
+ {
+ 	lrng_rand_initialize_early();
+ 	lrng_pool_insert_aux(command_line, strlen(command_line), 0);
+ }
+ 
+-void __init random_init(void)
++int __init random_init(const char *command_line)
+ {
++	random_init_early(command_line);
+ 	lrng_rand_initialize();
++	return 0;
+ }
+ 
+ bool lrng_ready_chain_has_sleeper(void)
