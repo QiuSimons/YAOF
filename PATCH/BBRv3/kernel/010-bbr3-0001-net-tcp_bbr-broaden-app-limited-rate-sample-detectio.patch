@@ -32,7 +32,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3822,6 +3822,7 @@ static int tcp_ack(struct sock *sk, cons
+@@ -3827,6 +3827,7 @@ static int tcp_ack(struct sock *sk, cons
  
  	prior_fack = tcp_is_sack(tp) ? tcp_highest_sack_seq(tp) : tp->snd_una;
  	rs.prior_in_flight = tcp_packets_in_flight(tp);

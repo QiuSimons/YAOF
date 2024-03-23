@@ -1,5 +1,5 @@
---- linux-5.15/kernel/sched/core.c.orig	2022-05-17 08:10:20.541904807 +0200
-+++ linux-5.15/kernel/sched/core.c	2022-05-17 08:10:31.720932544 +0200
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
 @@ -7,9 +7,6 @@
   *  Copyright (C) 1991-2002  Linus Torvalds
   */

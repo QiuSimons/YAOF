@@ -35,7 +35,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  /* Information about inbound ACK, passed to cong_ops->in_ack_event() */
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3724,6 +3724,7 @@ static void tcp_process_tlp_ack(struct s
+@@ -3725,6 +3725,7 @@ static void tcp_process_tlp_ack(struct s
  		/* ACK advances: there was a loss, so reduce cwnd. Reset
  		 * tlp_high_seq in tcp_init_cwnd_reduction()
  		 */

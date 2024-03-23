@@ -27,7 +27,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
   * Sender's congestion state indicating normal or abnormal situations
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -3783,6 +3783,8 @@ void tcp_get_info(struct sock *sk, struc
+@@ -3787,6 +3787,8 @@ void tcp_get_info(struct sock *sk, struc
  		info->tcpi_options |= TCPI_OPT_ECN;
  	if (tp->ecn_flags & TCP_ECN_SEEN)
  		info->tcpi_options |= TCPI_OPT_ECN_SEEN;

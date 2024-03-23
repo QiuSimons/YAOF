@@ -42,7 +42,7 @@ Change-Id: I1a184aad6d101c981ac7f2f275aa9417ff856910
  			/* start of send pipeline phase */
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -3255,7 +3255,6 @@ static int tcp_clean_rtx_queue(struct so
+@@ -3256,7 +3256,6 @@ static int tcp_clean_rtx_queue(struct so
  	long seq_rtt_us = -1L;
  	long ca_rtt_us = -1L;
  	u32 pkts_acked = 0;
@@ -50,7 +50,7 @@ Change-Id: I1a184aad6d101c981ac7f2f275aa9417ff856910
  	bool rtt_update;
  	int flag = 0;
  
-@@ -3291,7 +3290,6 @@ static int tcp_clean_rtx_queue(struct so
+@@ -3292,7 +3291,6 @@ static int tcp_clean_rtx_queue(struct so
  			if (!first_ackt)
  				first_ackt = last_ackt;
  
@@ -58,7 +58,7 @@ Change-Id: I1a184aad6d101c981ac7f2f275aa9417ff856910
  			if (before(start_seq, reord))
  				reord = start_seq;
  			if (!after(scb->end_seq, tp->high_seq))
-@@ -3357,8 +3355,8 @@ static int tcp_clean_rtx_queue(struct so
+@@ -3358,8 +3356,8 @@ static int tcp_clean_rtx_queue(struct so
  		seq_rtt_us = tcp_stamp_us_delta(tp->tcp_mstamp, first_ackt);
  		ca_rtt_us = tcp_stamp_us_delta(tp->tcp_mstamp, last_ackt);
  
@@ -69,7 +69,7 @@ Change-Id: I1a184aad6d101c981ac7f2f275aa9417ff856910
  		    sack->rate->prior_delivered + 1 == tp->delivered &&
  		    !(flag & (FLAG_CA_ALERT | FLAG_SYN_ACKED))) {
  			/* Conservatively mark a delayed ACK. It's typically
-@@ -3415,9 +3413,10 @@ static int tcp_clean_rtx_queue(struct so
+@@ -3416,9 +3414,10 @@ static int tcp_clean_rtx_queue(struct so
  
  	if (icsk->icsk_ca_ops->pkts_acked) {
  		struct ack_sample sample = { .pkts_acked = pkts_acked,

@@ -21,8 +21,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 320 insertions(+), 38 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_cpu.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 787c3f0361bc..0c9da7bf4e0e 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -496,44 +496,44 @@ config LRNG_IRQ_ENTROPY_RATE
@@ -108,20 +106,15 @@ index 787c3f0361bc..0c9da7bf4e0e 100644
  comment "Scheduler Entropy Source"
  
  config LRNG_SCHED
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 811208f38005..101c323ea1f2 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -22,5 +22,6 @@ obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
+@@ -22,5 +22,6 @@ obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng
  obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
  obj-$(CONFIG_LRNG_KERNEL_RNG)		+= lrng_es_krng.o
  obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
 +obj-$(CONFIG_LRNG_CPU)			+= lrng_es_cpu.o
  
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
-diff --git a/drivers/char/lrng/lrng_es_cpu.c b/drivers/char/lrng/lrng_es_cpu.c
-new file mode 100644
-index 000000000000..96a621c16feb
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_cpu.c
 @@ -0,0 +1,281 @@
@@ -406,6 +399,3 @@ index 000000000000..96a621c16feb
 +	.reset			= NULL,
 +	.switch_hash		= lrng_cpu_switch_hash,
 +};
--- 
-2.44.0
-

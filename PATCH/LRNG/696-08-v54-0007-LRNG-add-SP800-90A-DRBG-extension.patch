@@ -28,11 +28,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 219 insertions(+), 39 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_drng_drbg.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index cd79e735a4ff..6611e4f86241 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -620,11 +620,11 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -620,11 +620,11 @@ endmenu # "Specific DRNG seeding strateg
  config LRNG_DRNG_CHACHA20
  	tristate
  
@@ -138,8 +136,6 @@ index cd79e735a4ff..6611e4f86241 100644
  # 	config LRNG_DFLT_DRNG_KCAPI
  # 		depends on RANDOM_DEFAULT_IMPL
  # 		bool "Kernel Crypto API DRNG"
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index b3326c9580eb..b59414316f1c 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
 @@ -14,3 +14,4 @@ obj-$(CONFIG_NUMA)			+= lrng_numa.o
@@ -147,9 +143,6 @@ index b3326c9580eb..b59414316f1c 100644
  obj-$(CONFIG_LRNG_HASH_KCAPI)		+= lrng_hash_kcapi.o
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
 +obj-$(CONFIG_LRNG_DRBG)			+= lrng_drng_drbg.o
-diff --git a/drivers/char/lrng/lrng_drng_drbg.c b/drivers/char/lrng/lrng_drng_drbg.c
-new file mode 100644
-index 000000000000..63de720d9d78
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_drng_drbg.c
 @@ -0,0 +1,179 @@
@@ -332,6 +325,3 @@ index 000000000000..63de720d9d78
 +MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 +MODULE_DESCRIPTION("Entropy Source and DRNG Manager - SP800-90A DRBG backend");
 +#endif /* CONFIG_LRNG_DFLT_DRNG_DRBG */
--- 
-2.44.0
-

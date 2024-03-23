@@ -48,11 +48,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 924 insertions(+), 193 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_irq.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 340355ccd90a..e67a1f74f025 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -122,8 +122,8 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -122,8 +122,8 @@ endmenu # "Specific DRNG seeding strateg
  #
  # endmenu # "LRNG Interfaces"
  
@@ -63,7 +61,7 @@ index 340355ccd90a..e67a1f74f025 100644
  # config LRNG_RUNTIME_ES_CONFIG
  # 	bool "Enable runtime configuration of entropy sources"
  # 	help
-@@ -135,100 +135,100 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -135,100 +135,100 @@ endmenu # "Specific DRNG seeding strateg
  # 	  a kernel command line option. When not providing any
  # 	  option, the default specified during kernel compilation
  # 	  is applied.
@@ -478,18 +476,13 @@ index 340355ccd90a..e67a1f74f025 100644
  
  config LRNG_DRNG_CHACHA20
  	tristate
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 3cfbf21271e2..a64075c8fee5 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -19,3 +19,4 @@ obj-$(CONFIG_LRNG_DRNG_KCAPI)		+= lrng_drng_kcapi.o
+@@ -19,3 +19,4 @@ obj-$(CONFIG_LRNG_DRNG_KCAPI)		+= lrng_d
  obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
  
  obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
 +obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
-diff --git a/drivers/char/lrng/lrng_es_irq.c b/drivers/char/lrng/lrng_es_irq.c
-new file mode 100644
-index 000000000000..08b0358444f8
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_irq.c
 @@ -0,0 +1,730 @@
@@ -1223,6 +1216,3 @@ index 000000000000..08b0358444f8
 +	.reset			= lrng_irq_reset,
 +	.switch_hash		= lrng_irq_switch_hash,
 +};
--- 
-2.44.0
-

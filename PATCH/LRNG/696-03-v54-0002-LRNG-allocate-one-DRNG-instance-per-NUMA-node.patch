@@ -29,20 +29,15 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_numa.c
  create mode 100644 drivers/char/lrng/lrng_proc.h
 
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 809e1911d370..60effabb1372 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -8,4 +8,6 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr.o \
+@@ -8,4 +8,6 @@ obj-y					+= lrng_es_mgr.o lrng_drng_mgr
  obj-$(CONFIG_LRNG_SHA256)		+= lrng_sha256.o
  obj-$(CONFIG_LRNG_SHA1)			+= lrng_sha1.o
  
 +obj-$(CONFIG_NUMA)			+= lrng_numa.o
 +
  obj-$(CONFIG_LRNG_DRNG_CHACHA20)	+= lrng_drng_chacha20.o
-diff --git a/drivers/char/lrng/lrng_numa.c b/drivers/char/lrng/lrng_numa.c
-new file mode 100644
-index 000000000000..d74dd8df2843
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_numa.c
 @@ -0,0 +1,124 @@
@@ -170,8 +165,6 @@ index 000000000000..d74dd8df2843
 +}
 +
 +late_initcall(lrng_numa_init);
-diff --git a/drivers/char/lrng/lrng_numa.h b/drivers/char/lrng/lrng_numa.h
-index bfbb9a489031..dc8dff9816ee 100644
 --- a/drivers/char/lrng/lrng_numa.h
 +++ b/drivers/char/lrng/lrng_numa.h
 @@ -6,6 +6,10 @@
@@ -185,9 +178,6 @@ index bfbb9a489031..dc8dff9816ee 100644
 +#endif /* CONFIG_NUMA */
  
  #endif /* _LRNG_NUMA_H */
-diff --git a/drivers/char/lrng/lrng_proc.h b/drivers/char/lrng/lrng_proc.h
-new file mode 100644
-index 000000000000..e8097abe7fbd
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_proc.h
 @@ -0,0 +1,11 @@
@@ -202,6 +192,3 @@ index 000000000000..e8097abe7fbd
 +static inline void lrng_pool_inc_numa_node(void) { }
 +
 +#endif /* _LRNG_PROC_H */
--- 
-2.44.0
-

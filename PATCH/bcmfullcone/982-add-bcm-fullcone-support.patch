@@ -140,7 +140,7 @@
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -60,6 +186,72 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
+@@ -60,6 +186,72 @@ nf_nat_masquerade_ipv4(struct sk_buff *s
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -213,7 +213,7 @@
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -347,6 +539,7 @@ EXPORT_SYMBOL_GPL(nf_nat_masquerade_inet_register_notifiers);
+@@ -347,6 +539,7 @@ EXPORT_SYMBOL_GPL(nf_nat_masquerade_inet
  
  void nf_nat_masquerade_inet_unregister_notifiers(void)
  {
@@ -223,7 +223,7 @@
  	if (--masq_refcnt > 0)
 --- a/net/netfilter/xt_MASQUERADE.c
 +++ b/net/netfilter/xt_MASQUERADE.c
-@@ -42,6 +42,9 @@ masquerade_tg(struct sk_buff *skb, const struct xt_action_param *par)
+@@ -42,6 +42,9 @@ masquerade_tg(struct sk_buff *skb, const
  	range.min_proto = mr->range[0].min;
  	range.max_proto = mr->range[0].max;
  

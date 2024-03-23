@@ -24,8 +24,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  create mode 100644 drivers/char/lrng/lrng_interface_random_kernel.c
  create mode 100644 drivers/char/lrng/lrng_interface_random_user.c
 
-diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index ee08348a94b8..f00df53befb3 100644
 --- a/drivers/char/Makefile
 +++ b/drivers/char/Makefile
 @@ -3,7 +3,8 @@
@@ -38,11 +36,9 @@ index ee08348a94b8..f00df53befb3 100644
  obj-$(CONFIG_TTY_PRINTK)	+= ttyprintk.o
  obj-y				+= misc.o
  obj-$(CONFIG_ATARI_DSP56K)	+= dsp56k.o
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 52b4625a0760..6242262d577e 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -29,3 +29,8 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jent.o
+@@ -29,3 +29,8 @@ obj-$(CONFIG_LRNG_JENT)			+= lrng_es_jen
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
  obj-$(CONFIG_LRNG_TESTING)		+= lrng_testing.o
  obj-$(CONFIG_LRNG_SELFTEST)		+= lrng_selftest.o
@@ -51,9 +47,6 @@ index 52b4625a0760..6242262d577e 100644
 +obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
 +					   lrng_interface_random_kernel.o \
 +					   lrng_interface_aux.o
-diff --git a/drivers/char/lrng/lrng_interface_aux.c b/drivers/char/lrng/lrng_interface_aux.c
-new file mode 100644
-index 000000000000..12eb1d8d9b46
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_aux.c
 @@ -0,0 +1,210 @@
@@ -267,9 +260,6 @@ index 000000000000..12eb1d8d9b46
 +		spin_unlock_irqrestore(&batched_entropy->batch_lock, flags);
 +	}
 +}
-diff --git a/drivers/char/lrng/lrng_interface_dev_common.c b/drivers/char/lrng/lrng_interface_dev_common.c
-new file mode 100644
-index 000000000000..f69e86ecd983
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_dev_common.c
 @@ -0,0 +1,315 @@
@@ -588,9 +578,6 @@ index 000000000000..f69e86ecd983
 +{
 +	return fasync_helper(fd, filp, on, &fasync);
 +}
-diff --git a/drivers/char/lrng/lrng_interface_random_kernel.c b/drivers/char/lrng/lrng_interface_random_kernel.c
-new file mode 100644
-index 000000000000..fabf2109ceaf
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_kernel.c
 @@ -0,0 +1,248 @@
@@ -842,9 +829,6 @@ index 000000000000..fabf2109ceaf
 +	return lrng_state_operational();
 +}
 +EXPORT_SYMBOL(rng_is_initialized);
-diff --git a/drivers/char/lrng/lrng_interface_random_user.c b/drivers/char/lrng/lrng_interface_random_user.c
-new file mode 100644
-index 000000000000..d12e883804d9
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_random_user.c
 @@ -0,0 +1,104 @@
@@ -952,6 +936,3 @@ index 000000000000..d12e883804d9
 +	return lrng_read_common_block(flags & GRND_NONBLOCK,
 +				      flags & GRND_RANDOM, buf, count);
 +}
--- 
-2.44.0
-

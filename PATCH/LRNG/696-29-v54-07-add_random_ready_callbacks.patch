@@ -1,6 +1,6 @@
---- linux-5.18.8/drivers/char/lrng/lrng_es_mgr.c.orig	2022-08-01 09:35:07.227572096 +0200
-+++ linux-5.18.8/drivers/char/lrng/lrng_es_mgr.c	2022-08-01 09:31:18.926127936 +0200
-@@ -218,6 +218,7 @@ static void lrng_set_operational(void)
+--- a/drivers/char/lrng/lrng_es_mgr.c
++++ b/drivers/char/lrng/lrng_es_mgr.c
+@@ -287,6 +287,7 @@ static void lrng_set_operational(void)
  	 */
  	if (lrng_state.lrng_fully_seeded) {
  		lrng_state.lrng_operational = true;
@@ -8,11 +8,11 @@
  		lrng_init_wakeup();
  		pr_info("LRNG fully operational\n");
  	}
---- linux-5.18.8/drivers/char/lrng/lrng_interface_random_kernel.c.orig	2022-08-01 09:13:51.877910601 +0200
-+++ linux-5.18.8/drivers/char/lrng/lrng_interface_random_kernel.c	2022-08-01 09:31:18.926127936 +0200
-@@ -19,6 +19,10 @@
- #include "lrng_interface_dev_common.h"
- #include "lrng_interface_random_kernel.h"
+--- a/drivers/char/lrng/lrng_interface_random_kernel.c
++++ b/drivers/char/lrng/lrng_interface_random_kernel.c
+@@ -21,6 +21,10 @@
+ 
+ static ATOMIC_NOTIFIER_HEAD(random_ready_notifier);
  
 +static RAW_NOTIFIER_HEAD(lrng_ready_chain);
 +static DEFINE_SPINLOCK(lrng_ready_chain_lock);
@@ -20,9 +20,9 @@
 +
  /********************************** Helper ***********************************/
  
- int __init random_init(const char *command_line)
-@@ -29,6 +33,33 @@ int __init random_init(const char *comma
- 	return ret;
+ static bool lrng_trust_bootloader __initdata =
+@@ -70,6 +74,33 @@ void lrng_kick_random_ready(void)
+ 	atomic_notifier_call_chain(&random_ready_notifier, 0, NULL);
  }
  
 +bool lrng_ready_chain_has_sleeper(void)
@@ -55,7 +55,7 @@
  /************************ LRNG kernel input interfaces ************************/
  
  /*
-@@ -125,6 +156,58 @@ void add_interrupt_randomness(int irq) {
+@@ -166,6 +197,58 @@ void add_interrupt_randomness(int irq) {
  EXPORT_SYMBOL(add_interrupt_randomness);
  #endif
  
@@ -114,7 +114,7 @@
  #if IS_ENABLED(CONFIG_VMGENID)
  static BLOCKING_NOTIFIER_HEAD(lrng_vmfork_chain);
  
-@@ -195,6 +278,43 @@ int wait_for_random_bytes(void)
+@@ -236,6 +319,43 @@ int wait_for_random_bytes(void)
  EXPORT_SYMBOL(wait_for_random_bytes);
  
  /*
@@ -158,8 +158,8 @@
   * Returns whether or not the LRNG has been seeded.
   *
   * Returns: true if the urandom pool has been seeded.
---- linux-5.15.58/drivers/char/lrng/lrng_interface_random_kernel.h.orig	2022-08-01 10:01:32.939911355 +0200
-+++ linux-5.15.58/drivers/char/lrng/lrng_interface_random_kernel.h	2022-08-01 10:01:38.564923636 +0200
+--- a/drivers/char/lrng/lrng_interface_random_kernel.h
++++ b/drivers/char/lrng/lrng_interface_random_kernel.h
 @@ -7,9 +7,13 @@
  #define _LRNG_INTERFACE_RANDOM_H
  

@@ -59,7 +59,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	}
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -10858,7 +10858,7 @@ struct net_device *alloc_netdev_mqs(int
+@@ -10861,7 +10861,7 @@ struct net_device *alloc_netdev_mqs(int
  
  	dev_net_set(dev, &init_net);
  

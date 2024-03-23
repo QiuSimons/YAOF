@@ -27,8 +27,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 129 insertions(+), 28 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_es_krng.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 2c0b0442340a..787c3f0361bc 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
 @@ -586,34 +586,34 @@ config LRNG_SCHED_ENTROPY_RATE
@@ -94,11 +92,9 @@ index 2c0b0442340a..787c3f0361bc 100644
  
  endmenu # "Entropy Source Configuration"
  
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6dc38c1b70e9..811208f38005 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_drng_atomic.o
+@@ -20,6 +20,7 @@ obj-$(CONFIG_LRNG_DRNG_ATOMIC)		+= lrng_
  
  obj-$(CONFIG_LRNG_TIMER_COMMON)		+= lrng_es_timer_common.o
  obj-$(CONFIG_LRNG_IRQ)			+= lrng_es_irq.o
@@ -106,9 +102,6 @@ index 6dc38c1b70e9..811208f38005 100644
  obj-$(CONFIG_LRNG_SCHED)		+= lrng_es_sched.o
  
  obj-$(CONFIG_LRNG_HEALTH_TESTS)		+= lrng_health.o
-diff --git a/drivers/char/lrng/lrng_es_krng.c b/drivers/char/lrng/lrng_es_krng.c
-new file mode 100644
-index 000000000000..519ba640cc75
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_es_krng.c
 @@ -0,0 +1,100 @@
@@ -212,6 +205,3 @@ index 000000000000..519ba640cc75
 +	.reset			= NULL,
 +	.switch_hash		= NULL,
 +};
--- 
-2.44.0
-

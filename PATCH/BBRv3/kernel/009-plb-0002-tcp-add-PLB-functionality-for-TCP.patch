@@ -82,7 +82,7 @@ Signed-off-by: Alexandre Frade <kernel@xanmod.org>
  	     inet_fragment.o ping.o ip_tunnel_core.o gre_offload.o \
 --- a/net/ipv4/tcp_ipv4.c
 +++ b/net/ipv4/tcp_ipv4.c
-@@ -3212,7 +3212,7 @@ static int __net_init tcp_sk_init(struct
+@@ -3209,7 +3209,7 @@ static int __net_init tcp_sk_init(struct
  	net->ipv4.sysctl_tcp_plb_rehash_rounds = 12;
  	net->ipv4.sysctl_tcp_plb_suspend_rto_sec = 60;
  	/* Default congestion threshold for PLB to mark a round is 50% */

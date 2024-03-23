@@ -1,6 +1,6 @@
 --- a/drivers/usb/dwc3/core.c
 +++ b/drivers/usb/dwc3/core.c
-@@ -1412,6 +1412,8 @@ static void dwc3_get_properties(struct d
+@@ -1396,6 +1396,8 @@ static void dwc3_get_properties(struct d
  				"snps,dis-del-phy-power-chg-quirk");
  	dwc->dis_tx_ipgap_linecheck_quirk = device_property_read_bool(dev,
  				"snps,dis-tx-ipgap-linecheck-quirk");
@@ -11,7 +11,7 @@
  	dwc->parkmode_disable_ss_quirk = device_property_read_bool(dev,
 --- a/drivers/usb/dwc3/core.h
 +++ b/drivers/usb/dwc3/core.h
-@@ -1074,6 +1074,9 @@ struct dwc3_scratchpad_array {
+@@ -1072,6 +1072,9 @@ struct dwc3_scratchpad_array {
   *			change quirk.
   * @dis_tx_ipgap_linecheck_quirk: set if we disable u2mac linestate
   *			check during HS transmit.
@@ -21,7 +21,7 @@
   * @resume-hs-terminations: Set if we enable quirk for fixing improper crc
   *			generation after resume from suspend.
   * @parkmode_disable_ss_quirk: set if we need to disable all SuperSpeed
-@@ -1289,6 +1292,7 @@ struct dwc3 {
+@@ -1288,6 +1291,7 @@ struct dwc3 {
  	unsigned		dis_u2_freeclk_exists_quirk:1;
  	unsigned		dis_del_phy_power_chg_quirk:1;
  	unsigned		dis_tx_ipgap_linecheck_quirk:1;
@@ -35,12 +35,12 @@
  
  int dwc3_host_init(struct dwc3 *dwc)
  {
--	struct property_entry	props[4];
-+	struct property_entry	props[5];
+-	struct property_entry	props[5];
++	struct property_entry	props[6];
  	struct platform_device	*xhci;
  	int			ret, irq;
  	struct resource		*res;
-@@ -92,6 +92,9 @@ int dwc3_host_init(struct dwc3 *dwc)
+@@ -94,6 +94,9 @@ int dwc3_host_init(struct dwc3 *dwc)
  	if (dwc->usb3_lpm_capable)
  		props[prop_idx++] = PROPERTY_ENTRY_BOOL("usb3-lpm-capable");
  
@@ -52,9 +52,9 @@
  
 --- a/drivers/usb/host/xhci-plat.c
 +++ b/drivers/usb/host/xhci-plat.c
-@@ -312,6 +312,9 @@ static int xhci_plat_probe(struct platfo
- 		if (device_property_read_bool(tmpdev, "quirk-broken-port-ped"))
- 			xhci->quirks |= XHCI_BROKEN_PORT_PED;
+@@ -315,6 +315,9 @@ static int xhci_plat_probe(struct platfo
+ 		if (device_property_read_bool(tmpdev, "xhci-sg-trb-cache-size-quirk"))
+ 			xhci->quirks |= XHCI_SG_TRB_CACHE_SIZE_QUIRK;
  
 +		if (device_property_read_bool(tmpdev, "xhci-trb-ent-quirk"))
 +			xhci->quirks |= XHCI_TRB_ENT_QUIRK;
@@ -64,7 +64,7 @@
  	}
 --- a/drivers/usb/host/xhci-ring.c
 +++ b/drivers/usb/host/xhci-ring.c
-@@ -3595,6 +3595,7 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
+@@ -3598,6 +3598,7 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
  	bool more_trbs_coming = true;
  	bool need_zero_pkt = false;
  	bool first_trb = true;
@@ -72,7 +72,7 @@
  	unsigned int num_trbs;
  	unsigned int start_cycle, num_sgs = 0;
  	unsigned int enqd_len, block_len, trb_buff_len, full_len;
-@@ -3631,6 +3632,13 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
+@@ -3634,6 +3635,13 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
  	if (urb->transfer_flags & URB_ZERO_PACKET && urb_priv->num_tds > 1)
  		need_zero_pkt = true;
  
@@ -86,7 +86,7 @@
  	td = &urb_priv->td[0];
  
  	/*
-@@ -3659,6 +3667,13 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
+@@ -3662,6 +3670,13 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
  			first_trb = false;
  			if (start_cycle == 0)
  				field |= TRB_CYCLE;
@@ -100,7 +100,7 @@
  		} else
  			field |= ring->cycle_state;
  
-@@ -3667,6 +3682,8 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
+@@ -3670,6 +3685,8 @@ int xhci_queue_bulk_tx(struct xhci_hcd *
  		 */
  		if (enqd_len + trb_buff_len < full_len) {
  			field |= TRB_CHAIN;
@@ -123,7 +123,7 @@
  #define TRB_MAX_BUFF_SIZE	(1 << TRB_MAX_BUFF_SHIFT)
  /* How much data is left before the 64KB boundary? */
  #define TRB_BUFF_LEN_UP_TO_BOUNDARY(addr)	(TRB_MAX_BUFF_SIZE - \
-@@ -1850,6 +1854,7 @@ struct xhci_hcd {
+@@ -1849,6 +1853,7 @@ struct xhci_hcd {
  #define XHCI_STATE_HALTED	(1 << 1)
  #define XHCI_STATE_REMOVING	(1 << 2)
  	unsigned long long	quirks;

@@ -14,8 +14,6 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  kernel/sched/core.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 9116bcc90346..b44ab31a35cf 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -6,6 +6,7 @@
@@ -26,7 +24,7 @@ index 9116bcc90346..b44ab31a35cf 100644
  #include <linux/highmem.h>
  #include <linux/hrtimer_api.h>
  #include <linux/ktime_api.h>
-@@ -3728,6 +3729,8 @@ ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
+@@ -3522,6 +3523,8 @@ ttwu_stat(struct task_struct *p, int cpu
  {
  	struct rq *rq;
  
@@ -35,6 +33,3 @@ index 9116bcc90346..b44ab31a35cf 100644
  	if (!schedstat_enabled())
  		return;
  
--- 
-2.44.0
-

@@ -1,8 +1,6 @@
-diff --git a/drivers/char/lrng/lrng_es_cpu.c b/drivers/char/lrng/lrng_es_cpu.c
-index f982cc31df4e..3910108cfd08 100644
 --- a/drivers/char/lrng/lrng_es_cpu.c
 +++ b/drivers/char/lrng/lrng_es_cpu.c
-@@ -65,8 +65,7 @@ static u32 lrng_cpu_poolsize(void)
+@@ -66,8 +66,7 @@ static u32 lrng_cpu_poolsize(void)
  
  static u32 lrng_get_cpu_data(u8 *outbuf, u32 requested_bits)
  {
@@ -12,7 +10,7 @@ index f982cc31df4e..3910108cfd08 100644
  
  	/* operate on full blocks */
  	BUILD_BUG_ON(LRNG_DRNG_SECURITY_STRENGTH_BYTES % sizeof(unsigned long));
-@@ -74,14 +73,10 @@ static u32 lrng_get_cpu_data(u8 *outbuf, u32 requested_bits)
+@@ -75,14 +74,10 @@ static u32 lrng_get_cpu_data(u8 *outbuf,
  	/* ensure we have aligned buffers */
  	BUILD_BUG_ON(LRNG_KCAPI_ALIGN % sizeof(unsigned long));
  
@@ -31,7 +29,7 @@ index f982cc31df4e..3910108cfd08 100644
  			cpu_entropy = 0;
  			return 0;
  		}
-@@ -180,7 +175,7 @@ static u32 lrng_cpu_multiplier(void)
+@@ -181,7 +176,7 @@ static u32 lrng_cpu_multiplier(void)
  	if (data_multiplier > 0)
  		return data_multiplier;
  
@@ -40,9 +38,9 @@ index f982cc31df4e..3910108cfd08 100644
  		/*
  		 * Intel SPEC: pulling 512 blocks from RDRAND ensures
  		 * one reseed making it logically equivalent to RDSEED.
---- linux-5.15.86/drivers/char/lrng/lrng_es_mgr.c.orig2	2023-01-07 21:18:49.376364123 +0100
-+++ linux-5.15.86/drivers/char/lrng/lrng_es_mgr.c	2023-01-07 21:19:44.168291522 +0100
-@@ -376,19 +376,12 @@ void __init lrng_rand_initialize_early(v
+--- a/drivers/char/lrng/lrng_es_mgr.c
++++ b/drivers/char/lrng/lrng_es_mgr.c
+@@ -390,19 +390,12 @@ void __init lrng_rand_initialize_early(v
  				    sizeof(unsigned long))];
  		struct new_utsname utsname;
  	} seed __aligned(LRNG_KCAPI_ALIGN);

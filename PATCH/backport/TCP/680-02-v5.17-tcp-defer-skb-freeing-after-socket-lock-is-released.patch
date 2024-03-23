@@ -82,7 +82,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  #include <net/dst.h>
  #include <net/checksum.h>
  #include <net/tcp_states.h>
-@@ -409,6 +410,8 @@ struct sock {
+@@ -410,6 +411,8 @@ struct sock {
  		struct sk_buff	*head;
  		struct sk_buff	*tail;
  	} sk_backlog;
@@ -93,7 +93,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	int			sk_forward_alloc;
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1376,6 +1376,16 @@ static inline bool tcp_checksum_complete
+@@ -1444,6 +1444,16 @@ static inline bool tcp_checksum_complete
  }
  
  bool tcp_add_backlog(struct sock *sk, struct sk_buff *skb);
@@ -112,7 +112,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  void tcp_done(struct sock *sk);
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -1600,14 +1600,34 @@ void tcp_cleanup_rbuf(struct sock *sk, i
+@@ -1596,14 +1596,34 @@ void tcp_cleanup_rbuf(struct sock *sk, i
  		tcp_send_ack(sk);
  }
  
@@ -148,7 +148,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  }
  
  static struct sk_buff *tcp_recv_skb(struct sock *sk, u32 seq, u32 *off)
-@@ -2448,6 +2468,7 @@ static int tcp_recvmsg_locked(struct soc
+@@ -2454,6 +2474,7 @@ static int tcp_recvmsg_locked(struct soc
  			release_sock(sk);
  			lock_sock(sk);
  		} else {
@@ -156,7 +156,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  			sk_wait_data(sk, &timeo, last);
  		}
  
-@@ -2566,6 +2587,7 @@ int tcp_recvmsg(struct sock *sk, struct
+@@ -2572,6 +2593,7 @@ int tcp_recvmsg(struct sock *sk, struct
  	ret = tcp_recvmsg_locked(sk, msg, len, nonblock, flags, &tss,
  				 &cmsg_flags);
  	release_sock(sk);
@@ -164,7 +164,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  
  	if (cmsg_flags && ret >= 0) {
  		if (cmsg_flags & TCP_CMSG_TS)
-@@ -3103,7 +3125,7 @@ int tcp_disconnect(struct sock *sk, int
+@@ -3116,7 +3138,7 @@ int tcp_disconnect(struct sock *sk, int
  		sk->sk_frag.page = NULL;
  		sk->sk_frag.offset = 0;
  	}
@@ -173,7 +173,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	sk_error_report(sk);
  	return 0;
  }
-@@ -4232,6 +4254,7 @@ static int do_tcp_getsockopt(struct sock
+@@ -4251,6 +4273,7 @@ static int do_tcp_getsockopt(struct sock
  		err = BPF_CGROUP_RUN_PROG_GETSOCKOPT_KERN(sk, level, optname,
  							  &zc, &len, err);
  		release_sock(sk);
@@ -183,7 +183,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		switch (len) {
 --- a/net/ipv4/tcp_ipv4.c
 +++ b/net/ipv4/tcp_ipv4.c
-@@ -2119,6 +2119,7 @@ process:
+@@ -2121,6 +2121,7 @@ process:
  
  	sk_incoming_cpu_update(sk);
  

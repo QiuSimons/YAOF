@@ -16,11 +16,9 @@ Signed-off-by: Stephan Mueller <smueller@chronox.de>
  3 files changed, 143 insertions(+), 13 deletions(-)
  create mode 100644 drivers/char/lrng/lrng_interface_kcapi.c
 
-diff --git a/drivers/char/lrng/Kconfig b/drivers/char/lrng/Kconfig
-index 3d4ace3f0d0b..e55e61eada2a 100644
 --- a/drivers/char/lrng/Kconfig
 +++ b/drivers/char/lrng/Kconfig
-@@ -89,18 +89,18 @@ config LRNG_AIS2031_NTG1_SEEDING_STRATEGY
+@@ -89,18 +89,18 @@ config LRNG_AIS2031_NTG1_SEEDING_STRATEG
  
  endmenu # "Specific DRNG seeding strategies"
  
@@ -51,7 +49,7 @@ index 3d4ace3f0d0b..e55e61eada2a 100644
  # config LRNG_HWRAND_IF
  # 	tristate "Interface with Hardware Random Number Generator Framework"
  # 	depends on HW_RANDOM
-@@ -120,7 +120,7 @@ endmenu # "Specific DRNG seeding strategies"
+@@ -120,7 +120,7 @@ endmenu # "Specific DRNG seeding strateg
  # 	  identically to /dev/random including IOCTL, read and write
  # 	  operations.
  #
@@ -60,18 +58,13 @@ index 3d4ace3f0d0b..e55e61eada2a 100644
  
  menu "Entropy Source Configuration"
  
-diff --git a/drivers/char/lrng/Makefile b/drivers/char/lrng/Makefile
-index 6242262d577e..6a163038ffb4 100644
 --- a/drivers/char/lrng/Makefile
 +++ b/drivers/char/lrng/Makefile
-@@ -34,3 +34,4 @@ obj-$(CONFIG_LRNG_COMMON_DEV_IF)	+= lrng_interface_dev_common.o
+@@ -34,3 +34,4 @@ obj-$(CONFIG_LRNG_COMMON_DEV_IF)	+= lrng
  obj-$(CONFIG_LRNG_RANDOM_IF)		+= lrng_interface_random_user.o \
  					   lrng_interface_random_kernel.o \
  					   lrng_interface_aux.o
 +obj-$(CONFIG_LRNG_KCAPI_IF)		+= lrng_interface_kcapi.o
-diff --git a/drivers/char/lrng/lrng_interface_kcapi.c b/drivers/char/lrng/lrng_interface_kcapi.c
-new file mode 100644
-index 000000000000..4cb511f8088e
 --- /dev/null
 +++ b/drivers/char/lrng/lrng_interface_kcapi.c
 @@ -0,0 +1,129 @@
@@ -204,6 +197,3 @@ index 000000000000..4cb511f8088e
 +MODULE_ALIAS_CRYPTO("lrng");
 +MODULE_ALIAS_CRYPTO("lrng_atomic");
 +MODULE_ALIAS_CRYPTO("stdrng");
--- 
-2.44.0
-
