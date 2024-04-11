@@ -102,6 +102,8 @@ cp -rf ../immortalwrt_23/package/boot/uboot-rockchip ./package/boot/uboot-rockch
 rm -rf ./package/boot/arm-trusted-firmware-rockchip
 cp -rf ../immortalwrt_23/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
 sed -i '/REQUIRE_IMAGE_METADATA/d' target/linux/rockchip/armv8/base-files/lib/upgrade/platform.sh
+# r8152 - fix warning when low memory for nanopi devices
+sed -i '/^define Device\/friendlyarm_nanopi-.*$/,/^endef/ s/kmod-usb-net-rtl8152/kmod-usb-net-rtl8152-vendor/' target/linux/rockchip/image/armv8.mk
 #intel-firmware
 wget -qO - https://github.com/openwrt/openwrt/commit/9c58add.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/64f1a65.patch | patch -p1
@@ -164,7 +166,7 @@ git clone https://github.com/sbwml/feeds_packages_lang_node-prebuilt feeds/packa
 git clone -b master --depth 1 https://github.com/BROBIRD/openwrt-r8168.git package/new/r8168
 patch -p1 <../PATCH/r8168/r8168-fix_LAN_led-for_r4s-from_TL.patch
 # R8152驱动
-cp -rf ../immortalwrt/package/kernel/r8152 ./package/new/r8152
+git clone https://github.com/sbwml/package_kernel_r8152 package/new/r8152
 # r8125驱动
 git clone https://github.com/sbwml/package_kernel_r8125 package/new/r8125
 # igc-fix
