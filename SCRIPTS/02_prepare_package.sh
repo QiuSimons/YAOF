@@ -53,8 +53,8 @@ CONFIG_LRNG_CPU=y
 # CONFIG_LRNG_SCHED is not set
 ' >>./target/linux/generic/config-5.15
 # SSL
-rm -rf ./package/libs/mbedtls
-cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
+#rm -rf ./package/libs/mbedtls
+#cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
 #rm -rf ./package/libs/openssl
 #cp -rf ../immortalwrt_21/package/libs/openssl ./package/libs/openssl
 # fstool
