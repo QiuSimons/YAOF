@@ -130,7 +130,7 @@ jobs:
         ls -Ahl
     - name: Create release
       id: create_release
-      uses: ncipollo/release-action@v1.12.0
+      uses: ncipollo/release-action@main
       with:
         name: OpenWRT-${{ env.latest_release }}
         allowUpdates: true

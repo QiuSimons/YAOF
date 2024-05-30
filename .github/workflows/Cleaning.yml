@@ -3,39 +3,32 @@ name: Cleaning
 on:
   schedule:
     - cron: 1 1 * * 1
-  watch:
-    types: started
+  workflow_dispatch:
 
 jobs:
   
   Cleanup-Old-Releases:
-    runs-on: ubuntu-20.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-24.04
     steps:  
     - name: Delete Older Releases
       uses: dev-drprasad/delete-older-releases@master
       with:
-        keep_latest: 9
+        keep_latest: 20
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   Cleanup-Old-Artifacts:
-    runs-on: ubuntu-20.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-24.04
     steps:
     - name: Cleanup Old Action Artifacts
-      uses: heidi-pay/gha-delete-artifacts@main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: c-hive/gha-remove-artifacts@master
       with:
-        days: 3
-        max-artifacts-to-delete: 100
-        dry-run: no
+          age: '3 days'
+          skip-recent: 3
         
   Cleanup-Workflow-Logs:
-    runs-on: ubuntu-20.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-24.04
     steps:
       - name: Cleanup Workflow Logs
         uses: Mattraks/delete-workflow-runs@main
