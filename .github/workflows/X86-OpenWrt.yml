@@ -61,26 +61,31 @@ jobs:
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
     - name: Prepare Package
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        cd openwrt
         cp -r ../SCRIPTS/. ./
         /bin/bash 02_prepare_package.sh
         /bin/bash 02_target_only.sh
         /bin/bash 04_remove_upx.sh
     - name: QTMDFW4
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
         cp -rf ../SEED/X86/config.seed .config
     - name: Convert Translation
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
         /bin/bash 03_convert_translation.sh
     - name: Add ACL
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
         /bin/bash 05_create_acl_for_luci.sh -a
     - name: Fix Permissions
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
         sudo -E chmod -R 755 ./08_fix_permissions.sh
         /bin/bash 08_fix_permissions.sh
     - name: Make Config
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
         make defconfig
     - name: Get Architecture
@@ -96,9 +101,11 @@ jobs:
         mixkey: ${{ env.TARGET_DEVICE_ARCH }}
         prefix: ${{ github.workspace }}/openwrt
     - name: Make Download
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
         make download -j50
     - name: Compile Openwrt
+      working-directory: ${{ github.workspace }}/openwrt
       id: compileopenwrt
       continue-on-error: true
       run: |
@@ -107,6 +114,7 @@ jobs:
         echo $?
     - name: If Error
       if: steps.compileopenwrt.outcome == 'failure'
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
         cat openwrt/.config
         echo '================================================================'
