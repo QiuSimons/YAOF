@@ -1,22 +1,76 @@
 #!/bin/sh
-[ "$ACTION" = add ] || exit
 
-# 遍历所有网口
+# Exit if the script is not triggered by adding a device
+#[ "$ACTION" = add ] || exit
+
+# Iterate over all network interfaces
 for NIC in $(ls /sys/class/net/)
 do
-  # 检查网口是否支持ethtool命令
+  # Check if ethtool command is supported for the interface
   if command -v ethtool &> /dev/null && ethtool $NIC &> /dev/null; then
-    # 获取rx和tx缓存最大值
+    # Get the maximum RX and TX buffer sizes
     RX_MAX=$(ethtool -g $NIC 2>/dev/null | awk '/^RX:/ {print $2}' | awk 'NR==1')
     TX_MAX=$(ethtool -g $NIC 2>/dev/null | awk '/^TX:/ {print $2}' | awk 'NR==1')
 
-    # 如果无法获取rx和tx缓存最大值，则跳过该网卡
+    # Skip the network card if unable to retrieve max RX and TX buffer sizes
     if [ -z "$RX_MAX" ] || [ -z "$TX_MAX" ]; then
       continue
     fi
 
-    # 调整rx和tx缓存为驱动支持的最大值
+    # Set RX and TX buffers to maximum supported by the driver
+    echo "Setting RX buffer size to $RX_MAX on $NIC"
     ethtool -G $NIC rx $RX_MAX
+    echo "Setting TX buffer size to $TX_MAX on $NIC"
     ethtool -G $NIC tx $TX_MAX
+
+    # Initialize flags to check if adaptive coalescing was enabled for RX and TX
+    adaptive_rx_supported=false
+    adaptive_tx_supported=false
+
+    # Check and enable adaptive RX coalescing if supported
+    if ethtool -c $NIC | grep "Adaptive RX:" > /dev/null; then
+      adaptive_rx_supported=true
+    fi
+
+    # Check and enable adaptive TX coalescing if supported
+    if ethtool -c $NIC | grep "TX: off" > /dev/null; then
+      adaptive_tx_supported=true
+    fi
+
+    # If both adaptive RX and TX coalescing are supported, enable them
+    if [ "$adaptive_rx_supported" = true ] && [ "$adaptive_tx_supported" = true ]; then
+      if ethtool -C $NIC adaptive-rx on adaptive-tx on &> /dev/null; then
+        echo "Adaptive RX/TX coalescing enabled on $NIC"
+      else
+        echo "Failed to set adaptive RX/TX coalescing on $NIC."
+        adaptive_rx_supported=false
+        adaptive_tx_supported=false
+      fi
+    fi
+
+    # If adaptive coalescing was not enabled, adjust rx-usecs and tx-usecs if necessary
+    if [ "$adaptive_rx_supported" = false ] || [ "$adaptive_tx_supported" = false ]; then
+      # Get current rx-usecs and tx-usecs values
+      current_rx=$(ethtool -c $NIC | grep "rx-usecs:" | awk '{print $2}')
+      current_tx=$(ethtool -c $NIC | grep "tx-usecs:" | awk '{print $2}')
+
+      # Set rx-usecs to 500 if it is less than 500 and changeable
+      if [[ "$current_rx" =~ ^[0-9]+$ ]] && [ "$current_rx" -lt 500 ]; then
+        if ! ethtool -C $NIC rx-usecs 500 &> /dev/null; then
+          echo "Unable to set rx-usecs on $NIC."
+        else
+          echo "rx-usecs set to 500 on $NIC."
+        fi
+      fi
+
+      # Set tx-usecs to 500 if it is less than 500 and changeable
+      if [[ "$current_tx" =~ ^[0-9]+$ ]] && [ "$current_tx" -lt 500 ]; then
+        if ! ethtool -C $NIC tx-usecs 500 &> /dev/null; then
+          echo "Unable to set tx-usecs on $NIC."
+        else
+          echo "tx-usecs set to 500 on $NIC."
+        fi
+      fi
+    fi
   fi
 done

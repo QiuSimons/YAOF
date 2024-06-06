@@ -61,27 +61,32 @@ jobs:
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
     - name: Prepare Package
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        cd openwrt
         cp -r ../SCRIPTS/. ./
         /bin/bash 02_prepare_package.sh
         /bin/bash 02_target_only.sh
         /bin/bash 04_remove_upx.sh
     - name: QTMDFW4
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        cd openwrt
         cp -rf ../SEED/X86/config.seed .config
     - name: Convert Translation
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        cd openwrt
         /bin/bash 03_convert_translation.sh
     - name: Add ACL
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        cd openwrt
         /bin/bash 05_create_acl_for_luci.sh -a
-    - name: Make Config
+    - name: Fix Permissions
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        cd openwrt
+        sudo -E chmod -R 755 ./08_fix_permissions.sh
+        /bin/bash 08_fix_permissions.sh
+    - name: Make Config
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
         make defconfig
     - name: Get Architecture
       working-directory: ${{ github.workspace }}/openwrt
@@ -96,23 +101,24 @@ jobs:
         mixkey: ${{ env.TARGET_DEVICE_ARCH }}
         prefix: ${{ github.workspace }}/openwrt
     - name: Make Download
+      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        cd openwrt
         make download -j50
     - name: Compile Openwrt
+      working-directory: ${{ github.workspace }}/openwrt
       id: compileopenwrt
       continue-on-error: true
       run: |
-        cd openwrt
         #echo | make kernel_oldconfig -j$(($(nproc) + 1)) 
         IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
         echo $?
     - name: If Error
+      working-directory: ${{ github.workspace }}/openwrt
       if: steps.compileopenwrt.outcome == 'failure'
       run: |
-        cat openwrt/.config
+        cat ./.config
         echo '================================================================'
-        cd openwrt && make -j1 V=s
+        make -j1 V=s
     - name: Organize files
       id: organize
       run: |
