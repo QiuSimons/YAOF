@@ -47,30 +47,5 @@ do
         adaptive_tx_supported=false
       fi
     fi
-
-    # If adaptive coalescing was not enabled, adjust rx-usecs and tx-usecs if necessary
-    if [ "$adaptive_rx_supported" = false ] || [ "$adaptive_tx_supported" = false ]; then
-      # Get current rx-usecs and tx-usecs values
-      current_rx=$(ethtool -c $NIC | grep "rx-usecs:" | awk '{print $2}')
-      current_tx=$(ethtool -c $NIC | grep "tx-usecs:" | awk '{print $2}')
-
-      # Set rx-usecs to 500 if it is less than 500 and changeable
-      if [[ "$current_rx" =~ ^[0-9]+$ ]] && [ "$current_rx" -lt 500 ]; then
-        if ! ethtool -C $NIC rx-usecs 500 &> /dev/null; then
-          echo "Unable to set rx-usecs on $NIC."
-        else
-          echo "rx-usecs set to 500 on $NIC."
-        fi
-      fi
-
-      # Set tx-usecs to 500 if it is less than 500 and changeable
-      if [[ "$current_tx" =~ ^[0-9]+$ ]] && [ "$current_tx" -lt 500 ]; then
-        if ! ethtool -C $NIC tx-usecs 500 &> /dev/null; then
-          echo "Unable to set tx-usecs on $NIC."
-        else
-          echo "tx-usecs set to 500 on $NIC."
-        fi
-      fi
-    fi
   fi
 done
