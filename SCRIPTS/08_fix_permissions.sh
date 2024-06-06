@@ -17,6 +17,7 @@ find "$BASE_DIR/scripts" -type f -exec chmod 755 {} \;
 
 # Setting special permissions for feeds
 find "$BASE_DIR/feeds" -type f -exec chmod 755 {} \;
+find "$BASE_DIR/package" -type f -exec chmod 755 {} \;
 
 # Setting special permissions for the build system scripts
 chmod 755 "$BASE_DIR/scripts/feeds"
