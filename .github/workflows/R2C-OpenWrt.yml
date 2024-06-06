@@ -69,19 +69,19 @@ jobs:
         /bin/bash 04_remove_upx.sh
     - name: QTMDFW4
       run: |
-        cd openwrt
         cp -rf ../SEED/R2C/config.seed .config
     - name: Convert Translation
       run: |
-        cd openwrt
         /bin/bash 03_convert_translation.sh
     - name: Add ACL
       run: |
-        cd openwrt
         /bin/bash 05_create_acl_for_luci.sh -a
+    - name: Fix Permissions
+      run: |
+        sudo -E chmod -R 755 ./08_fix_permissions.sh
+        /bin/bash 08_fix_permissions.sh
     - name: Make Config
       run: |
-        cd openwrt
         make defconfig
     - name: Get Architecture
       working-directory: ${{ github.workspace }}/openwrt
@@ -97,13 +97,11 @@ jobs:
         prefix: ${{ github.workspace }}/openwrt
     - name: Make Download
       run: |
-        cd openwrt
         make download -j50
     - name: Compile Openwrt
       id: compileopenwrt
       continue-on-error: true
       run: |
-        cd openwrt
         #echo | make kernel_oldconfig -j$(($(nproc) + 1)) 
         IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
         echo $?
@@ -112,7 +110,7 @@ jobs:
       run: |
         cat openwrt/.config
         echo '================================================================'
-        cd openwrt && make -j1 V=s
+        make -j1 V=s
     - name: Organize files
       id: organize
       run: |
