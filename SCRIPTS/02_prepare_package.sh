@@ -122,8 +122,6 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
-# fix PF_RING-8.0.0
-wget -qO - https://github.com/SergeyFilippov/openwrt/commit/e66ca39.patch | patch -p1
 # dae ready
 cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
