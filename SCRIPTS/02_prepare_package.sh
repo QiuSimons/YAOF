@@ -125,8 +125,6 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 # dae ready
 cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
 ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
-cp -rf ../immortalwrt_pkg/net/daed ./feeds/packages/net/daed
-ln -sf ../../../feeds/packages/net/daed ./package/feeds/packages/daed
 cp -rf ../lucidaednext/daed-next ./package/new/daed-next
 cp -rf ../lucidaednext/luci-app-daed-next ./package/new/luci-app-daed-next
 git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
