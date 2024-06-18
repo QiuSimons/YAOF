@@ -9,7 +9,7 @@ find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type d -exec chmod 755
 
 # Setting permissions for files, excluding staging_dir
 find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f -exec chmod 644 "{}" +
-find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f ! -name "*.c" ! -name "*.h" -exec dos2unix "{}" +
+#find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f ! -name "*.c" ! -name "*.h" -exec dos2unix "{}" +
 
 # Setting executable permissions for specific scripts, excluding staging_dir
 find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f \( -name "*.sh" -o -name "*.pl" -o -name "*.py" -o -name "*.awk" -o -name "*bin*" -o -name "Makefile" -o -name "configure" \) -exec chmod 755 "{}" +
