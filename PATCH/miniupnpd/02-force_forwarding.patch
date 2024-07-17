@@ -154,9 +154,9 @@ index 0000000..927dad1
 + #ext_ip=
 ++#force forwarding enable for upnp: default is no
 ++#force_forwarding=yes
++ 
 + # WAN interface must have public IP address. Otherwise it is behind NAT
 + # and port forwarding is impossible. In some cases WAN interface can be
-+ # behind unrestricted full-cone NAT 1:1 when all incoming traffic is NAT-ed and
 +diff --git a/natpmp.c b/natpmp.c
 +index 14690a6..e3acce1 100644
 +--- a/natpmp.c
