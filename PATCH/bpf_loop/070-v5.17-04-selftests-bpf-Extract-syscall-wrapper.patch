@@ -1,0 +1,44 @@
+commit 78a2054156dd6265619b230cc5372b74f9ba5233 upstream.
+
+Extract the helper to set up SYS_PREFIX for fentry and kprobe selftests
+that use __x86_sys_* attach functions.
+
+Suggested-by: Andrii Nakryiko <andrii@kernel.org>
+Signed-off-by: Kenta Tada <Kenta.Tada@sony.com>
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Link: https://lore.kernel.org/bpf/20220124141622.4378-2-Kenta.Tada@sony.com
+Signed-off-by: Tianchen Ding <dtcccc@linux.alibaba.com>
+---
+
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/bpf_misc.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __BPF_MISC_H__
++#define __BPF_MISC_H__
++
++#if defined(__TARGET_ARCH_x86)
++#define SYSCALL_WRAPPER 1
++#define SYS_PREFIX "__x64_"
++#elif defined(__TARGET_ARCH_s390)
++#define SYSCALL_WRAPPER 1
++#define SYS_PREFIX "__s390x_"
++#elif defined(__TARGET_ARCH_arm64)
++#define SYSCALL_WRAPPER 1
++#define SYS_PREFIX "__arm64_"
++#else
++#define SYSCALL_WRAPPER 0
++#define SYS_PREFIX ""
++#endif
++
++#endif
+--- a/tools/testing/selftests/bpf/progs/test_probe_user.c
++++ b/tools/testing/selftests/bpf/progs/test_probe_user.c
+@@ -7,6 +7,7 @@
+ 
+ #include <bpf/bpf_helpers.h>
+ #include <bpf/bpf_tracing.h>
++#include "bpf_misc.h"
+ 
+ static struct sockaddr_in old;
+ 

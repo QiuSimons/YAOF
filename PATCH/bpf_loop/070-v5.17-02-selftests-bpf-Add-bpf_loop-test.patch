@@ -1,0 +1,277 @@
+From: Joanne Koong @ 2021-11-29 22:37 UTC (permalink / raw)
+  To: bpf; +Cc: andrii, ast, daniel, Kernel-team, Joanne Koong
+
+Add test for bpf_loop testing a variety of cases:
+various nr_loops, null callback ctx, invalid flags, nested callbacks.
+
+Signed-off-by: Joanne Koong <joannekoong@fb.com>
+---
+ .../selftests/bpf/prog_tests/bpf_loop.c       | 138 ++++++++++++++++++
+ tools/testing/selftests/bpf/progs/bpf_loop.c  |  99 +++++++++++++
+ 2 files changed, 237 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_loop.c
+ create mode 100644 tools/testing/selftests/bpf/progs/bpf_loop.c
+
+--- /dev/null
++++ b/tools/testing/selftests/bpf/prog_tests/bpf_loop.c
+@@ -0,0 +1,145 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2021 Facebook */
++
++#include <test_progs.h>
++#include <network_helpers.h>
++#include "bpf_loop.skel.h"
++
++static void check_nr_loops(struct bpf_loop *skel)
++{
++	struct bpf_link *link;
++
++	link = bpf_program__attach(skel->progs.test_prog);
++	if (!ASSERT_OK_PTR(link, "link"))
++		return;
++
++	/* test 0 loops */
++	skel->bss->nr_loops = 0;
++
++	usleep(1);
++
++	ASSERT_EQ(skel->bss->nr_loops_returned, skel->bss->nr_loops,
++		  "0 loops");
++
++	/* test 500 loops */
++	skel->bss->nr_loops = 500;
++
++	usleep(1);
++
++	ASSERT_EQ(skel->bss->nr_loops_returned, skel->bss->nr_loops,
++		  "500 loops");
++	ASSERT_EQ(skel->bss->g_output, (500 * 499) / 2, "g_output");
++
++	/* test exceeding the max limit */
++	skel->bss->nr_loops = -1;
++
++	usleep(1);
++
++	ASSERT_EQ(skel->bss->err, -E2BIG, "over max limit");
++
++	bpf_link__destroy(link);
++}
++
++static void check_callback_fn_stop(struct bpf_loop *skel)
++{
++	struct bpf_link *link;
++
++	link = bpf_program__attach(skel->progs.test_prog);
++	if (!ASSERT_OK_PTR(link, "link"))
++		return;
++
++	/* testing that loop is stopped when callback_fn returns 1 */
++	skel->bss->nr_loops = 400;
++	skel->data->stop_index = 50;
++
++	usleep(1);
++
++	ASSERT_EQ(skel->bss->nr_loops_returned, skel->data->stop_index + 1,
++		  "nr_loops_returned");
++	ASSERT_EQ(skel->bss->g_output, (50 * 49) / 2,
++		  "g_output");
++
++	bpf_link__destroy(link);
++}
++
++static void check_null_callback_ctx(struct bpf_loop *skel)
++{
++	struct bpf_link *link;
++
++	/* check that user is able to pass in a null callback_ctx */
++	link = bpf_program__attach(skel->progs.prog_null_ctx);
++	if (!ASSERT_OK_PTR(link, "link"))
++		return;
++
++	skel->bss->nr_loops = 10;
++
++	usleep(1);
++
++	ASSERT_EQ(skel->bss->nr_loops_returned, skel->bss->nr_loops,
++		  "nr_loops_returned");
++
++	bpf_link__destroy(link);
++}
++
++static void check_invalid_flags(struct bpf_loop *skel)
++{
++	struct bpf_link *link;
++
++	/* check that passing in non-zero flags returns -EINVAL */
++	link = bpf_program__attach(skel->progs.prog_invalid_flags);
++	if (!ASSERT_OK_PTR(link, "link"))
++		return;
++
++	usleep(1);
++
++	ASSERT_EQ(skel->bss->err, -EINVAL, "err");
++
++	bpf_link__destroy(link);
++}
++
++static void check_nested_calls(struct bpf_loop *skel)
++{
++	__u32 nr_loops = 100, nested_callback_nr_loops = 4;
++	struct bpf_link *link;
++
++	/* check that nested calls are supported */
++	link = bpf_program__attach(skel->progs.prog_nested_calls);
++	if (!ASSERT_OK_PTR(link, "link"))
++		return;
++
++	skel->bss->nr_loops = nr_loops;
++	skel->bss->nested_callback_nr_loops = nested_callback_nr_loops;
++
++	usleep(1);
++
++	ASSERT_EQ(skel->bss->nr_loops_returned, nr_loops * nested_callback_nr_loops
++		  * nested_callback_nr_loops, "nr_loops_returned");
++	ASSERT_EQ(skel->bss->g_output, (4 * 3) / 2 * nested_callback_nr_loops
++		* nr_loops, "g_output");
++
++	bpf_link__destroy(link);
++}
++
++void test_bpf_loop(void)
++{
++	struct bpf_loop *skel;
++
++	skel = bpf_loop__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "bpf_loop__open_and_load"))
++		return;
++
++	skel->bss->pid = getpid();
++
++	if (test__start_subtest("check_nr_loops"))
++		check_nr_loops(skel);
++	if (test__start_subtest("check_callback_fn_stop"))
++		check_callback_fn_stop(skel);
++	if (test__start_subtest("check_null_callback_ctx"))
++		check_null_callback_ctx(skel);
++	if (test__start_subtest("check_invalid_flags"))
++		check_invalid_flags(skel);
++	if (test__start_subtest("check_nested_calls"))
++		check_nested_calls(skel);
++
++	bpf_loop__destroy(skel);
++}
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/bpf_loop.c
+@@ -0,0 +1,112 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2021 Facebook */
++
++#include "vmlinux.h"
++#include <bpf/bpf_helpers.h>
++
++char _license[] SEC("license") = "GPL";
++
++struct callback_ctx {
++	int output;
++};
++
++/* These should be set by the user program */
++u32 nested_callback_nr_loops;
++u32 stop_index = -1;
++u32 nr_loops;
++int pid;
++
++/* Making these global variables so that the userspace program
++ * can verify the output through the skeleton
++ */
++int nr_loops_returned;
++int g_output;
++int err;
++
++static int callback(__u32 index, void *data)
++{
++	struct callback_ctx *ctx = data;
++
++	if (index >= stop_index)
++		return 1;
++
++	ctx->output += index;
++
++	return 0;
++}
++
++static int empty_callback(__u32 index, void *data)
++{
++	return 0;
++}
++
++static int nested_callback2(__u32 index, void *data)
++{
++	nr_loops_returned += bpf_loop(nested_callback_nr_loops, callback, data, 0);
++
++	return 0;
++}
++
++static int nested_callback1(__u32 index, void *data)
++{
++	bpf_loop(nested_callback_nr_loops, nested_callback2, data, 0);
++	return 0;
++}
++
++SEC("fentry/__x64_sys_nanosleep")
++int test_prog(void *ctx)
++{
++	struct callback_ctx data = {};
++
++	if (bpf_get_current_pid_tgid() >> 32 != pid)
++		return 0;
++
++	nr_loops_returned = bpf_loop(nr_loops, callback, &data, 0);
++
++	if (nr_loops_returned < 0)
++		err = nr_loops_returned;
++	else
++		g_output = data.output;
++
++	return 0;
++}
++
++SEC("fentry/__x64_sys_nanosleep")
++int prog_null_ctx(void *ctx)
++{
++	if (bpf_get_current_pid_tgid() >> 32 != pid)
++		return 0;
++
++	nr_loops_returned = bpf_loop(nr_loops, empty_callback, NULL, 0);
++
++	return 0;
++}
++
++SEC("fentry/__x64_sys_nanosleep")
++int prog_invalid_flags(void *ctx)
++{
++	struct callback_ctx data = {};
++
++	if (bpf_get_current_pid_tgid() >> 32 != pid)
++		return 0;
++
++	err = bpf_loop(nr_loops, callback, &data, 1);
++
++	return 0;
++}
++
++SEC("fentry/__x64_sys_nanosleep")
++int prog_nested_calls(void *ctx)
++{
++	struct callback_ctx data = {};
++
++	if (bpf_get_current_pid_tgid() >> 32 != pid)
++		return 0;
++
++	nr_loops_returned = 0;
++	bpf_loop(nr_loops, nested_callback1, &data, 0);
++
++	g_output = data.output;
++
++	return 0;
++}
