@@ -114,7 +114,18 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
  	}
 --- a/kernel/bpf/verifier.c
 +++ b/kernel/bpf/verifier.c
-@@ -6246,6 +6246,27 @@ static int set_timer_callback_state(stru
+@@ -520,7 +520,9 @@ static bool is_ptr_cast_function(enum bp
+ static bool is_callback_calling_function(enum bpf_func_id func_id)
+ {
+ 	return func_id == BPF_FUNC_for_each_map_elem ||
+-	       func_id == BPF_FUNC_timer_set_callback;
++	       func_id == BPF_FUNC_timer_set_callback ||
++	       func_id == BPF_FUNC_find_vma ||
++	       func_id == BPF_FUNC_loop;
+ }
+ 
+ static bool is_cmpxchg_insn(const struct bpf_insn *insn)
+@@ -6246,6 +6248,27 @@ static int set_timer_callback_state(stru
  	return 0;
  }
  
@@ -142,7 +153,7 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
  static int prepare_func_exit(struct bpf_verifier_env *env, int *insn_idx)
  {
  	struct bpf_verifier_state *state = env->cur_state;
-@@ -6582,13 +6603,7 @@ static int check_helper_call(struct bpf_
+@@ -6582,13 +6605,7 @@ static int check_helper_call(struct bpf_
  			return err;
  	}
  
@@ -157,7 +168,7 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
  		err = release_reference(env, meta.ref_obj_id);
  		if (err) {
  			verbose(env, "func %s#%d reference has not been acquired before\n",
-@@ -6599,35 +6614,43 @@ static int check_helper_call(struct bpf_
+@@ -6599,35 +6616,43 @@ static int check_helper_call(struct bpf_
  
  	regs = cur_regs(env);
  
