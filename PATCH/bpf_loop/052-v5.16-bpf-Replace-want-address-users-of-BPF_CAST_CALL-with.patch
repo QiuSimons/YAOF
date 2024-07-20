@@ -1,19 +1,8 @@
+From 3d717fad5081b8e3bda76d86907fad95398cbde8 Mon Sep 17 00:00:00 2001
 From: Kees Cook <keescook@chromium.org>
-To: Alexei Starovoitov <ast@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>,
-	Yonghong Song <yhs@fb.com>,
-	John Fastabend <john.fastabend@gmail.com>,
-	KP Singh <kpsingh@kernel.org>,
-	netdev@vger.kernel.org, bpf@vger.kernel.org,
-	"Gustavo A . R . Silva" <gustavoars@kernel.org>,
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: [PATCH 1/2] bpf: Replace "want address" users of BPF_CAST_CALL with BPF_CALL_IMM
-Date: Mon, 27 Sep 2021 11:26:59 -0700	[thread overview]
-Message-ID: <20210927182700.2980499-2-keescook@chromium.org> (raw)
-In-Reply-To: <20210927182700.2980499-1-keescook@chromium.org>
+Date: Tue, 28 Sep 2021 16:09:45 -0700
+Subject: [PATCH] bpf: Replace "want address" users of BPF_CAST_CALL with
+ BPF_CALL_IMM
 
 In order to keep ahead of cases in the kernel where Control Flow
 Integrity (CFI) may trip over function call casts, enabling
@@ -28,24 +17,19 @@ can clean up a common copy/paste idiom as well.
 
 This change results in no object code difference.
 
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: netdev@vger.kernel.org
-Cc: bpf@vger.kernel.org
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Link: https://github.com/KSPP/linux/issues/20
 Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Alexei Starovoitov <ast@kernel.org>
+Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Acked-by: Andrii Nakryiko <andrii@kernel.org>
+Link: https://github.com/KSPP/linux/issues/20
+Link: https://lore.kernel.org/lkml/CAEf4Bzb46=-J5Fxc3mMZ8JQPtK1uoE0q6+g6WPz53Cvx=CBEhw@mail.gmail.com
+Link: https://lore.kernel.org/bpf/20210928230946.4062144-2-keescook@chromium.org
 ---
  include/linux/filter.h |  6 +++++-
  kernel/bpf/hashtab.c   |  6 +++---
  kernel/bpf/verifier.c  | 26 +++++++++-----------------
- 3 files changed, 17 insertions(+), 21 deletions(-)
+ lib/test_bpf.c         |  2 +-
+ 4 files changed, 18 insertions(+), 22 deletions(-)
 
 --- a/include/linux/filter.h
 +++ b/include/linux/filter.h

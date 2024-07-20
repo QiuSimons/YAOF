@@ -1,19 +1,8 @@
+From 102acbacfd9a96d101abd96d1a7a5bf92b7c3e8e Mon Sep 17 00:00:00 2001
 From: Kees Cook <keescook@chromium.org>
-To: Alexei Starovoitov <ast@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>,
-	Yonghong Song <yhs@fb.com>,
-	John Fastabend <john.fastabend@gmail.com>,
-	KP Singh <kpsingh@kernel.org>,
-	netdev@vger.kernel.org, bpf@vger.kernel.org,
-	"Gustavo A . R . Silva" <gustavoars@kernel.org>,
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: [PATCH 2/2] bpf: Replace callers of BPF_CAST_CALL with proper function typedef
-Date: Mon, 27 Sep 2021 11:27:00 -0700	[thread overview]
-Message-ID: <20210927182700.2980499-3-keescook@chromium.org> (raw)
-In-Reply-To: <20210927182700.2980499-1-keescook@chromium.org>
+Date: Tue, 28 Sep 2021 16:09:46 -0700
+Subject: [PATCH] bpf: Replace callers of BPF_CAST_CALL with proper function
+ typedef
 
 In order to keep ahead of cases in the kernel where Control Flow
 Integrity (CFI) may trip over function call casts, enabling
@@ -26,19 +15,13 @@ captures the same details about the given function pointers.
 
 This change results in no object code difference.
 
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: netdev@vger.kernel.org
-Cc: bpf@vger.kernel.org
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Link: https://github.com/KSPP/linux/issues/20
 Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Alexei Starovoitov <ast@kernel.org>
+Acked-by: Andrii Nakryiko <andrii@kernel.org>
+Acked-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Link: https://github.com/KSPP/linux/issues/20
+Link: https://lore.kernel.org/lkml/CAEf4Bzb46=-J5Fxc3mMZ8JQPtK1uoE0q6+g6WPz53Cvx=CBEhw@mail.gmail.com
+Link: https://lore.kernel.org/bpf/20210928230946.4062144-3-keescook@chromium.org
 ---
  include/linux/bpf.h    | 4 +++-
  include/linux/filter.h | 5 -----

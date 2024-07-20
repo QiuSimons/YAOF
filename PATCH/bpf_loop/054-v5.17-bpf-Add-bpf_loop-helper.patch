@@ -1,5 +1,7 @@
-From: Joanne Koong @ 2021-11-29 22:37 UTC (permalink / raw)
-  To: bpf; +Cc: andrii, ast, daniel, Kernel-team, Joanne Koong
+From e6f2dd0f80674e9d5960337b3e9c2a242441b326 Mon Sep 17 00:00:00 2001
+From: Joanne Koong <joannekoong@fb.com>
+Date: Mon, 29 Nov 2021 19:06:19 -0800
+Subject: [PATCH] bpf: Add bpf_loop helper
 
 This patch adds the kernel-side and API changes for a new helper
 function, bpf_loop:
@@ -26,6 +28,9 @@ for these being too deep.
 ~ The next patch will include the tests and benchmark
 
 Signed-off-by: Joanne Koong <joannekoong@fb.com>
+Signed-off-by: Alexei Starovoitov <ast@kernel.org>
+Acked-by: Andrii Nakryiko <andrii@kernel.org>
+Link: https://lore.kernel.org/bpf/20211130030622.4131246-2-joannekoong@fb.com
 ---
  include/linux/bpf.h            |  1 +
  include/uapi/linux/bpf.h       | 25 ++++++++++
@@ -47,7 +52,38 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
    enum bpf_func_id func_id, const struct bpf_prog *prog);
 --- a/include/uapi/linux/bpf.h
 +++ b/include/uapi/linux/bpf.h
-@@ -5074,6 +5074,12 @@ union bpf_attr {
+@@ -4896,6 +4896,30 @@ union bpf_attr {
+  *		Get the struct pt_regs associated with **task**.
+  *	Return
+  *		A pointer to struct pt_regs.
++ *
++ * long bpf_loop(u32 nr_loops, void *callback_fn, void *callback_ctx, u64 flags)
++ *	Description
++ *		For **nr_loops**, call **callback_fn** function
++ *		with **callback_ctx** as the context parameter.
++ *		The **callback_fn** should be a static function and
++ *		the **callback_ctx** should be a pointer to the stack.
++ *		The **flags** is used to control certain aspects of the helper.
++ *		Currently, the **flags** must be 0. Currently, nr_loops is
++ *		limited to 1 << 23 (~8 million) loops.
++ *
++ *		long (\*callback_fn)(u32 index, void \*ctx);
++ *
++ *		where **index** is the current index in the loop. The index
++ *		is zero-indexed.
++ *
++ *		If **callback_fn** returns 0, the helper will continue to the next
++ *		loop. If return value is 1, the helper will skip the rest of
++ *		the loops and return. Other return values are not used now,
++ *		and will be rejected by the verifier.
++ *
++ *	Return
++ *		The number of loops performed, **-EINVAL** for invalid **flags**,
++ *		**-E2BIG** if **nr_loops** exceeds the maximum number of loops.
+  */
+ #define __BPF_FUNC_MAPPER(FN)		\
+ 	FN(unspec),			\
+@@ -5074,6 +5098,12 @@ union bpf_attr {
  	FN(get_func_ip),		\
  	FN(get_attach_cookie),		\
  	FN(task_pt_regs),		\
@@ -114,18 +150,7 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
  	}
 --- a/kernel/bpf/verifier.c
 +++ b/kernel/bpf/verifier.c
-@@ -520,7 +520,9 @@ static bool is_ptr_cast_function(enum bp
- static bool is_callback_calling_function(enum bpf_func_id func_id)
- {
- 	return func_id == BPF_FUNC_for_each_map_elem ||
--	       func_id == BPF_FUNC_timer_set_callback;
-+	       func_id == BPF_FUNC_timer_set_callback ||
-+	       func_id == BPF_FUNC_find_vma ||
-+	       func_id == BPF_FUNC_loop;
- }
- 
- static bool is_cmpxchg_insn(const struct bpf_insn *insn)
-@@ -6246,6 +6248,27 @@ static int set_timer_callback_state(stru
+@@ -6217,6 +6217,27 @@ static int set_map_elem_callback_state(s
  	return 0;
  }
  
@@ -150,10 +175,10 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
 +	return 0;
 +}
 +
- static int prepare_func_exit(struct bpf_verifier_env *env, int *insn_idx)
- {
- 	struct bpf_verifier_state *state = env->cur_state;
-@@ -6582,13 +6605,7 @@ static int check_helper_call(struct bpf_
+ static int set_timer_callback_state(struct bpf_verifier_env *env,
+ 				    struct bpf_func_state *caller,
+ 				    struct bpf_func_state *callee,
+@@ -6582,13 +6603,7 @@ static int check_helper_call(struct bpf_
  			return err;
  	}
  
@@ -168,7 +193,7 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
  		err = release_reference(env, meta.ref_obj_id);
  		if (err) {
  			verbose(env, "func %s#%d reference has not been acquired before\n",
-@@ -6599,35 +6616,43 @@ static int check_helper_call(struct bpf_
+@@ -6599,35 +6614,43 @@ static int check_helper_call(struct bpf_
  
  	regs = cur_regs(env);
  
@@ -234,27 +259,40 @@ Signed-off-by: Joanne Koong <joannekoong@fb.com>
  	/* reset caller saved regs */
  	for (i = 0; i < CALLER_SAVED_REGS; i++) {
  		mark_reg_not_init(env, regs, caller_saved[i]);
---- a/scripts/bpf_doc.py
-+++ b/scripts/bpf_doc.py
-@@ -537,6 +537,7 @@ class PrinterHelpers(Printer):
-             'struct tcp_timewait_sock',
-             'struct tcp_request_sock',
-             'struct udp6_sock',
-+            'struct unix_sock',
-             'struct task_struct',
- 
-             'struct __sk_buff',
-@@ -589,6 +590,7 @@ class PrinterHelpers(Printer):
-             'struct tcp_timewait_sock',
-             'struct tcp_request_sock',
-             'struct udp6_sock',
-+            'struct unix_sock',
-             'struct task_struct',
-             'struct path',
-             'struct btf_ptr',
 --- a/tools/include/uapi/linux/bpf.h
 +++ b/tools/include/uapi/linux/bpf.h
-@@ -5074,6 +5074,12 @@ union bpf_attr {
+@@ -4896,6 +4896,30 @@ union bpf_attr {
+  *		Get the struct pt_regs associated with **task**.
+  *	Return
+  *		A pointer to struct pt_regs.
++ *
++ * long bpf_loop(u32 nr_loops, void *callback_fn, void *callback_ctx, u64 flags)
++ *	Description
++ *		For **nr_loops**, call **callback_fn** function
++ *		with **callback_ctx** as the context parameter.
++ *		The **callback_fn** should be a static function and
++ *		the **callback_ctx** should be a pointer to the stack.
++ *		The **flags** is used to control certain aspects of the helper.
++ *		Currently, the **flags** must be 0. Currently, nr_loops is
++ *		limited to 1 << 23 (~8 million) loops.
++ *
++ *		long (\*callback_fn)(u32 index, void \*ctx);
++ *
++ *		where **index** is the current index in the loop. The index
++ *		is zero-indexed.
++ *
++ *		If **callback_fn** returns 0, the helper will continue to the next
++ *		loop. If return value is 1, the helper will skip the rest of
++ *		the loops and return. Other return values are not used now,
++ *		and will be rejected by the verifier.
++ *
++ *	Return
++ *		The number of loops performed, **-EINVAL** for invalid **flags**,
++ *		**-E2BIG** if **nr_loops** exceeds the maximum number of loops.
+  */
+ #define __BPF_FUNC_MAPPER(FN)		\
+ 	FN(unspec),			\
+@@ -5074,6 +5098,12 @@ union bpf_attr {
  	FN(get_func_ip),		\
  	FN(get_attach_cookie),		\
  	FN(task_pt_regs),		\
