@@ -1,6 +1,7 @@
 #!/bin/bash
 clear
-
+# 调整默认 LAN IP
+sed -i 's/192.168.1.1/192.168.1.2/g' package/base-files/files/bin/config_generate
 ### 基础部分 ###
 # 使用 O2 级别的优化
 sed -i 's/Os/O2/g' include/target.mk
