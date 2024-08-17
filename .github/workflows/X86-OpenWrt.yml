@@ -73,6 +73,11 @@ jobs:
       run: |
         sudo -E chmod -R 755 ./08_fix_permissions.sh
         /bin/bash 08_fix_permissions.sh
+    - name: Diy Config
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        sudo -E chmod -R 755 ./09_diy.sh
+        /bin/bash 09_diy.sh
     - name: Make Config
       working-directory: ${{ github.workspace }}/openwrt
       run: |
@@ -131,7 +136,7 @@ jobs:
         allowUpdates: true
         prerelease: false
         tag: ${{ env.latest_release }}
-        commit: 23.05
+        commit: X86
         replacesArtifacts: true
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: ./artifact/*.zip
