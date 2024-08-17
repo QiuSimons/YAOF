@@ -15,7 +15,10 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set latest release
-      run: echo "latest_release=v1.0.0" >> $GITHUB_ENV  # 替换为你的实际标签名称
+      run: |
+        latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][3-9]/p' | sed -n 1p | sed 's/.tar.gz//g' | sed 's/v//g')"
+        echo "latest_release=${latest_release}" >>$GITHUB_ENV
+        echo ${{ env.latest_release }}
       
     - name: Install jq
       run: sudo apt-get install -y jq
