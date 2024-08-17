@@ -138,7 +138,7 @@ jobs:
         tag: ${{ env.latest_release }}
         commit: X86
         replacesArtifacts: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.TOKEN }}
         artifacts: ./artifact/*.zip
     - name: Print Disk Space After
       run: df -h
