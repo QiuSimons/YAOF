@@ -1,4 +1,4 @@
-name: Create Release
+name: Validate Tag
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  create-release:
+  validate-tag:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -14,8 +14,28 @@ jobs:
 
     - name: Set latest release
       run: echo "latest_release=v1.0.0" >> $GITHUB_ENV  # 替换为你的实际标签名称
+      
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    - name: Validate tag
+      id: validate_tag
+      run: |
+        TAG_NAME=${{ env.latest_release }}
+        RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$TAG_NAME")
+        
+        if [ "$(echo $RESPONSE | jq -r '.message')" == "Not Found" ]; then
+          echo "Tag $TAG_NAME does not exist."
+          exit 1
+        else
+          echo "Tag $TAG_NAME is valid."
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create release
+      if: success()
       id: create_release
       uses: ncipollo/release-action@main
       with:
