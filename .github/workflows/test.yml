@@ -19,6 +19,11 @@ jobs:
         latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][3-9]/p' | sed -n 1p | sed 's/.tar.gz//g')"
         echo "latest_release=${latest_release}" >> $GITHUB_ENV
 
+    - name: Create tag if not exists
+      run: |
+        git tag -a ${{ env.latest_release }} -m "Release ${{ env.latest_release }}"
+        git push origin ${{ env.latest_release }}
+
     - name: Create release
       id: create_release
       uses: ncipollo/release-action@main
@@ -27,7 +32,7 @@ jobs:
         allowUpdates: true
         prerelease: false
         tag: ${{ env.latest_release }}
-        commit: X86  # 替换为你的实际提交哈希或分支名称
+        commit: 23.05  # 替换为你的实际提交哈希或分支名称
         replacesArtifacts: true
         token: ${{ secrets.TOKEN }}
         artifacts: ./artifact/*.zip
