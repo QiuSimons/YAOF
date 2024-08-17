@@ -8,39 +8,18 @@ on:
     types: started
 
 jobs:
-  validate-tag:
+  create-release:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set latest release
       run: |
-        latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][3-9]/p' | sed -n 1p | sed 's/.tar.gz//g' | sed 's/v//g')"
-        echo "latest_release=${latest_release}" >>$GITHUB_ENV
-        echo ${{ env.latest_release }}
-      
-    - name: Install jq
-      run: sudo apt-get install -y jq
-
-    - name: Validate tag
-      id: validate_tag
-      run: |
-        TAG_NAME=${{ env.latest_release }}
-        RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$TAG_NAME")
-        
-        if [ "$(echo $RESPONSE | jq -r '.message')" == "Not Found" ]; then
-          echo "Tag $TAG_NAME does not exist."
-          exit 1
-        else
-          echo "Tag $TAG_NAME is valid."
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][3-9]/p' | sed -n 1p | sed 's/.tar.gz//g')"
+        echo "latest_release=${latest_release}" >> $GITHUB_ENV
 
     - name: Create release
-      if: success()
       id: create_release
       uses: ncipollo/release-action@main
       with:
@@ -48,7 +27,7 @@ jobs:
         allowUpdates: true
         prerelease: false
         tag: ${{ env.latest_release }}
-        commit: 23.05  # 替换为你的实际提交哈希或分支名称
+        commit: X86  # 替换为你的实际提交哈希或分支名称
         replacesArtifacts: true
         token: ${{ secrets.TOKEN }}
         artifacts: ./artifact/*.zip
