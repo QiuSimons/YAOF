@@ -33,7 +33,7 @@ openwrt_third_repo="https://github.com/jjm2473/openwrt-third"
 dockerman_repo="https://github.com/lisaac/luci-app-dockerman"
 diskman_repo="https://github.com/lisaac/luci-app-diskman"
 docker_lib_repo="https://github.com/lisaac/luci-lib-docker"
-mosdns_repo="https://github.com/QiuSimons/openwrt-mos"
+mosdns_repo="https://github.com/sbwml/luci-app-mosdns.git"
 ssrp_repo="https://github.com/fw876/helloworld"
 zxlhhyccc_repo="https://github.com/zxlhhyccc/bf-package-master"
 linkease_repo="https://github.com/linkease/openwrt-app-actions"
@@ -71,10 +71,10 @@ clone_repo $openwrt_node_repo master openwrt-node &
 clone_repo $passwall_pkg_repo main passwall_pkg &
 clone_repo $passwall_luci_repo main passwall_luci &
 clone_repo $openwrt_third_repo main openwrt-third &
-clone_repo $dockerman_repo master dockerman &
+#clone_repo $dockerman_repo master dockerman &
 clone_repo $diskman_repo master diskman &
 clone_repo $docker_lib_repo master docker_lib &
-clone_repo $mosdns_repo master mosdns &
+clone_repo $mosdns_repo v5 mosdns &
 clone_repo $ssrp_repo main ssrp &
 clone_repo $zxlhhyccc_repo master zxlhhyccc &
 clone_repo $linkease_repo main linkease &
@@ -86,6 +86,8 @@ clone_repo $lucidaednext_repo rebase lucidaednext &
 clone_repo $sbwfw876_repo v5 sbwfw876 &
 clone_repo $sbw_pkg_repo main sbw_pkg &
 clone_repo $natmap_repo master natmap &
+clone_repo $sirpdboy_repo main luci-app-lucky/lucky &
+clone_repo $sirpdboy_repo main luci-theme-kucat &
 
 # 等待所有后台任务完成
 wait
