@@ -136,7 +136,7 @@ jobs:
         allowUpdates: true
         prerelease: false
         tag: ${{ env.latest_release }}
-        commit: X86
+        commit: 23.05
         replacesArtifacts: true
         token: ${{ secrets.TOKEN }}
         artifacts: ./artifact/*.zip
