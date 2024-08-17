@@ -1,0 +1,29 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set latest release
+      run: echo "latest_release=v1.0.0" >> $GITHUB_ENV  # 替换为你的实际标签名称
+
+    - name: Create release
+      id: create_release
+      uses: ncipollo/release-action@main
+      with:
+        name: OpenWRT-${{ env.latest_release }}
+        allowUpdates: true
+        prerelease: false
+        tag: ${{ env.latest_release }}
+        commit: 23.05  # 替换为你的实际提交哈希或分支名称
+        replacesArtifacts: true
+        token: ${{ secrets.TOKEN }}
+        artifacts: ./artifact/*.zip

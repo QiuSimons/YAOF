@@ -16,7 +16,7 @@ jobs:
         keep_latest: 20
         delete_tags: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
   Cleanup-Old-Artifacts:
     runs-on: ubuntu-24.04
@@ -33,6 +33,6 @@ jobs:
       - name: Cleanup Workflow Logs
         uses: Mattraks/delete-workflow-runs@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
           repository: ${{ github.repository }}
           retain_days: 3
