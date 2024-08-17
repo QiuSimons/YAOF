@@ -1,9 +1,11 @@
 name: Validate Tag
 
 on:
-  push:
-    branches:
-      - main
+#  schedule:
+#    - cron: 5 6 * * 0
+  workflow_dispatch:
+  watch:
+    types: started
 
 jobs:
   validate-tag:
