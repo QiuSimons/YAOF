@@ -329,13 +329,7 @@ ntp.aliyun.com
 cn.ntp.org.cn
 ntp.ntsc.ac.cn
 ' >>./package/new/luci-app-passwall/root/usr/share/passwall/rules/direct_host
-# qBittorrent 下载
-cp -rf ../lede_luci/applications/luci-app-qbittorrent ./package/new/luci-app-qbittorrent
-cp -rf ../lede_pkg/net/qBittorrent-static ./package/new/qBittorrent-static
-cp -rf ../lede_pkg/net/qBittorrent ./package/new/qBittorrent
-cp -rf ../lede_pkg/libs/qtbase ./package/new/qtbase
-cp -rf ../lede_pkg/libs/qttools ./package/new/qttools
-cp -rf ../lede_pkg/libs/rblibtorrent ./package/new/rblibtorrent
+
 # 清理内存
 cp -rf ../lede_luci/applications/luci-app-ramfree ./package/new/luci-app-ramfree
 # ServerChan 微信推送
@@ -386,6 +380,7 @@ ln -sf ../../../feeds/packages/net/v2raya ./package/feeds/packages/v2raya
 # wget -qO - https://github.com/Lienol/openwrt-package/pull/39.patch | patch -p1
 # popd
 # sed -i '/socat\.config/d' feeds/packages/net/socat/Makefile
+
 # natmap
 git clone --depth 1 --branch master --single-branch --no-checkout https://github.com/muink/luci-app-natmapt.git package/luci-app-natmapt
 pushd package/luci-app-natmapt
