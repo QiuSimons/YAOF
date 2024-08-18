@@ -73,7 +73,7 @@ clone_repo $passwall_luci_repo main passwall_luci &
 clone_repo $openwrt_third_repo main openwrt-third &
 #clone_repo $dockerman_repo master dockerman &
 clone_repo $diskman_repo master diskman &
-clone_repo $docker_lib_repo master docker_lib &
+# clone_repo $docker_lib_repo master docker_lib &
 clone_repo $mosdns_repo v5 luci-app-mosdns &
 clone_repo $ssrp_repo main ssrp &
 clone_repo $zxlhhyccc_repo master zxlhhyccc &
