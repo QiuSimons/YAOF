@@ -74,7 +74,7 @@ clone_repo $openwrt_third_repo main openwrt-third &
 #clone_repo $dockerman_repo master dockerman &
 clone_repo $diskman_repo master diskman &
 clone_repo $docker_lib_repo master docker_lib &
-clone_repo $mosdns_repo v5 mosdns &
+clone_repo $mosdns_repo v5 luci-app-mosdns &
 clone_repo $ssrp_repo main ssrp &
 clone_repo $zxlhhyccc_repo master zxlhhyccc &
 clone_repo $linkease_repo main linkease &
@@ -87,7 +87,6 @@ clone_repo $sbwfw876_repo v5 sbwfw876 &
 clone_repo $sbw_pkg_repo main sbw_pkg &
 clone_repo $natmap_repo master natmap &
 clone_repo $sirpdboy_repo main luci-app-lucky/lucky &
-clone_repo $sirpdboy_repo main luci-theme-kucat &
 
 # 等待所有后台任务完成
 wait

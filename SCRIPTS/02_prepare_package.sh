@@ -259,6 +259,8 @@ git clone --depth 1 https://github.com/kiddin9/luci-app-dnsfilter.git package/ne
 cp -rf ../OpenWrt-Add/luci-app-dnsproxy ./package/new/luci-app-dnsproxy
 # Edge 主题
 git clone -b master --depth 1 https://github.com/kiddin9/luci-theme-edge.git package/new/luci-theme-edge
+# kucat 主题
+git clone -b main --depth 1 https://github.com/sirpdboy/luci-theme-kucat.git package/new/luci-theme-kucat
 # FRP 内网穿透
 rm -rf ./feeds/luci/applications/luci-app-frps
 rm -rf ./feeds/luci/applications/luci-app-frpc
@@ -276,17 +278,14 @@ patch -p1 <../PATCH/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 # ODHCPD
 mkdir -p package/network/services/odhcpd/patches
 cp -f ../PATCH/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/network/services/odhcpd/patches/0001-odhcpd-improve-RFC-9096-compliance.patch
-# 京东签到 By Jerrykuku
-#git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
-#git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
 # MentoHUST
 git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
 git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
 # Mosdns
-cp -rf ../mosdns/mosdns ./package/new/mosdns
-cp -rf ../mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
+cp -rf ../luci-app-mosdns/mosdns ./package/new/mosdns
+cp -rf ../luci-app-mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
 rm -rf ./feeds/packages/net/v2ray-geodata
-cp -rf ../mosdns/v2ray-geodata ./package/new/v2ray-geodata
+cp -rf ../luci-app-mosdns/v2dat ./package/new/v2ray-geodata
 # 流量监管
 cp -rf ../lede_luci/applications/luci-app-netdata ./package/new/luci-app-netdata
 # 上网 APP 过滤
@@ -381,12 +380,12 @@ git clone --depth 1 https://github.com/zxlhhyccc/luci-app-v2raya.git package/new
 rm -rf ./feeds/packages/net/v2raya
 cp -rf ../openwrt_pkg_ma/net/v2raya ./feeds/packages/net/v2raya
 ln -sf ../../../feeds/packages/net/v2raya ./package/feeds/packages/v2raya
-# socat
-cp -rf ../Lienol_pkg/luci-app-socat ./package/new/luci-app-socat
-pushd package/new
-wget -qO - https://github.com/Lienol/openwrt-package/pull/39.patch | patch -p1
-popd
-sed -i '/socat\.config/d' feeds/packages/net/socat/Makefile
+# # socat
+# cp -rf ../Lienol_pkg/luci-app-socat ./package/new/luci-app-socat
+# pushd package/new
+# wget -qO - https://github.com/Lienol/openwrt-package/pull/39.patch | patch -p1
+# popd
+# sed -i '/socat\.config/d' feeds/packages/net/socat/Makefile
 # natmap
 git clone --depth 1 --branch master --single-branch --no-checkout https://github.com/muink/luci-app-natmapt.git package/luci-app-natmapt
 pushd package/luci-app-natmapt
@@ -445,8 +444,7 @@ cp -rf ../zxlhhyccc/zxlhhyccc/luci-app-wolplus ./package/new/luci-app-wolplus
 # 流量监视
 git clone -b master --depth 1 https://github.com/brvphoenix/wrtbwmon.git package/new/wrtbwmon
 git clone -b master --depth 1 https://github.com/brvphoenix/luci-app-wrtbwmon.git package/new/luci-app-wrtbwmon
-# 迅雷快鸟宽带加速
-git clone --depth 1 https://github.com/kiddin9/luci-app-xlnetacc.git package/lean/luci-app-xlnetacc
+
 # Zerotier
 cp -rf ../immortalwrt_luci/applications/luci-app-zerotier ./feeds/luci/applications/luci-app-zerotier
 cp -rf ../OpenWrt-Add/move_2_services.sh ./feeds/luci/applications/luci-app-zerotier/move_2_services.sh
