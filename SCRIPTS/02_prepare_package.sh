@@ -152,11 +152,7 @@ cp -rf ../immortalwrt_luci_23/modules/luci-mod-status ./feeds/luci/modules/luci-
 rm -rf ./feeds/packages/utils/coremark
 cp -rf ../sbw_pkg/coremark ./feeds/packages/utils/coremark
 cp -rf ../immortalwrt_23/package/utils/mhz ./package/utils/mhz
-# Airconnect
-git clone https://github.com/sbwml/luci-app-airconnect package/new/airconnect
-sed -i 's,respawn,respawn 3600 5 0,g' package/new/airconnect/airconnect/files/airconnect.init
-#cp -rf ../OpenWrt-Add/airconnect ./package/new/airconnect
-#cp -rf ../OpenWrt-Add/luci-app-airconnect ./package/new/luci-app-airconnect
+
 # luci-app-ap-modem
 cp -rf ../linkease/applications/luci-app-ap-modem ./package/new/luci-app-ap-modem
 # luci-app-irqbalance
@@ -239,16 +235,16 @@ sed -i '/boot()/,+2d' feeds/packages/net/ddns-scripts/files/etc/init.d/ddns
 cp -rf ../openwrt-third/ddns-scripts_aliyun ./feeds/packages/net/ddns-scripts_aliyun
 ln -sf ../../../feeds/packages/net/ddns-scripts_aliyun ./package/feeds/packages/ddns-scripts_aliyun
 # Docker 容器
-rm -rf ./feeds/luci/applications/luci-app-dockerman
-cp -rf ../dockerman/applications/luci-app-dockerman ./feeds/luci/applications/luci-app-dockerman
-sed -i '/auto_start/d' feeds/luci/applications/luci-app-dockerman/root/etc/uci-defaults/luci-app-dockerman
-pushd feeds/packages
-wget -qO- https://github.com/openwrt/packages/commit/e2e5ee69.patch | patch -p1
-wget -qO- https://github.com/openwrt/packages/pull/20054.patch | patch -p1
-popd
-sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
-rm -rf ./feeds/luci/collections/luci-lib-docker
-cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
+# rm -rf ./feeds/luci/applications/luci-app-dockerman
+# cp -rf ../dockerman/applications/luci-app-dockerman ./feeds/luci/applications/luci-app-dockerman
+# sed -i '/auto_start/d' feeds/luci/applications/luci-app-dockerman/root/etc/uci-defaults/luci-app-dockerman
+# pushd feeds/packages
+# wget -qO- https://github.com/openwrt/packages/commit/e2e5ee69.patch | patch -p1
+# wget -qO- https://github.com/openwrt/packages/pull/20054.patch | patch -p1
+# popd
+# sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
+# rm -rf ./feeds/luci/collections/luci-lib-docker
+# cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
 # DiskMan
 cp -rf ../diskman/applications/luci-app-diskman ./package/new/luci-app-diskman
 mkdir -p package/new/parted && \
@@ -259,17 +255,17 @@ git clone --depth 1 https://github.com/kiddin9/luci-app-dnsfilter.git package/ne
 cp -rf ../OpenWrt-Add/luci-app-dnsproxy ./package/new/luci-app-dnsproxy
 # Edge 主题
 git clone -b master --depth 1 https://github.com/kiddin9/luci-theme-edge.git package/new/luci-theme-edge
-# kucat 主题
-git clone -b main --depth 1 https://github.com/sirpdboy/luci-theme-kucat.git package/new/luci-theme-kucat
+
 # FRP 内网穿透
-rm -rf ./feeds/luci/applications/luci-app-frps
-rm -rf ./feeds/luci/applications/luci-app-frpc
-rm -rf ./feeds/packages/net/frp
-cp -rf ../immortalwrt_pkg/net/frp ./feeds/packages/net/frp
-sed -i '/etc/d' feeds/packages/net/frp/Makefile
-sed -i '/defaults/{N;d;}' feeds/packages/net/frp/Makefile
-cp -rf ../lede_luci/applications/luci-app-frps ./package/new/luci-app-frps
-cp -rf ../lede_luci/applications/luci-app-frpc ./package/new/luci-app-frpc
+# rm -rf ./feeds/luci/applications/luci-app-frps
+# rm -rf ./feeds/luci/applications/luci-app-frpc
+# rm -rf ./feeds/packages/net/frp
+# cp -rf ../immortalwrt_pkg/net/frp ./feeds/packages/net/frp
+# sed -i '/etc/d' feeds/packages/net/frp/Makefile
+# sed -i '/defaults/{N;d;}' feeds/packages/net/frp/Makefile
+# cp -rf ../lede_luci/applications/luci-app-frps ./package/new/luci-app-frps
+# cp -rf ../lede_luci/applications/luci-app-frpc ./package/new/luci-app-frpc
+
 # IPSec
 #cp -rf ../lede_luci/applications/luci-app-ipsec-server ./package/new/luci-app-ipsec-server
 # IPv6 兼容助手
@@ -287,6 +283,9 @@ cp -rf ../luci-app-mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
 rm -rf ./feeds/packages/net/v2ray-geodata
 cp -rf ../luci-app-mosdns/v2dat ./package/new/v2dat
 cp -rf ../v2ray-geodata ./package/new/v2ray-geodata
+# Lucky
+cp -rf ../sirpdboy/luci-app-lucky/luci-app-lucky ./package/new/luci-app-lucky
+cp -rf ../sirpdboy/luci-app-lucky/lucky ./package/new/lucky
 # 流量监管
 cp -rf ../lede_luci/applications/luci-app-netdata ./package/new/luci-app-netdata
 # 上网 APP 过滤
@@ -416,8 +415,7 @@ cp -rf ../immortalwrt_pkg/libs/quickjspp ./feeds/packages/libs/quickjspp
 ln -sf ../../../feeds/packages/libs/quickjspp ./package/feeds/packages/quickjspp
 cp -rf ../immortalwrt_pkg/libs/toml11 ./feeds/packages/libs/toml11
 ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
-# 网易云音乐解锁
-git clone -b js --depth 1 https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
+
 # uwsgi
 sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
 sed -i 's,buffer-size = 10000,buffer-size = 131072,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
@@ -470,6 +468,7 @@ cp -rf ../sirpdboy/luci-app-partexp ./package/sirpdboy/luci-app-partexp
 rm -rf ./package/sirpdboy/luci-app-partexp/po/zh_Hans
 sed -i 's, - !, -o !,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp
 sed -i 's,expquit 1 ,#expquit 1 ,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp
+
 # 翻译及部分功能优化
 cp -rf ../OpenWrt-Add/addition-trans-zh ./package/new/addition-trans-zh
 sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/new/addition-trans-zh/Makefile

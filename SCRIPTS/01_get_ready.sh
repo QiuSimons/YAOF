@@ -86,7 +86,6 @@ clone_repo $lucidaednext_repo rebase lucidaednext &
 clone_repo $sbwfw876_repo v5 sbwfw876 &
 clone_repo $sbw_pkg_repo main sbw_pkg &
 clone_repo $natmap_repo master natmap &
-clone_repo $sirpdboy_repo main luci-app-lucky/lucky &
 clone_repo $v2ray_geodata_repo master v2ray-geodata &
 # 等待所有后台任务完成
 wait
