@@ -98,6 +98,7 @@ CONFIG_PACKAGE_iptables-mod-tproxy=y
 # CONFIG_PACKAGE_miniupnpd-iptables is not set
 CONFIG_PACKAGE_miniupnpd-nftables=y
 CONFIG_PACKAGE_nat6=y
+CONFIG_PACKAGE_v2dat=y
 
 ### LUCI ###
 CONFIG_LUCI_LANG_zh_Hans=y
