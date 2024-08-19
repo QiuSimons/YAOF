@@ -28,7 +28,7 @@ jobs:
         remove-haskell: 'true'
         remove-codeql: 'true'
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@main
     - name: Init build dependencies
       env:
         DEBIAN_FRONTEND: noninteractive
