@@ -45,7 +45,7 @@ jobs:
         df -h
     - name: Prepare Mixedwrt
       run: |
-        sudo chown -R runner:runner /home/runner/work/YAOF
+        sudo chown -R runner:runner /home/runner/work/YAOF-openwrt
         cp -r ./SCRIPTS/X86/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
