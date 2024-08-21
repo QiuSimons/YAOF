@@ -119,12 +119,12 @@ sed -i 's,noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-pc.cf
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
 # dae ready
-cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
-ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
-cp -rf ../lucidaednext/daed-next ./package/new/daed-next
-cp -rf ../lucidaednext/luci-app-daed-next ./package/new/luci-app-daed-next
-rm -rf ./feeds/packages/net/daed
-git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
+# cp -rf ../immortalwrt_pkg/net/dae ./feeds/packages/net/dae
+# ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
+# cp -rf ../lucidaednext/daed-next ./package/new/daed-next
+# cp -rf ../lucidaednext/luci-app-daed-next ./package/new/luci-app-daed-next
+# rm -rf ./feeds/packages/net/daed
+# git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
 # btf
 wget -qO - https://github.com/immortalwrt/immortalwrt/commit/73e5679.patch | patch -p1
 wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch -O target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch
@@ -283,10 +283,13 @@ cp -f ../PATCH/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/ne
 git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
 git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
 # Mosdns
-cp -rf ../mosdns/mosdns ./package/new/mosdns
-cp -rf ../mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
-rm -rf ./feeds/packages/net/v2ray-geodata
-cp -rf ../mosdns/v2ray-geodata ./package/new/v2ray-geodata
+#cp -rf ../mosdns/mosdns ./package/new/mosdns
+#cp -rf ../mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
+#rm -rf ./feeds/packages/net/v2ray-geodata
+#cp -rf ../mosdns/v2ray-geodata ./package/new/v2ray-geodata
+rm -rf feeds/packages/net/v2ray-geodata
+git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/new/mosdns
+git clone https://github.com/sbwml/v2ray-geodata package/new/v2ray-geodata
 # 流量监管
 cp -rf ../lede_luci/applications/luci-app-netdata ./package/new/luci-app-netdata
 # 上网 APP 过滤
