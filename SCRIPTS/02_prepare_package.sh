@@ -181,10 +181,10 @@ cp -rf ../openwrt_pkg_ma/lang/golang ./feeds/packages/lang/golang
 cp -rf ../lede_luci/applications/luci-app-accesscontrol ./package/new/luci-app-accesscontrol
 cp -rf ../OpenWrt-Add/luci-app-control-weburl ./package/new/luci-app-control-weburl
 # 广告过滤 AdGuard
-git clone https://github.com/rufengsuixing/luci-app-adguardhome.git package/new/luci-app-adguardhome
-rm -rf ./feeds/packages/net/adguardhome
-cp -rf ../openwrt_pkg_ma/net/adguardhome ./feeds/packages/net/adguardhome
-sed -i '/init/d' feeds/packages/net/adguardhome/Makefile
+# git clone https://github.com/rufengsuixing/luci-app-adguardhome.git package/new/luci-app-adguardhome
+# rm -rf ./feeds/packages/net/adguardhome
+# cp -rf ../openwrt_pkg_ma/net/adguardhome ./feeds/packages/net/adguardhome
+# sed -i '/init/d' feeds/packages/net/adguardhome/Makefile
 # Argon 主题
 git clone -b master --depth 1 https://github.com/jerrykuku/luci-theme-argon.git package/new/luci-theme-argon
 rm -rf ./package/new/luci-theme-argon/htdocs/luci-static/argon/background/README.md
@@ -245,6 +245,7 @@ ln -sf ../../../feeds/packages/net/ddns-scripts_aliyun ./package/feeds/packages/
 # sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
 # rm -rf ./feeds/luci/collections/luci-lib-docker
 # cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
+
 # DiskMan
 cp -rf ../diskman/applications/luci-app-diskman ./package/new/luci-app-diskman
 mkdir -p package/new/parted && \
@@ -275,8 +276,9 @@ patch -p1 <../PATCH/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 mkdir -p package/network/services/odhcpd/patches
 cp -f ../PATCH/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/network/services/odhcpd/patches/0001-odhcpd-improve-RFC-9096-compliance.patch
 # MentoHUST
-git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
-git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
+# git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
+# git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
+
 # Mosdns
 cp -rf ../luci-app-mosdns/mosdns ./package/new/mosdns
 cp -rf ../luci-app-mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
@@ -297,7 +299,11 @@ git clone --single-branch --depth 1 -b dev https://github.com/immortalwrt/homepr
 rm -rf ./feeds/packages/net/sing-box
 cp -rf ../immortalwrt_pkg/net/sing-box ./feeds/packages/net/sing-box
 # OpenClash
-git clone --single-branch --depth 1 -b master https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
+# git clone --single-branch --depth 1 -b master https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
+# Mihomo
+cp -rf ../OpenWrt-mihomo/luci-app-mihomo ./package/new/luci-app-mihomo
+cp -rf ../OpenWrt-mihomo/mihomo ./package/new/mihomo
+
 # Passwall
 cp -rf ../passwall_luci/luci-app-passwall ./package/new/luci-app-passwall
 wget -P package/new/luci-app-passwall/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
@@ -370,10 +376,11 @@ pushd package/new/luci-app-ssr-plus
 sed -i '/Clang.CN.CIDR/a\o:value("https://fastly.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
 popd
 # v2raya
-git clone --depth 1 https://github.com/zxlhhyccc/luci-app-v2raya.git package/new/luci-app-v2raya
-rm -rf ./feeds/packages/net/v2raya
-cp -rf ../openwrt_pkg_ma/net/v2raya ./feeds/packages/net/v2raya
-ln -sf ../../../feeds/packages/net/v2raya ./package/feeds/packages/v2raya
+# git clone --depth 1 https://github.com/zxlhhyccc/luci-app-v2raya.git package/new/luci-app-v2raya
+# rm -rf ./feeds/packages/net/v2raya
+# cp -rf ../openwrt_pkg_ma/net/v2raya ./feeds/packages/net/v2raya
+# ln -sf ../../../feeds/packages/net/v2raya ./package/feeds/packages/v2raya
+
 # # socat
 # cp -rf ../Lienol_pkg/luci-app-socat ./package/new/luci-app-socat
 # pushd package/new
