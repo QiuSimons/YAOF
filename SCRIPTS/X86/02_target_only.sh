@@ -214,7 +214,16 @@ echo '
         "sniff": true,
         "sniff_override_destination": false,
         "sniff_timeout": "100ms"
-       }
+       },
+   {
+      "type": "shadowsocks",
+      "tag": "ss-in",
+      "listen": "0.0.0.0",
+      "listen_port": 10813,
+      "method": "aes-128-gcm",      "password": "123456789",
+      "multiplex": {}
+    }
+      
     ],
     "outbounds": [
         {
@@ -252,6 +261,11 @@ echo '
             "type": "block",
             "tag": "block"
         },
+     {
+         "tag": "tolan",
+         "type": "direct",
+         "bind_interface": "br-lan"
+      },
         {
             "type": "dns",
             "tag": "dns-out"
@@ -271,6 +285,22 @@ echo '
         "clash_mode": "global",
         "outbound": "♾️Global"
         },
+        {
+           "type": "logical",
+           "mode": "and",
+           "rules": [
+                  {
+                   "inbound": "ss-in"
+                  },
+                  {
+                    "ip_cidr": [
+                      "10.10.10.0/24"
+                    ]
+                  }
+                ],
+           "skip_resolve": true,
+           "outbound": "tolan"
+       },
         {
         "network": "udp",
         "port": 443,
