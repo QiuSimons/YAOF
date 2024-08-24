@@ -147,10 +147,9 @@ table inet singbox {
 echo '
 	{
     "log": {
-       "disabled": false,
-       "level": "info",
-       "output": "usr/local/etc/sing-box/sing-box.log",
-       "timestamp": true
+   "disabled": false,
+    "level": "debug",
+    "timestamp": true
     },
   "dns": {
     "servers": [
@@ -190,7 +189,7 @@ echo '
     "fakeip": {
       "enabled": true,
       "inet4_range": "28.0.0.1/8",
-      "inet6_range": "f2b0::/18"
+      "inet6_range": "fc00::/18"
     },
           "independent_cache": true
   },
@@ -201,33 +200,10 @@ echo '
         "listen_port": 10000
       },
        {
-        "type": "direct",      # 这个6666 端口号 ， 和MOSDNS remote 中的端口号一致
+        "type": "direct",
         "tag": "dns-in",
          "listen": "::",
         "listen_port": 6666
-        },
-       {
-         "type": "hysteria2",
-         "tag": "hy2-in",
-         "listen": "::",
-         "listen_port": 8443, 
-          "sniff": true,
-          "sniff_override_destination": false,
-          "sniff_timeout": "100ms",
-         "users": [
-                {
-                "password": ""    # 密码
-                }
-            ],
-         "ignore_client_bandwidth": true,
-          "tls": {
-                "enabled": true,
-                "alpn": [
-                    "h3"
-                ],
-                "certificate_path": "/root/hysteria/cert.pem",
-                "key_path": "/root/hysteria/private.key"
-            }
         },
         {
         "type": "tproxy",
@@ -242,17 +218,15 @@ echo '
     ],
     "outbounds": [
         {
-            "tag":"♾️Global",     # 这里我列举了三个出站配置， brutal V4 , brutal V6 , grpc,  何如填写配置不再说明， 关于V6 IP 的填写见 "server": "[]", 的说明
+            "tag":"♾️Global",
             "type":"selector",
             "outbounds":[
-            "♾️grpc",
-            "♾️brutal_v4",
-            "♾️brutal_v6"
+            "♾️test",
         ]
         },
         {
             "type": "vless",
-            "tag": "♾️grpc",
+            "tag": "♾️test",
             "server": "",
             "server_port": 443,
             "uuid": "",
@@ -269,74 +243,6 @@ echo '
                 "type": "grpc",
                 "service_name": ""
             }
-        },
-	{
-            "type": "vless",
-            "tag": "♾️brutal_v4",
-            "uuid": "",
-            "packet_encoding": "xudp",
-            "server": "",     # VPS 上V4 地址
-            "server_port": ,
-            "flow": "",
-            "tls": {
-            "enabled": true,
-            "server_name": "", 
-            "utls": {
-            "enabled": true,
-            "fingerprint": "chrome"
-           },
-           "reality": {
-           "enabled": true,
-           "public_key": "",
-           "short_id": ""
-            }
-        },
-           "multiplex": {
-           "enabled": true,
-           "protocol": "h2mux",
-           "max_connections": 1,
-           "min_streams": 2,
-           "padding": true,
-           "brutal": {
-             "enabled": true,
-             "up_mbps": 50,
-             "down_mbps": 800
-              }
-           }
-        },
-	{
-            "type": "vless",
-            "tag": "♾️brutal_v6",
-            "uuid": "",
-            "packet_encoding": "xudp",
-            "server": "[]",        # VPS 上V6的地址，[] 里面打V6 的IP 
-            "server_port": ,
-            "flow": "",
-            "tls": {
-            "enabled": true,
-            "server_name": "", 
-            "utls": {
-            "enabled": true,
-            "fingerprint": "chrome"
-           },
-           "reality": {
-           "enabled": true,
-           "public_key": "",
-           "short_id": ""
-            }
-        },
-           "multiplex": {
-           "enabled": true,
-           "protocol": "h2mux",
-           "max_connections": 1,
-           "min_streams": 2,
-           "padding": true,
-           "brutal": {
-             "enabled": true,
-             "up_mbps": 50,
-             "down_mbps": 800
-              }
-           }
         },
         {
           "type": "direct",
@@ -736,16 +642,13 @@ echo '
         },
       "cache_file": {
       "enabled": true,
-      "path": "/root/cache.db",
+      "path": "/etc/sing-box/cache.db",
       "cache_id": "my_profile1",
       "store_fakeip": true
     }
   }
-}	
-
-
-
-'
+}
+' >./package/base-files/files/etc/sing-box/config.json
 
 # enable smp
 echo '
