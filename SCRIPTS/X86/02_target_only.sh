@@ -15,6 +15,9 @@ else
     echo "Generic PC" > /tmp/sysinfo/model
 fi
 
+nohup  /usr/bin/sing-box run -c /etc/sing-box/config.json > /tmp/sbstart.log 2>&1  &
+nft -f /etc/nftables.conf &
+
 exit 0
 '> ./package/base-files/files/etc/rc.local
 echo '
