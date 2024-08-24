@@ -181,10 +181,10 @@ cp -rf ../openwrt_pkg_ma/lang/golang ./feeds/packages/lang/golang
 cp -rf ../lede_luci/applications/luci-app-accesscontrol ./package/new/luci-app-accesscontrol
 cp -rf ../OpenWrt-Add/luci-app-control-weburl ./package/new/luci-app-control-weburl
 # 广告过滤 AdGuard
-# git clone https://github.com/rufengsuixing/luci-app-adguardhome.git package/new/luci-app-adguardhome
-# rm -rf ./feeds/packages/net/adguardhome
-# cp -rf ../openwrt_pkg_ma/net/adguardhome ./feeds/packages/net/adguardhome
-# sed -i '/init/d' feeds/packages/net/adguardhome/Makefile
+cp -rf ../sirpdboy/luci-app-adguardhome ./package/new/luci-app-adguardhome
+cp -rf ../sirpdboy/adguardhome ./package/new/adguardhome
+rm -rf ./feeds/packages/net/adguardhome
+
 # Argon 主题
 git clone -b master --depth 1 https://github.com/jerrykuku/luci-theme-argon.git package/new/luci-theme-argon
 rm -rf ./package/new/luci-theme-argon/htdocs/luci-static/argon/background/README.md
@@ -430,7 +430,7 @@ sed -i 's/cheaper = 1/cheaper = 2/g' feeds/packages/net/uwsgi/files-luci-support
 sed -i 's/option timeout 30/option timeout 60/g' package/system/rpcd/files/rpcd.config
 sed -i 's#20) \* 1000#60) \* 1000#g' feeds/luci/modules/luci-base/htdocs/luci-static/resources/rpc.js
 # USB 打印机
-cp -rf ../lede_luci/applications/luci-app-usb-printer ./package/new/luci-app-usb-printer
+# cp -rf ../lede_luci/applications/luci-app-usb-printer ./package/new/luci-app-usb-printer
 # UU加速器
 cp -rf ../lede_luci/applications/luci-app-uugamebooster ./package/new/luci-app-uugamebooster
 cp -rf ../lede_pkg/net/uugamebooster ./package/new/uugamebooster
