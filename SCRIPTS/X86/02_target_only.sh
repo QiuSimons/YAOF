@@ -5,21 +5,34 @@ sed -i 's/O2/O2 -march=x86-64-v2/g' include/target.mk
 # libsodium
 sed -i 's,no-mips16 no-lto,no-mips16,g' feeds/packages/libs/libsodium/Makefile
 
-echo '# Put your custom commands here that should be executed once
+
+echo '#!/bin/sh
+
+# 首次启动时执行的命令
+cat /usr/local/fakeip/network >> /etc/config/network
+
+# 删除原有的 /etc/rc.local 文件
+rm /etc/rc.local
+
+# 重新创建一个新的 /etc/rc.local 文件，并写入指定内容
+echo "#!/bin/sh
+# Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.
 
-grep "Default string" /tmp/sysinfo/model >> /dev/null
-if [ $? -ne 0 ];then
+grep \"Default string\" /tmp/sysinfo/model >> /dev/null
+if [ $? -ne 0 ]; then
     echo should be fine
 else
-    echo "Generic PC" > /tmp/sysinfo/model
+    echo \"Generic PC\" > /tmp/sysinfo/model
 fi
 
-nohup  /usr/bin/sing-box run -c /usr/local/fakeip/config.json > /tmp/sbstart.log 2>&1  &
-nft -f /etc/nftables.conf &
+exit 0" > /etc/rc.local
 
-exit 0
-'> ./package/base-files/files/etc/rc.local
+# 确保新的 /etc/rc.local 文件有可执行权限
+chmod +x /etc/rc.local
+
+exit 0' > ./package/base-files/files/etc/rc.local
+
 
 echo '
 config route
