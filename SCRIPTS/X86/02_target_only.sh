@@ -15,7 +15,7 @@ else
     echo "Generic PC" > /tmp/sysinfo/model
 fi
 
-nohup  /usr/bin/sing-box run -c /etc/fakeip.json > /tmp/sbstart.log 2>&1  &
+nohup  /usr/bin/sing-box run -c /usr/local/fakeip/config.json > /tmp/sbstart.log 2>&1  &
 nft -f /etc/nftables.conf &
 
 exit 0
