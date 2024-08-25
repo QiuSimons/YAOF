@@ -6,6 +6,7 @@ sed -i 's/O2/O2 -march=x86-64-v2/g' include/target.mk
 sed -i 's,no-mips16 no-lto,no-mips16,g' feeds/packages/libs/libsodium/Makefile
 
 
+
 echo '#!/bin/sh
 
 # 首次启动时执行的命令
@@ -20,17 +21,16 @@ echo "#!/bin/sh
 # the system init finished. By default this file does nothing.
 
 grep \"Default string\" /tmp/sysinfo/model >> /dev/null
-if [ $? -ne 0 ]; then
+if [ \$? -ne 0 ]; then
     echo should be fine
 else
     echo \"Generic PC\" > /tmp/sysinfo/model
 fi
-
+nohup /usr/bin/sing-box run -c /usr/local/fakeip/config.json > /tmp/sbstart.log 2>&1 &
+nft -f /etc/nftables.conf &
 exit 0" > /etc/rc.local
-
 # 确保新的 /etc/rc.local 文件有可执行权限
 chmod +x /etc/rc.local
-
 exit 0' > ./package/base-files/files/etc/rc.local
 
 
