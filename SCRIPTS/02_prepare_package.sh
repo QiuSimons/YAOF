@@ -288,7 +288,7 @@ git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package
 #rm -rf ./feeds/packages/net/v2ray-geodata
 #cp -rf ../mosdns/v2ray-geodata ./package/new/v2ray-geodata
 rm -rf feeds/packages/net/v2ray-geodata
-git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/new/mosdns
+git clone https://github.com/52shell/luci-app-mosdns-fakeip -b v5 package/new/mosdns
 git clone https://github.com/sbwml/v2ray-geodata package/new/v2ray-geodata
 # 流量监管
 cp -rf ../lede_luci/applications/luci-app-netdata ./package/new/luci-app-netdata
