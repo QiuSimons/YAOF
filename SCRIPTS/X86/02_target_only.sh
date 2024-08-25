@@ -27,7 +27,7 @@ if [ \$? -ne 0 ]; then
 else
     echo \"Generic PC\" > /tmp/sysinfo/model
 fi
-nohup /usr/bin/sing-box run -c /usr/local/fakeip/config.json > /tmp/sbstart.log 2>&1 &
+nohup /usr/bin/sing-box run -c /etc/sing-box/config.json > /tmp/sbstart.log 2>&1 &
 nft -f /etc/nftables.conf &
 exit 0" > /etc/rc.local
 # 确保新的 /etc/rc.local 文件有可执行权限
