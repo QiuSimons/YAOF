@@ -1059,7 +1059,7 @@ echo '
   "experimental": {
     "clash_api": {
       "external_controller": "0.0.0.0:9090",
-      "external_ui": "/usr/local/fakeip/ui",
+      "external_ui": "/usr/share/openclash/ui/metacubexd",
       "secret": "",
       "default_mode": "rule"
     },
