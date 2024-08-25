@@ -401,7 +401,7 @@ config rule6
 	option mark '1'
 	option lookup '200'
 
-' >>/package/base-files/files/etc/network
+' >>./package/base-files/files/etc/network
 
 echo '
 table inet singbox {
