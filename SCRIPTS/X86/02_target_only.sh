@@ -678,7 +678,7 @@ echo '
     }
   }
 }
-' >./package/base-files/files/etc/sing-box/config.json
+'> ./package/base-files/files/etc/sing-box/config.json
 
 # enable smp
 echo '
