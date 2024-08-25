@@ -15,7 +15,7 @@ else
     echo "Generic PC" > /tmp/sysinfo/model
 fi
 
-nohup  /usr/bin/sing-box run -c /etc/sing-box/config.json > /tmp/sbstart.log 2>&1  &
+nohup  /usr/bin/sing-box run -c /etc/fakeip.json > /tmp/sbstart.log 2>&1  &
 nft -f /etc/nftables.conf &
 
 exit 0
@@ -401,7 +401,7 @@ config rule6
 	option mark '1'
 	option lookup '200'
 
-' >>./package/base-files/files/etc/network
+' >>./package/base-files/files/etc/fake_network
 
 echo '
 table inet singbox {
@@ -1073,7 +1073,7 @@ echo '
     }
   }
 }
-'> ./package/base-files/files/etc/sing-box/config.json
+'> ./package/base-files/files/etc/fakeip.json
 
 # enable smp
 echo '
