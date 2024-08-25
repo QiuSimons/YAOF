@@ -20,6 +20,389 @@ nft -f /etc/nftables.conf &
 
 exit 0
 '> ./package/base-files/files/etc/rc.local
+
+echo '
+config route
+	option target '28.0.0.0'
+	option netmask '255.0.0.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '8.8.8.8'
+	option netmask '255.255.255.255'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '8.8.4.4'
+	option netmask '255.255.255.255'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '1.1.1.1'
+	option netmask '255.255.255.255'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '1.0.0.1'
+	option netmask '255.255.255.255'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '9.9.9.9'
+	option netmask '255.255.255.255'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '8.41.4.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '23.23.189.144'
+	option netmask '255.255.255.240'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '23.246.0.0'
+	option netmask '255.255.192.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '34.195.253.0'
+	option netmask '255.255.255.128'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '37.77.184.0'
+	option netmask '255.255.248.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '38.72.126.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '45.57.0.0'
+	option netmask '255.255.128.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '52.24.178.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '52.35.140.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '54.204.25.0'
+	option netmask '255.255.255.240'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '54.213.167.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '64.120.128.0'
+	option netmask '255.255.128.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '66.197.128.0'
+	option netmask '255.255.128.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '69.53.224.0'
+	option netmask '255.255.224.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '103.87.204.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '108.175.32.0'
+	option netmask '255.255.240.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '185.2.220.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '185.9.188.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '192.173.64.0'
+	option netmask '255.255.192.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '198.38.96.0'
+	option netmask '255.255.224.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '198.45.48.0'
+	option netmask '255.255.240.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '203.75.84.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '203.198.13.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '203.198.80.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '207.45.72.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '208.75.76.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '210.0.153.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '91.108.56.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '91.108.4.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '91.108.8.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '91.108.16.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '91.108.12.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '149.154.160.0'
+	option netmask '255.255.240.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '91.105.192.0'
+	option netmask '255.255.254.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '91.108.20.0'
+	option netmask '255.255.252.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '185.76.151.0'
+	option netmask '255.255.255.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config route
+	option target '95.161.64.0'
+	option netmask '255.255.240.0'
+	option type 'local'
+	option table '100'
+	option interface 'lan'
+
+config rule
+	option mark '1'
+	option lookup '100'
+
+config route6
+	option target '2001:b28:f23d::'
+	option netmask '48'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2001:b28:f23f::'
+	option netmask '48'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2001:67c:4e8::'
+	option netmask '48'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2001:b28:f23c::'
+	option netmask '48'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2a0a:f280::'
+	option netmask '32'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2607:fb10::'
+	option netmask '32'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2620:10c:7000::'
+	option netmask '44'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2a00:86c0::'
+	option netmask '32'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target '2a03:5640::'
+	option netmask '32'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config route6
+	option target 'fc00::'
+	option netmask '18'
+	option type 'local'
+	option table '200'
+	option interface 'lan'
+
+config rule6
+	option mark '1'
+	option lookup '200'
+
+' >>/package/base-files/files/etc/network
+
 echo '
 table inet singbox {
   set local_ipv4 {
