@@ -588,6 +588,18 @@ echo '
          "listen": "::",
         "listen_port": 6666
         },
+    { 
+      "type": "redirect",
+      "tag": "redirect-in",
+      "listen": "::",
+      "listen_port": 7899,
+      "tcp_fast_open": true,
+      "sniff": false,
+      "sniff_override_destination": false,
+      "sniff_timeout": "300ms",
+      "udp_disable_domain_unmapping": false,
+      "udp_timeout": "5m"
+    },
         {
         "type": "tproxy",
         "tag": "tproxy-in",
