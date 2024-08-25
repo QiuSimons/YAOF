@@ -10,9 +10,10 @@ sed -i 's,no-mips16 no-lto,no-mips16,g' feeds/packages/libs/libsodium/Makefile
 echo '#!/bin/sh
 
 # 首次启动时执行的命令
-cat /usr/local/fakeip/network >> /etc/config/network
-
+cat /etc/fakeipnetwork >> /etc/config/network
+mv /etc/fakeip_config.json /etc/sing-box/config.json
 # 删除原有的 /etc/rc.local 文件
+rm -rf /etc/fakeip_network.json
 rm /etc/rc.local
 
 # 重新创建一个新的 /etc/rc.local 文件，并写入指定内容
@@ -414,7 +415,7 @@ config rule6
 	option mark '1'
 	option lookup '200'
 
-' >./package/base-files/files/usr/local/fakeip/network
+' >./package/base-files/files/etc/fakeip_network
 
 echo '
 table inet singbox {
@@ -1084,7 +1085,7 @@ echo '
     }
   }
 }
-' >./package/base-files/files/usr/local/fakeip/config.json
+' >./package/base-files/files/etc/fakeip_config.json
 
 # enable smp
 echo '
