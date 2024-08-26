@@ -642,24 +642,19 @@ echo '
         "♾️test"
       ]
     },
-    {
-      "type": "vless",
+  {
       "tag": "♾️test",
-      "server": "",
-      "server_port": 443,
-      "uuid": "",
+      "server": "vps.herozmy.com",
+      "server_port": 111,
+      "type": "vless",
+      "uuid": "1aed51fe-xxxxx-46e9-xxx-xxxxxxx",
       "tls": {
         "enabled": true,
-        "server_name": "",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
+        "server_name": "xxxx.xxxxxx.com"
       },
-      "packet_encoding": "xudp",
       "transport": {
-        "type": "grpc",
-        "service_name": ""
+        "type": "ws",
+        "path": "/xxxxx"
       }
     },
     {
@@ -1078,7 +1073,7 @@ echo '
     },
     "cache_file": {
       "enabled": true,
-      "path": "/usr/local/fakeip/cache.db",
+      "path": "/etc/sing-box/cache.db",
       "cache_id": "my_profile1",
       "store_fakeip": true
     }
