@@ -12,8 +12,10 @@ echo '#!/bin/sh
 # 首次启动时执行的命令
 cat /etc/fakeip_network >> /etc/config/network
 mv /etc/fakeip_config.json /etc/sing-box/config.json
+cat /etc/fakeip_dhcp > /etc/config/dhcp
 # 删除原有的 /etc/rc.local 文件
 rm -rf /etc/fakeip_network
+rm -rf /etc/fakeip_dhcp
 rm /etc/rc.local
 
 # 重新创建一个新的 /etc/rc.local 文件，并写入指定内容
@@ -34,6 +36,53 @@ exit 0" > /etc/rc.local
 chmod +x /etc/rc.local
 exit 0' > ./package/base-files/files/etc/rc.local
 
+echo '
+config dnsmasq
+	option domainneeded '1'
+	option localise_queries '1'
+	option rebind_protection '0'
+	option local '/lan/'
+	option domain 'lan'
+	option expandhosts '1'
+	option cachesize '1000'
+	option authoritative '1'
+	option readethers '1'
+	option leasefile '/tmp/dhcp.leases'
+	option localservice '1'
+	option ednspacket_max '1232'
+	option localuse '1'
+	option port '55'
+	option noresolv '1'
+
+config dhcp 'lan'
+	option interface 'lan'
+	option start '100'
+	option limit '150'
+	option leasetime '12h'
+	option dhcpv4 'server'
+	option ra 'server'
+	option max_preferred_lifetime '2700s'
+	option max_valid_lifetime '5400s'
+	option dns_service '0'
+
+config dhcp 'wan'
+	option interface 'wan'
+	option ignore '1'
+
+config odhcpd 'odhcpd'
+	option maindhcp '0'
+	option leasefile '/tmp/hosts/odhcpd'
+	option leasetrigger '/usr/sbin/odhcpd-update'
+	option loglevel '4'
+
+config srvhost
+	option srv '_vlmcs._tcp'
+	option target 'OpenWrt'
+	option port '1688'
+	option class '0'
+	option weight '100'
+
+'  > ./package/base-files/files/etc/fakeip_dhcp
 
 echo '
 config route
@@ -644,7 +693,7 @@ echo '
     },
   {
       "tag": "♾️test",
-      "server": "vps.herozmy.com",
+      "server": "xxxx.xxxxx.com",
       "server_port": 111,
       "type": "vless",
       "uuid": "1aed51fe-xxxxx-46e9-xxx-xxxxxxx",
