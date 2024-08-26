@@ -707,7 +707,6 @@ echo '
             ]
           }
         ],
-        "skip_resolve": true,
         "outbound": "tolan"
       },
       {
