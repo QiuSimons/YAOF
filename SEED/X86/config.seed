@@ -149,10 +149,7 @@ CONFIG_PACKAGE_htop=y
 CONFIG_PACKAGE_subconverter=y
 CONFIG_PACKAGE_kmod-shortcut-fe-cm=y
 
-########
-
-CONFIG_PACKAGE_vsftpd-alt=y
-CONFIG_VSFTPD_USE_UCI_SCRIPTS=y
+######
 
 
 ### SSRP ###
