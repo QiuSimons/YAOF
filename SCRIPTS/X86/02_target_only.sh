@@ -10,10 +10,10 @@ sed -i 's,no-mips16 no-lto,no-mips16,g' feeds/packages/libs/libsodium/Makefile
 echo '#!/bin/sh
 
 # 首次启动时执行的命令
-cat /etc/fakeipnetwork >> /etc/config/network
+cat /etc/fakeip_network >> /etc/config/network
 mv /etc/fakeip_config.json /etc/sing-box/config.json
 # 删除原有的 /etc/rc.local 文件
-rm -rf /etc/fakeip_network.json
+rm -rf /etc/fakeip_network
 rm /etc/rc.local
 
 # 重新创建一个新的 /etc/rc.local 文件，并写入指定内容
