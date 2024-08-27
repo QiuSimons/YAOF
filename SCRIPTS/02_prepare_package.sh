@@ -285,7 +285,9 @@ cp -rf ../luci-app-mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
 rm -rf ./feeds/packages/net/v2ray-geodata
 cp -rf ../luci-app-mosdns/v2dat ./package/new/v2dat
 cp -rf ../v2ray-geodata ./package/new/v2ray-geodata
-
+# Kucat
+cp -rf ../luci-theme-kucat ./package/new/luci-theme-kucat
+cp -rf ../luci-app-advancedplus ./package/new/luci-app-advancedplus
 # Lucky
 cp -rf ../sirpdboy/luci-app-lucky/luci-app-lucky ./package/new/luci-app-lucky
 cp -rf ../sirpdboy/luci-app-lucky/lucky ./package/new/lucky
