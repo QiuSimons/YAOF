@@ -1,0 +1,139 @@
+name: X86-OpenWrt
+
+on:
+#  schedule:
+#    - cron: 5 6 * * 0
+  workflow_dispatch:
+  watch:
+    types: started
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+    - name: Show system
+      run: |
+        echo -e "Total CPU cores\t: $(nproc)"
+        cat /proc/cpuinfo | grep 'model name'
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        swap-size-mb: 1024
+        temp-reserve-mb: 512
+        root-reserve-mb: 4608
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+    - name: Checkout
+      uses: actions/checkout@pravate
+    - name: Init build dependencies
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo -E apt-get -qq update
+        sudo /bin/bash -c "$(curl -sL https://git.io/vokNn)"
+        sudo -E apt-fast -y -qq install asciidoc bash bcc bin86 binutils bison bzip2 clang-15 llvm-15 file flex g++ g++-multilib gawk gcc gcc-multilib gettext git gzip help2man intltool libboost-dev libelf-dev libncurses-dev libncurses5-dev libssl-dev libthread-queue-any-perl libusb-dev libxml-parser-perl make patch perl-modules python3-dev python3-pip python3-pyelftools python3-setuptools rsync sharutils swig time unzip util-linux wget xsltproc zlib1g-dev zip
+        sudo -E apt-fast -y -qq install dos2unix dwarves quilt
+        pip3 install --user -U pylibfdt --break-system-packages
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo -E git config --global user.name 'GitHub Actions' && git config --global user.email 'noreply@github.com'
+        sudo -E git config --global core.abbrev auto
+        df -h
+    - name: Prepare Mixedwrt
+      run: |
+        sudo chown -R runner:runner /home/runner/work/YAOF-openwrt
+        cp -r ./SCRIPTS/X86/. ./SCRIPTS/
+        cp -r ./SCRIPTS/. ./
+        /bin/bash 01_get_ready.sh
+    - name: Prepare Package
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        cp -r ../SCRIPTS/. ./
+        /bin/bash 02_prepare_package.sh
+        /bin/bash 02_target_only.sh
+        /bin/bash 04_remove_upx.sh
+    - name: QTMDFW4
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        cp -rf ../SEED/X86/config.seed .config
+    - name: Convert Translation
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        /bin/bash 03_convert_translation.sh
+    - name: Add ACL
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        /bin/bash 05_create_acl_for_luci.sh -a
+    - name: Fix Permissions
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        sudo -E chmod -R 755 ./08_fix_permissions.sh
+        /bin/bash 08_fix_permissions.sh
+    - name: Make Config
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        make defconfig
+    - name: Get Architecture
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*_.*=y$" ".config" | head -n 1 | sed 's/^CONFIG_TARGET_//g' | awk -F '_' '{print $1}')"
+        echo "TARGET_DEVICE_ARCH=${TARGET_DEVICE_ARCH}" >>$GITHUB_ENV
+        latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][3-9]/p' | sed -n 1p | sed 's/.tar.gz//g' | sed 's/v//g')"
+        echo "latest_release=${latest_release}" >>$GITHUB_ENV
+    - name: Cache
+      uses: HiGarfield/cachewrtbuild@main
+      with:
+        mixkey: ${{ env.TARGET_DEVICE_ARCH }}
+        prefix: ${{ github.workspace }}/openwrt
+    - name: Make Download
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        make download -j50
+    - name: Compile Openwrt
+      working-directory: ${{ github.workspace }}/openwrt
+      id: compileopenwrt
+      continue-on-error: true
+      run: |
+        #echo | make kernel_oldconfig -j$(($(nproc) + 1)) 
+        IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
+        echo $?
+    - name: If Error
+      working-directory: ${{ github.workspace }}/openwrt
+      if: steps.compileopenwrt.outcome == 'failure'
+      run: |
+        cat ./.config
+        echo '================================================================'
+        make -j1 V=s
+    - name: Organize files
+      id: organize
+      run: |
+        rm -rf ./artifact/
+        mkdir -p ./artifact/
+        mv openwrt/bin/targets/x86/64/*combined-efi.img* ./artifact/
+        cd ./artifact/
+        ls -Ahl
+        gzip -d *.gz && exit 0
+        gzip --best *.img
+        ls -Ahl
+        sha256sum openwrt*x86* | tee X86-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}.sha256sum
+        zip X86-GC404--$(date +%Y-%m-%d)-${{ env.latest_release }}-ext4.zip *ext4-combined*
+        zip X86-GC404-$(date +%Y-%m-%d)-${{ env.latest_release }}-sfs.zip *squashfs-combined*
+        ls -Ahl
+    - name: Create release
+      id: create_release
+      uses: ncipollo/release-action@main
+      with:
+        name: OpenWRT-${{ env.latest_release }}
+        allowUpdates: true
+        prerelease: false
+        tag: ${{ env.latest_release }}
+        commit: pravate
+        replacesArtifacts: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: ./artifact/*.zip
+    - name: Print Disk Space After
+      run: df -h
