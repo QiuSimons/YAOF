@@ -385,12 +385,12 @@ popd
 # cp -rf ../openwrt_pkg_ma/net/v2raya ./feeds/packages/net/v2raya
 # ln -sf ../../../feeds/packages/net/v2raya ./package/feeds/packages/v2raya
 
-# # socat
-# cp -rf ../Lienol_pkg/luci-app-socat ./package/new/luci-app-socat
-# pushd package/new
-# wget -qO - https://github.com/Lienol/openwrt-package/pull/39.patch | patch -p1
-# popd
-# sed -i '/socat\.config/d' feeds/packages/net/socat/Makefile
+# socat
+cp -rf ../Lienol_pkg/luci-app-socat ./package/new/luci-app-socat
+pushd package/new
+wget -qO - https://github.com/Lienol/openwrt-package/pull/39.patch | patch -p1
+popd
+sed -i '/socat\.config/d' feeds/packages/net/socat/Makefile
 
 # natmap
 git clone --depth 1 --branch master --single-branch --no-checkout https://github.com/muink/luci-app-natmapt.git package/luci-app-natmapt
