@@ -47,8 +47,8 @@ sbw_pkg_repo="https://github.com/sbwml/openwrt_pkgs"
 natmap_repo="https://github.com/blueberry-pie-11/luci-app-natmap"
 v2ray_geodata_repo="https://github.com/sbwml/v2ray-geodata"
 mihomo_repo="https://github.com/morytyann/OpenWrt-mihomo"
-kucat_repo="https://github.com/sirpdboy/luci-theme-kucat"
-advancedplus_repo="https://github.com/sirpdboy/luci-app-advancedplus"
+kucat_repo="https://github.com/CodeIntegrity/luci-theme-kucat"
+advancedplus_repo="https://github.com/CodeIntegrity/luci-app-advancedplus"
 # 开始克隆仓库，并行执行
 clone_repo $openwrt_repo $latest_release openwrt &
 clone_repo $openwrt_repo openwrt-23.05 openwrt_snap &
