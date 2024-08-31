@@ -187,8 +187,8 @@ rm -rf ./feeds/packages/net/adguardhome
 
 # Argon 主题
 git clone -b master --depth 1 https://github.com/jerrykuku/luci-theme-argon.git package/new/luci-theme-argon
-rm -rf ./package/new/luci-theme-argon/htdocs/luci-static/argon/background/README.md
-git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git package/new/luci-app-argon-config
+rm -rf ./package/new/luci-theme-argon/htdocs/luci-static/argon/background/README*
+# git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-argon-config.git package/new/luci-app-argon-config
 # MAC 地址与 IP 绑定
 cp -rf ../immortalwrt_luci/applications/luci-app-arpbind ./feeds/luci/applications/luci-app-arpbind
 ln -sf ../../../feeds/luci/applications/luci-app-arpbind ./package/feeds/luci/luci-app-arpbind
