@@ -78,6 +78,12 @@ jobs:
       run: |
         sudo -E chmod -R 755 ./09_diy.sh
         /bin/bash 09_diy.sh
+    - name: Install tree
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tree
+    - name: Output project structure
+      run: tree
     - name: Make Config
       working-directory: ${{ github.workspace }}/openwrt
       run: |
