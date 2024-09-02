@@ -1,7 +1,7 @@
 From 33b6c4357c3470d8a50535532bae38f6e23d9a92 Mon Sep 17 00:00:00 2001
 From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 Date: Wed, 9 Aug 2023 14:30:25 +0800
-Subject: [PATCH] firewall: add sfe
+Subject: [PATCH] firewall: add natflow
 
 Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 ---
@@ -11,27 +11,17 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 diff --git a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 --- a/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/feeds/luci/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
-@@ -86,7 +86,7 @@ return view.extend({
- 			o = s.option(form.Flag, 'flow_offloading',
- 				_('Software flow offloading'),
- 				_('Software based offloading for routing/NAT'));
--			o.optional = true;
+@@ -113,6 +113,14 @@ return view.extend({
+ 			o.optional = false;
+ 			o.depends('flow_offloading', '0');
+ 		/* 	} */
++		/* NATflow flow offload support */
++		/* if (L.hasSystemFeature('natflow')) { */
++			o = s.option(form.Flag, 'natflow',
++			_('NATflow flow offloading'),
++			_('NATflow based offloading for routing/NAT'));
 +			o.optional = false;
- 
- 			o = s.option(form.Flag, 'flow_offloading_hw',
- 				_('Hardware flow offloading'),
-@@ -94,7 +94,14 @@ return view.extend({
- 			o.optional = true;
- 			o.depends('flow_offloading', '1');
- 		}
--
-+		/* Shortcut-FE flow offload support */
-+		/* if (L.hasSystemFeature('shortcutfe')) { */
-+			o = s.option(form.Flag, 'shortcut_fe',
-+			_('Shortcut-FE flow offloading'),
-+			_('Shortcut-FE based offloading for routing/NAT'));
-+			o.optional = false;
-+			o.depends('flow_offloading', '0');
++			o.depends({ 'flow_offloading': '0', 'shortcut_fe': '0' });
 +		/* 	} */
  
  		s = m.section(form.GridSection, 'zone', _('Zones'));
