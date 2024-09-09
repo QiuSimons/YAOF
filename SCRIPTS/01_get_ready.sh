@@ -49,6 +49,8 @@ v2ray_geodata_repo="https://github.com/sbwml/v2ray-geodata"
 mihomo_repo="https://github.com/morytyann/OpenWrt-mihomo"
 kucat_repo="https://github.com/CodeIntegrity/luci-theme-kucat"
 advancedplus_repo="https://github.com/CodeIntegrity/luci-app-advancedplus"
+xwrt_repo="https://github.com/QiuSimons/openwrt-natflow"
+
 # 开始克隆仓库，并行执行
 clone_repo $openwrt_repo $latest_release openwrt &
 clone_repo $openwrt_repo openwrt-23.05 openwrt_snap &
@@ -93,6 +95,8 @@ clone_repo $v2ray_geodata_repo master v2ray-geodata &
 clone_repo $mihomo_repo main OpenWrt-mihomo &
 clone_repo $kucat_repo js luci-theme-kucat &
 clone_repo $advancedplus_repo main luci-app-advancedplus&
+clone_repo $xwrt_repo master xwrt &
+
 # 等待所有后台任务完成
 wait
 
