@@ -20,7 +20,7 @@ jobs:
         id: check_updates
         run: |
           # 目标仓库的所有者和名称
-          REPO_OWNER="CodeIntegrity"
+          REPO_OWNER="QiuSimons"
           REPO_NAME="luci-app-daed"
 
           # 获取上一次检查时的最新提交哈希值
