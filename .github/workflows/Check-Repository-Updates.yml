@@ -59,7 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
       # 触发另一个工作流（工作流 B）
-      - name: Trigger Workflow B if repository has updates
+      - name: Trigger X86-OpenWrt if repository has updates
         if: env.repo_updated == 'true'
         run: |
           curl -X POST \
