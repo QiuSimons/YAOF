@@ -30,19 +30,19 @@ jobs:
           echo "Last commit: $LAST_COMMIT"
           echo "New commit: $NEW_COMMIT"
 
-          # 如果有新提交，更新记录并设置一个变量用于后续步骤
+          # 如果有新提交，更新记录并将结果写入环境文件
           if [ "$NEW_COMMIT" != "$LAST_COMMIT" ]; then
             echo "Repository has been updated."
             echo "$NEW_COMMIT" > last_commit.txt
-            echo "::set-output name=repo_updated::true"
+            echo "repo_updated=true" >> $GITHUB_ENV
           else
             echo "No updates found."
-            echo "::set-output name=repo_updated::false"
+            echo "repo_updated=false" >> $GITHUB_ENV
           fi
 
       # 触发另一个工作流（工作流 B）
       - name: Trigger Workflow B if repository has updates
-        if: steps.check_updates.outputs.repo_updated == 'true'
+        if: env.repo_updated == 'true'
         run: |
           curl -X POST \
             -H "Authorization: token ${{ secrets.TOKEN }}" \
