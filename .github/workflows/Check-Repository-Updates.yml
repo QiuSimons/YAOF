@@ -9,6 +9,12 @@ jobs:
   check-updates:
     runs-on: ubuntu-latest
     steps:
+      # 确保检出整个仓库历史
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # 完整检出仓库，包括所有提交历史
+
       # 获取目标仓库最新的提交信息
       - name: Check for Updates
         id: check_updates
@@ -45,7 +51,7 @@ jobs:
         if: env.repo_updated == 'true'
         run: |
           git config --global user.email "${{ vars.USER_EMAIL }}"
-          git config --global user.name "${{ vars.USER_NAME }}"
+          git config --global user.name "GitHub Actions"
           git add last_commit.txt
           git commit -m "Update last commit hash"
           git push
