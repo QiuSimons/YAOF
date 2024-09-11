@@ -44,8 +44,8 @@ jobs:
       - name: Commit last commit hash
         if: env.repo_updated == 'true'
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "GitHub Actions"
+          git config --global user.email "${{ vars.USER_EMAIL }}"
+          git config --global user.name "${{ vars.USER_NAME }}"
           git add last_commit.txt
           git commit -m "Update last commit hash"
           git push
