@@ -11,7 +11,7 @@ jobs:
     steps:
       # 确保检出整个仓库历史
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 完整检出仓库，包括所有提交历史
 
