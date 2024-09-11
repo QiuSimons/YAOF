@@ -40,6 +40,18 @@ jobs:
             echo "repo_updated=false" >> $GITHUB_ENV
           fi
 
+      # 提交更新的 last_commit.txt 文件到 GitHub 仓库
+      - name: Commit last commit hash
+        if: env.repo_updated == 'true'
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "GitHub Actions"
+          git add last_commit.txt
+          git commit -m "Update last commit hash"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
       # 触发另一个工作流（工作流 B）
       - name: Trigger Workflow B if repository has updates
         if: env.repo_updated == 'true'
