@@ -1,0 +1,51 @@
+name: Check Repository Updates
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # 每30分钟运行一次
+  workflow_dispatch: # 手动触发
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    steps:
+      # 获取目标仓库最新的提交信息
+      - name: Check for Updates
+        id: check_updates
+        run: |
+          # 目标仓库的所有者和名称
+          REPO_OWNER="CodeIntegrity"
+          REPO_NAME="luci-app-daed"
+
+          # 获取上一次检查时的最新提交哈希值
+          if [ -f last_commit.txt ]; then
+            LAST_COMMIT=$(cat last_commit.txt)
+          else
+            LAST_COMMIT=""
+          fi
+
+          # 通过 GitHub API 获取最新的提交哈希值
+          NEW_COMMIT=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/commits?per_page=1" | jq -r '.[0].sha')
+
+          echo "Last commit: $LAST_COMMIT"
+          echo "New commit: $NEW_COMMIT"
+
+          # 如果有新提交，更新记录并设置一个变量用于后续步骤
+          if [ "$NEW_COMMIT" != "$LAST_COMMIT" ]; then
+            echo "Repository has been updated."
+            echo "$NEW_COMMIT" > last_commit.txt
+            echo "::set-output name=repo_updated::true"
+          else
+            echo "No updates found."
+            echo "::set-output name=repo_updated::false"
+          fi
+
+      # 触发另一个工作流（工作流 B）
+      - name: Trigger Workflow B if repository has updates
+        if: steps.check_updates.outputs.repo_updated == 'true'
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/workb.yml/dispatches \
+            -d '{"ref":"main"}'
