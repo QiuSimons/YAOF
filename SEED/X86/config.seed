@@ -45,6 +45,7 @@ CONFIG_USE_LTO=y
 # CONFIG_PACKAGE_urngd is not set
 
 ### BASIC ###
+CONFIG_PACKAGE_zsh=y
 CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_autocore=y
