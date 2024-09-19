@@ -1,7 +1,7 @@
-From f4b2a37dacad06aec332fcf1b265b95cc637b3c2 Mon Sep 17 00:00:00 2001
+From e21f9a4d1b391678f27eca3a1b792c63dac8b534 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Mon, 20 Feb 2023 22:08:23 +0100
-Subject: [PATCH v54 16/25] LRNG - CPU entropy source
+Subject: [PATCH v56 16/25] LRNG - CPU entropy source
 
 Certain CPUs provide instructions giving access to an entropy source
 (e.g. RDSEED on Intel/AMD, DARN on POWER, etc.). The LRNG can utilize
