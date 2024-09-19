@@ -1,7 +1,7 @@
-From cd54359177ca81417889cba9034fd1de128e8dcc Mon Sep 17 00:00:00 2001
+From 7daa4864c6ee18f88a94f57e12a9729067decba1 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 9 Oct 2022 10:22:39 +0200
-Subject: [PATCH v54 23/25] LRNG - add kernel crypto API interface
+Subject: [PATCH v56 23/25] LRNG - add kernel crypto API interface
 
 The LRNG can be registered with the kernel crypto API's random number
 generator framework. This offers a random number generator with the name

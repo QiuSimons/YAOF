@@ -1,7 +1,7 @@
-From 7d6d5d1f77e12aac55d6866680953834b6f9d02f Mon Sep 17 00:00:00 2001
+From 97702627d98871f458fbbbcb8a3e9f0c94eab32e Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Tue, 25 Apr 2023 22:22:44 +0200
-Subject: [PATCH v54 01/25] LRNG: Entropy Source and DRNG Manager
+Subject: [PATCH v56 01/25] LRNG: Entropy Source and DRNG Manager
 
 The kernel crypto API contains deterministic random number generators
 (DRNG) which a caller must seed and reseed. The task of seeding a DRNG
