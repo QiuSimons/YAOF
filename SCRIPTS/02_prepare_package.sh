@@ -57,6 +57,7 @@ CONFIG_LRNG_CPU=y
 #rm -rf ./package/libs/openssl
 #cp -rf ../immortalwrt_21/package/libs/openssl ./package/libs/openssl
 # fstool
+
 wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
 # wg
 cp -rf ../PATCH/wg/* ./target/linux/generic/hack-5.15/
