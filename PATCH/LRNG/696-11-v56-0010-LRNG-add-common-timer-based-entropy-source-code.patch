@@ -1,7 +1,7 @@
-From 380258b6701df7d1b6d3f24fcb2a4ee048638a88 Mon Sep 17 00:00:00 2001
+From d3a8d413a8af062d076a1ebfef58e7c75247782c Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 15 May 2022 16:21:44 +0200
-Subject: [PATCH v54 10/25] LRNG - add common timer-based entropy source code
+Subject: [PATCH v56 10/25] LRNG - add common timer-based entropy source code
 
 The code shared for timer-based entropy sources offers the following
 support:

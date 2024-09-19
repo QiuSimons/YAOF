@@ -1,7 +1,7 @@
-From de74ad0f7fd8308c6a85e01a02ef25db800bf72c Mon Sep 17 00:00:00 2001
+From 367e6de94ae073eaacdd5618fa5d3c662417abca Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Thu, 21 Mar 2024 14:17:33 +0100
-Subject: [PATCH v54 06/25] crypto: DRBG - externalize DRBG functions for LRNG
+Subject: [PATCH v56 06/25] crypto: DRBG - externalize DRBG functions for LRNG
 
 This patch allows several DRBG functions to be called by the LRNG kernel
 code paths outside the drbg.c file.

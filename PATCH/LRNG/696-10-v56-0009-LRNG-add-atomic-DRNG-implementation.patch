@@ -1,7 +1,7 @@
-From 5490dc9b65c3c038947cc54ff6e1d25ca8bfbf42 Mon Sep 17 00:00:00 2001
+From e2c4873e2635a36355f1625b1b45836b43a432ca Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Mon, 20 Feb 2023 22:05:24 +0100
-Subject: [PATCH v54 09/25] LRNG - add atomic DRNG implementation
+Subject: [PATCH v56 09/25] LRNG - add atomic DRNG implementation
 
 The atomic DRNG implementation supports the in-kernel use cases which
 request random numbers in atomic contexts. It uses the ChaCha20 DRNG

@@ -1,7 +1,7 @@
-From 2c9dbafb0fbcd8b7ab9ed64b4d5cd041fc97e851 Mon Sep 17 00:00:00 2001
+From 775a02c9afb75f600cd1a0468dcabb54c6d4d565 Mon Sep 17 00:00:00 2001
 From: Stephan Mueller <smueller@chronox.de>
 Date: Sun, 27 Aug 2023 17:11:37 +0200
-Subject: [PATCH v54 17/25] LRNG - add Jitter RNG fast noise source
+Subject: [PATCH v56 17/25] LRNG - add Jitter RNG fast noise source
 
 The Jitter RNG fast noise source implemented as part of the kernel
 crypto API is queried for 256 bits of entropy at the time the seed
