@@ -45,7 +45,7 @@ CONFIG_USE_LTO=y
 # CONFIG_PACKAGE_urngd is not set
 
 ### BASIC ###
-CONFIG_PACKAGE_zsh=y
+#CONFIG_PACKAGE_zsh=y
 CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
 CONFIG_PACKAGE_addition-trans-zh=y
 CONFIG_PACKAGE_autocore=y
@@ -115,7 +115,7 @@ CONFIG_PACKAGE_luci-app-ap-modem=y
 CONFIG_PACKAGE_luci-proto-wireguard=y
 CONFIG_PACKAGE_qrencode=y
 CONFIG_PACKAGE_luci-app-socat=y
-#CONFIG_PACKAGE_luci-app-argon-config=y
+CONFIG_PACKAGE_luci-app-argon-config=y
 CONFIG_PACKAGE_luci-app-arpbind=y
 CONFIG_PACKAGE_luci-app-autotimeset=y
 CONFIG_PACKAGE_luci-app-partexp=y
@@ -183,8 +183,8 @@ CONFIG_PACKAGE_luci-app-passwall_INCLUDE_V2ray_Geodata=y
 CONFIG_PACKAGE_luci-theme-argon=y
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 CONFIG_PACKAGE_luci-theme-edge=y
-CONFIG_PACKAGE_luci-theme-kucat=y
-CONFIG_PACKAGE_luci-app-advancedplus=y
+#CONFIG_PACKAGE_luci-theme-kucat=y
+#CONFIG_PACKAGE_luci-app-advancedplus=y
 
 ### SHARE NETWORK ###
 CONFIG_PACKAGE_usbmuxd=y
