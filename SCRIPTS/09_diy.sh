@@ -7,5 +7,5 @@ NEW_PS1='export PS1="\[\e[31m\][\[\e[m\]\[\e[38;5;172m\]\u\[\e[m\]@\[\e[38;5;153
 sed -i "s/^export PS1=.*/$NEW_PS1/" package/base-files/files/etc/profile
 #3. 修改默认主题
 # cp -r package/new/luci-theme-edge feeds/luci/themes/luci-theme-edge
-sed -i 's/luci-theme-bootstrap/luci-theme-edge/g' feeds/luci/collections/luci-nginx/Makefile
-sed -i 's/luci-theme-bootstrap/luci-theme-edge/g' feeds/luci/collections/luci-light/Makefile
+# sed -i 's/luci-theme-bootstrap/luci-theme-edge/g' feeds/luci/collections/luci-nginx/Makefile
+# sed -i 's/luci-theme-bootstrap/luci-theme-edge/g' feeds/luci/collections/luci-light/Makefile
