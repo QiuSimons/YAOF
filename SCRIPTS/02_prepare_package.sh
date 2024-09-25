@@ -287,8 +287,8 @@ rm -rf ./feeds/packages/net/v2ray-geodata
 cp -rf ../luci-app-mosdns/v2dat ./package/new/v2dat
 cp -rf ../v2ray-geodata ./package/new/v2ray-geodata
 # Kucat
-cp -rf ../luci-theme-kucat ./package/new/luci-theme-kucat
-cp -rf ../luci-app-advancedplus ./package/new/luci-app-advancedplus
+# cp -rf ../luci-theme-kucat ./package/new/luci-theme-kucat
+# cp -rf ../luci-app-advancedplus ./package/new/luci-app-advancedplus
 
 # Lucky
 cp -rf ../sirpdboy/luci-app-lucky/luci-app-lucky ./package/new/luci-app-lucky
@@ -344,12 +344,12 @@ ntp.ntsc.ac.cn
 # 清理内存
 cp -rf ../lede_luci/applications/luci-app-ramfree ./package/new/luci-app-ramfree
 # ServerChan 微信推送
-git clone -b master --depth 1 https://github.com/tty228/luci-app-wechatpush.git package/new/luci-app-serverchan
+# git clone -b master --depth 1 https://github.com/tty228/luci-app-wechatpush.git package/new/luci-app-serverchan
 # ShadowsocksR Plus+ 依赖
 rm -rf ./feeds/packages/net/shadowsocks-libev
 cp -rf ../lede_pkg/net/shadowsocks-libev ./package/new/shadowsocks-libev
 cp -rf ../sbwfw876/shadow-tls ./package/new/shadow-tls
-cp -rf ../sbwfw876/v2dat ./package/new/v2dat
+# cp -rf ../sbwfw876/v2dat ./package/new/v2dat
 cp -rf ../sbwfw876/tuic-client ./package/new/tuic-client
 cp -rf ../sbwfw876/redsocks2 ./package/new/redsocks2
 cp -rf ../sbwfw876/trojan ./package/new/trojan
