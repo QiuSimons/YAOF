@@ -125,7 +125,7 @@ ln -sf ../../../feeds/packages/net/dae ./package/feeds/packages/dae
 cp -rf ../lucidaednext/daed-next ./package/new/daed-next
 cp -rf ../lucidaednext/luci-app-daed-next ./package/new/luci-app-daed-next
 rm -rf ./feeds/packages/net/daed
-git clone -b master --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
+git clone -b test --depth 1 https://github.com/QiuSimons/luci-app-daed package/new/luci-app-daed
 # btf
 wget -qO - https://github.com/immortalwrt/immortalwrt/commit/73e5679.patch | patch -p1
 wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch -O target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch
@@ -510,8 +510,8 @@ wget -qO - https://github.com/coolsnowwolf/lede/commit/eb70dad.patch | patch -p1
 wget -qO - https://github.com/coolsnowwolf/lede/commit/7ba3ec0.patch | patch -p1
 cp -rf ../lede/package/qca/shortcut-fe/simulated-driver ./package/lean/shortcut-fe/simulated-driver
 # natflow
-cp -rf ../xwrt/natflow ./package/new/natflow
-patch -p1 < ../PATCH/firewall/luci-app-firewall_add_natflow_switch.patch
+# cp -rf ../xwrt/natflow ./package/new/natflow
+# patch -p1 < ../PATCH/firewall/luci-app-firewall_add_natflow_switch.patch
 
 # NAT6
 git clone --depth 1 https://github.com/sbwml/packages_new_nat6 package/new/packages_new_nat6
