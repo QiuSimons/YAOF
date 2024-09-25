@@ -79,8 +79,8 @@ CONFIG_PACKAGE_kmod-i915-gvt=y
 ### 22.03 ###
 # CONFIG_PACKAGE_firewall is not set
 CONFIG_PACKAGE_firewall4=y
-CONFIG_PACKAGE_vsftpd=y
-CONFIG_PACKAGE_openssh-sftp-server=y
+# CONFIG_PACKAGE_vsftpd=y
+# CONFIG_PACKAGE_openssh-sftp-server=y
 CONFIG_PACKAGE_kmod-nft-offload=y
 CONFIG_PACKAGE_kmod-nft-fullcone=y
 # CONFIG_PACKAGE_arptables-legacy is not set
