@@ -506,7 +506,7 @@ wget -qO - https://github.com/coolsnowwolf/lede/commit/7ba3ec0.patch | patch -p1
 cp -rf ../lede/package/qca/shortcut-fe/simulated-driver ./package/lean/shortcut-fe/simulated-driver
 # natflow
 cp -rf ../xwrt/natflow ./package/new/natflow
-patch -p1 < ../PATCH/firewall/luci-app-firewall_add_natflow_switch.patch
+# patch -p1 < ../PATCH/firewall/luci-app-firewall_add_natflow_switch.patch
 
 # NAT6
 git clone --depth 1 https://github.com/sbwml/packages_new_nat6 package/new/packages_new_nat6
