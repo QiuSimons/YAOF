@@ -283,8 +283,7 @@ cp -f ../PATCH/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/ne
 git clone --depth 1 https://github.com/BoringCat/luci-app-mentohust package/new/luci-app-mentohust
 git clone --depth 1 https://github.com/KyleRicardo/MentoHUST-OpenWrt-ipk package/new/MentoHUST
 # Mosdns
-cp -rf ../mosdns/mosdns ./package/new/mosdns
-cp -rf ../mosdns/luci-app-mosdns ./package/new/luci-app-mosdns
+git clone -b v5 --depth 1 https://github.com/sbwml/luci-app-mosdns package/new/luci-app-mosdns
 rm -rf ./feeds/packages/net/v2ray-geodata
 cp -rf ../mosdns/v2ray-geodata ./package/new/v2ray-geodata
 # 流量监管
@@ -298,7 +297,8 @@ git clone --single-branch --depth 1 -b dev https://github.com/immortalwrt/homepr
 rm -rf ./feeds/packages/net/sing-box
 cp -rf ../immortalwrt_pkg/net/sing-box ./feeds/packages/net/sing-box
 # OpenClash
-git clone --single-branch --depth 1 -b master https://github.com/vernesong/OpenClash.git package/new/luci-app-openclash
+git clone --single-branch --depth 1 -b master https://github.com/vernesong/OpenClash.git package/new/OpenClash
+rm -rf ./package/new/OpenClash/luci-app-openclash/root/etc/openclash/GeoSite.dat
 # Passwall
 cp -rf ../passwall_luci/luci-app-passwall ./package/new/luci-app-passwall
 wget -P package/new/luci-app-passwall/ https://github.com/QiuSimons/OpenWrt-Add/raw/master/move_2_services.sh
@@ -418,6 +418,10 @@ cp -rf ../immortalwrt_pkg/libs/toml11 ./feeds/packages/libs/toml11
 ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
 # 网易云音乐解锁
 git clone -b js --depth 1 https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
+sed -i 's, +node,,g' package/new/UnblockNeteaseMusic/Makefile
+pushd package/new/UnblockNeteaseMusic
+wget -qO - https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic/commit/a880428.patch | patch -p1
+popd
 # uwsgi
 sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
 sed -i 's,buffer-size = 10000,buffer-size = 131072,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
@@ -437,9 +441,8 @@ cp -rf ../lede_pkg/net/uugamebooster ./package/new/uugamebooster
 # KMS 激活助手
 cp -rf ../lede_luci/applications/luci-app-vlmcsd ./package/new/luci-app-vlmcsd
 cp -rf ../lede_pkg/net/vlmcsd ./package/new/vlmcsd
-# VSSR
-git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/new/luci-app-vssr
-git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/new/lua-maxminddb
+# Mihomo
+git clone -b main --depth 1 https://github.com/morytyann/OpenWrt-mihomo package/new/OpenWrt-mihomo
 # 网络唤醒
 cp -rf ../zxlhhyccc/zxlhhyccc/luci-app-wolplus ./package/new/luci-app-wolplus
 # 流量监视
