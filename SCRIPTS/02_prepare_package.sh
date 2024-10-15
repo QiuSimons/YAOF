@@ -12,8 +12,8 @@ sed -i 's/Os/O2/g' include/target.mk
 # 移除 SNAPSHOT 标签
 sed -i 's,-SNAPSHOT,,g' include/version.mk
 sed -i 's,-SNAPSHOT,,g' package/base-files/image-config.in
-# 维多利亚的秘密
-echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
+# dont wrongly interpret first-time data
+echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 # Nginx
 sed -i "s/large_client_header_buffers 2 1k/large_client_header_buffers 4 32k/g" feeds/packages/net/nginx-util/files/uci.conf.template
 sed -i "s/client_max_body_size 128M/client_max_body_size 2048M/g" feeds/packages/net/nginx-util/files/uci.conf.template
@@ -55,7 +55,8 @@ cp -rf ../PATCH/wg/* ./target/linux/generic/hack-5.15/
 cp -rf ../lede/target/linux/generic/hack-5.15/952-add-net-conntrack-events-support-multiple-registrant.patch ./target/linux/generic/hack-5.15/952-add-net-conntrack-events-support-multiple-registrant.patch
 # bcmfullcone
 cp -a ../PATCH/bcmfullcone/*.patch target/linux/generic/hack-5.15/
-# Patch FireWall 以增添 FullCone 功能
+# set nf_conntrack_expect_max for fullcone
+wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
 
 # FW4
 mkdir -p package/network/config/firewall4/patches
@@ -89,7 +90,7 @@ sed -i '/REQUIRE_IMAGE_METADATA/d' target/linux/rockchip/armv8/base-files/lib/up
 #intel-firmware
 wget -qO - https://github.com/openwrt/openwrt/commit/9c58add.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/64f1a65.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
+wget -qO - https://github.com/openwrt/openwrt/commit/c21a357.patch | patch -p1
 sed -i '/I915/d' target/linux/x86/64/config-5.15
 # Disable Mitigations
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
