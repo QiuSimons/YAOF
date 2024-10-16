@@ -51,7 +51,6 @@ xwrt_repo="https://github.com/QiuSimons/openwrt-natflow"
 clone_repo $openwrt_repo $latest_release openwrt &
 clone_repo $openwrt_repo openwrt-23.05 openwrt_snap &
 clone_repo $immortalwrt_repo openwrt-23.05 immortalwrt_23 &
-clone_repo $immortalwrt_pkg_repo master immortalwrt_pkg &
 clone_repo $lede_repo master lede &
 clone_repo $openwrt_repo main openwrt_ma &
 clone_repo $openwrt_pkg_repo master openwrt_pkg_ma &

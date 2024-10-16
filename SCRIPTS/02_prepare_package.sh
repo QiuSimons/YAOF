@@ -75,7 +75,9 @@ popd
 # ADD
 cp -rf ../OpenWrt-Add ./package/new
 rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box}
+rm -rf feeds/luci/applications/{luci-app-frps,luci-app-frpc}
 rm -rf feeds/packages/utils/coremark
+rm -rf feeds/packages/net/frp
 
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
@@ -149,9 +151,6 @@ popd
 pushd feeds/luci
 wget -qO- https://github.com/openwrt/luci/commit/0b5fb915.patch | patch -p1
 popd
-# CPU 控制相关
-cp -rf ../immortalwrt_pkg/utils/cpulimit ./feeds/packages/utils/cpulimit
-ln -sf ../../../feeds/packages/utils/cpulimit ./package/feeds/packages/cpulimit
 # 动态DNS
 sed -i '/boot()/,+2d' feeds/packages/net/ddns-scripts/files/etc/init.d/ddns
 # Docker 容器
@@ -165,13 +164,6 @@ popd
 sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
 rm -rf ./feeds/luci/collections/luci-lib-docker
 cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
-# FRP 内网穿透
-rm -rf ./feeds/luci/applications/luci-app-frps
-rm -rf ./feeds/luci/applications/luci-app-frpc
-rm -rf ./feeds/packages/net/frp
-cp -rf ../immortalwrt_pkg/net/frp ./feeds/packages/net/frp
-sed -i '/etc/d' feeds/packages/net/frp/Makefile
-sed -i '/defaults/{N;d;}' feeds/packages/net/frp/Makefile
 # IPv6 兼容助手
 patch -p1 <../PATCH/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 # ODHCPD
@@ -185,19 +177,6 @@ wget https://github.com/openwrt/odhcp6c/pull/83.patch -O package/network/ipv6/od
 wget https://github.com/openwrt/odhcp6c/pull/84.patch -O package/network/ipv6/odhcp6c/patches/84.patch
 wget https://github.com/openwrt/odhcp6c/pull/90.patch -O package/network/ipv6/odhcp6c/patches/90.patch
 
-# 订阅转换
-cp -rf ../immortalwrt_pkg/net/subconverter ./feeds/packages/net/subconverter
-ln -sf ../../../feeds/packages/net/subconverter ./package/feeds/packages/subconverter
-cp -rf ../immortalwrt_pkg/libs/jpcre2 ./feeds/packages/libs/jpcre2
-ln -sf ../../../feeds/packages/libs/jpcre2 ./package/feeds/packages/jpcre2
-cp -rf ../immortalwrt_pkg/libs/rapidjson ./feeds/packages/libs/rapidjson
-ln -sf ../../../feeds/packages/libs/rapidjson ./package/feeds/packages/rapidjson
-cp -rf ../immortalwrt_pkg/libs/libcron ./feeds/packages/libs/libcron
-ln -sf ../../../feeds/packages/libs/libcron ./package/feeds/packages/libcron
-cp -rf ../immortalwrt_pkg/libs/quickjspp ./feeds/packages/libs/quickjspp
-ln -sf ../../../feeds/packages/libs/quickjspp ./package/feeds/packages/quickjspp
-cp -rf ../immortalwrt_pkg/libs/toml11 ./feeds/packages/libs/toml11
-ln -sf ../../../feeds/packages/libs/toml11 ./package/feeds/packages/toml11
 # uwsgi
 sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
 sed -i 's,buffer-size = 10000,buffer-size = 131072,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
