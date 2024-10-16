@@ -1,0 +1,68 @@
+diff --git a/drivers/char/lrng/lrng_es_cpu.c b/drivers/char/lrng/lrng_es_cpu.c
+index f982cc31df4e..3910108cfd08 100644
+--- a/drivers/char/lrng/lrng_es_cpu.c
++++ b/drivers/char/lrng/lrng_es_cpu.c
+@@ -65,8 +65,7 @@ static u32 lrng_cpu_poolsize(void)
+ 
+ static u32 lrng_get_cpu_data(u8 *outbuf, u32 requested_bits)
+ {
+-	size_t longs = 0;
+-	u32 i,  req = requested_bits >> 3;
++	u32 i;
+ 
+ 	/* operate on full blocks */
+ 	BUILD_BUG_ON(LRNG_DRNG_SECURITY_STRENGTH_BYTES % sizeof(unsigned long));
+@@ -74,14 +73,10 @@ static u32 lrng_get_cpu_data(u8 *outbuf, u32 requested_bits)
+ 	/* ensure we have aligned buffers */
+ 	BUILD_BUG_ON(LRNG_KCAPI_ALIGN % sizeof(unsigned long));
+ 
+-	for (i = 0; i < req; i += longs) {
+-		longs = arch_get_random_seed_longs(
+-			(unsigned long *)(outbuf + i), req - i);
+-		if (longs)
+-			continue;
+-		longs = arch_get_random_longs((unsigned long *)(outbuf + i),
+-					      req - i);
+-		if (!longs) {
++	for (i = 0; i < (requested_bits >> 3);
++	     i += sizeof(unsigned long)) {
++		if (!arch_get_random_seed_long((unsigned long *)(outbuf + i)) &&
++		    !arch_get_random_long((unsigned long *)(outbuf + i))) {
+ 			cpu_entropy = 0;
+ 			return 0;
+ 		}
+@@ -180,7 +175,7 @@ static u32 lrng_cpu_multiplier(void)
+ 	if (data_multiplier > 0)
+ 		return data_multiplier;
+ 
+-	if (IS_ENABLED(CONFIG_X86) && !arch_get_random_seed_longs(&v, 1)) {
++	if (IS_ENABLED(CONFIG_X86) && !arch_get_random_seed_long(&v)) {
+ 		/*
+ 		 * Intel SPEC: pulling 512 blocks from RDRAND ensures
+ 		 * one reseed making it logically equivalent to RDSEED.
+--- linux-5.15.86/drivers/char/lrng/lrng_es_mgr.c.orig2	2023-01-07 21:18:49.376364123 +0100
++++ linux-5.15.86/drivers/char/lrng/lrng_es_mgr.c	2023-01-07 21:19:44.168291522 +0100
+@@ -376,19 +376,12 @@ void __init lrng_rand_initialize_early(v
+ 				    sizeof(unsigned long))];
+ 		struct new_utsname utsname;
+ 	} seed __aligned(LRNG_KCAPI_ALIGN);
+-	size_t longs = 0;
+ 	unsigned int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(seed.data); i += longs) {
+-		longs = arch_get_random_seed_longs(seed.data + i,
+-						   ARRAY_SIZE(seed.data) - i);
+-		if (longs)
+-			continue;
+-		longs = arch_get_random_longs(seed.data + i,
+-					      ARRAY_SIZE(seed.data) - i);
+-		if (longs)
+-			continue;
+-		longs = 1;
++	for (i = 0; i < ARRAY_SIZE(seed.data); i++) {
++		if (!arch_get_random_seed_long_early(&(seed.data[i])) &&
++		    !arch_get_random_long_early(&seed.data[i]))
++			seed.data[i] = random_get_entropy();
+ 	}
+ 	memcpy(&seed.utsname, init_utsname(), sizeof(*(init_utsname())));
+ 

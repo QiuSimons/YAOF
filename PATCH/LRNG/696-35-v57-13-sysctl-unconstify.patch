@@ -1,0 +1,29 @@
+--- linux-6.6.52/drivers/char/lrng/lrng_sysctl.c.orig	2024-09-28 22:10:40.683092569 +0200
++++ linux-6.6.52/drivers/char/lrng/lrng_sysctl.c	2024-09-28 22:11:05.993141475 +0200
+@@ -23,7 +23,7 @@
+  * returned as an ASCII string in the standard UUID format; if via the
+  * sysctl system call, as 16 bytes of binary data.
+  */
+-static int lrng_sysctl_do_uuid(const struct ctl_table *table, int write,
++static int lrng_sysctl_do_uuid(struct ctl_table *table, int write,
+ 			       void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct ctl_table fake_table;
+@@ -50,7 +50,7 @@ static int lrng_sysctl_do_uuid(const str
+ 	return proc_dostring(&fake_table, write, buffer, lenp, ppos);
+ }
+ 
+-static int lrng_sysctl_do_entropy(const struct ctl_table *table, int write,
++static int lrng_sysctl_do_entropy(struct ctl_table *table, int write,
+ 				 void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct ctl_table fake_table;
+@@ -62,7 +62,7 @@ static int lrng_sysctl_do_entropy(const
+ 	return proc_dointvec(&fake_table, write, buffer, lenp, ppos);
+ }
+ 
+-static int lrng_sysctl_do_poolsize(const struct ctl_table *table, int write,
++static int lrng_sysctl_do_poolsize(struct ctl_table *table, int write,
+ 				   void *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct ctl_table fake_table;

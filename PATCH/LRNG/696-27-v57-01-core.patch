@@ -1,0 +1,12 @@
+--- linux-5.15/kernel/sched/core.c.orig	2022-05-17 08:10:20.541904807 +0200
++++ linux-5.15/kernel/sched/core.c	2022-05-17 08:10:31.720932544 +0200
+@@ -7,9 +7,6 @@
+  *  Copyright (C) 1991-2002  Linus Torvalds
+  */
+ #include <linux/lrng.h>
+-#include <linux/highmem.h>
+-#include <linux/hrtimer_api.h>
+-#include <linux/ktime_api.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/sched.h>
