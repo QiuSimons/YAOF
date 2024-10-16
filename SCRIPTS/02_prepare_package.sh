@@ -76,8 +76,8 @@ popd
 cp -rf ../OpenWrt-Add ./package/new
 rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box}
 rm -rf feeds/luci/applications/{luci-app-frps,luci-app-frpc}
+rm -rf feeds/packages/net/{frp,microsocks,shadowsocks-libev}
 rm -rf feeds/packages/utils/coremark
-rm -rf feeds/packages/net/frp
 
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
@@ -92,7 +92,7 @@ sed -i '/REQUIRE_IMAGE_METADATA/d' target/linux/rockchip/armv8/base-files/lib/up
 #intel-firmware
 wget -qO - https://github.com/openwrt/openwrt/commit/9c58add.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/64f1a65.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/c21a357.patch | patch -p1
+wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
 sed -i '/I915/d' target/linux/x86/64/config-5.15
 # Disable Mitigations
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
