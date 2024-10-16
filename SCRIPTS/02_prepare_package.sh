@@ -117,8 +117,6 @@ mkdir -p feeds/packages/utils/cgroupfs-mount/patches
 cp -rf ../PATCH/cgroupfs-mount/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
 cp -rf ../PATCH/cgroupfs-mount/901-fix-cgroupfs-umount.patch ./feeds/packages/utils/cgroupfs-mount/patches/
 cp -rf ../PATCH/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-# luci-app-ap-modem
-cp -rf ../linkease/applications/luci-app-ap-modem ./package/new/luci-app-ap-modem
 # 更换 Nodejs 版本
 rm -rf ./feeds/packages/lang/node
 rm -rf ./package/new/feeds_packages_lang_node-prebuilt
@@ -179,8 +177,6 @@ rm -rf ./feeds/packages/net/frp
 cp -rf ../immortalwrt_pkg/net/frp ./feeds/packages/net/frp
 sed -i '/etc/d' feeds/packages/net/frp/Makefile
 sed -i '/defaults/{N;d;}' feeds/packages/net/frp/Makefile
-cp -rf ../lede_luci/applications/luci-app-frps ./package/new/luci-app-frps
-cp -rf ../lede_luci/applications/luci-app-frpc ./package/new/luci-app-frpc
 # IPv6 兼容助手
 patch -p1 <../PATCH/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 # ODHCPD
@@ -194,9 +190,6 @@ wget https://github.com/openwrt/odhcp6c/pull/83.patch -O package/network/ipv6/od
 wget https://github.com/openwrt/odhcp6c/pull/84.patch -O package/network/ipv6/odhcp6c/patches/84.patch
 wget https://github.com/openwrt/odhcp6c/pull/90.patch -O package/network/ipv6/odhcp6c/patches/90.patch
 
-# 京东签到 By Jerrykuku
-#git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
-#git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
 # 订阅转换
 cp -rf ../immortalwrt_pkg/net/subconverter ./feeds/packages/net/subconverter
 ln -sf ../../../feeds/packages/net/subconverter ./package/feeds/packages/subconverter
@@ -221,25 +214,8 @@ sed -i 's/cheaper = 1/cheaper = 2/g' feeds/packages/net/uwsgi/files-luci-support
 # rpcd
 sed -i 's/option timeout 30/option timeout 60/g' package/system/rpcd/files/rpcd.config
 sed -i 's#20) \* 1000#60) \* 1000#g' feeds/luci/modules/luci-base/htdocs/luci-static/resources/rpc.js
-# UU加速器
-cp -rf ../lede_luci/applications/luci-app-uugamebooster ./package/new/luci-app-uugamebooster
-cp -rf ../lede_pkg/net/uugamebooster ./package/new/uugamebooster
 # watchcat
 echo > ./feeds/packages/utils/watchcat/files/watchcat.config
-# sirpdboy
-mkdir -p package/sirpdboy
-cp -rf ../sirpdboy/luci-app-autotimeset ./package/sirpdboy/luci-app-autotimeset
-sed -i 's,"control","system",g' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
-sed -i '/firstchild/d' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
-sed -i 's,control,system,g' package/sirpdboy/luci-app-autotimeset/luasrc/view/autotimeset/log.htm
-sed -i '/start()/a \    echo "Service autotimesetrun started!" >/dev/null' package/sirpdboy/luci-app-autotimeset/root/etc/init.d/autotimesetrun
-rm -rf ./package/sirpdboy/luci-app-autotimeset/po/zh_Hans
-cp -rf ../sirpdboy/luci-app-partexp ./package/sirpdboy/luci-app-partexp
-rm -rf ./package/sirpdboy/luci-app-partexp/po/zh_Hans
-sed -i 's, - !, -o !,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp
-sed -i 's,expquit 1 ,#expquit 1 ,g' package/sirpdboy/luci-app-partexp/root/etc/init.d/partexp
-# 翻译及部分功能优化
-cp -rf ../OpenWrt-Add/addition-trans-zh ./package/new/addition-trans-zh
 
 ### 最后的收尾工作 ###
 # Lets Fuck

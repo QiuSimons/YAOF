@@ -54,16 +54,12 @@ clone_repo $immortalwrt_repo openwrt-23.05 immortalwrt_23 &
 clone_repo $immortalwrt_pkg_repo master immortalwrt_pkg &
 clone_repo $immortalwrt_luci_repo master immortalwrt_luci &
 clone_repo $lede_repo master lede &
-clone_repo $lede_luci_repo master lede_luci &
-clone_repo $lede_pkg_repo master lede_pkg &
 clone_repo $openwrt_repo main openwrt_ma &
 clone_repo $openwrt_pkg_repo master openwrt_pkg_ma &
 clone_repo $openwrt_luci_repo master openwrt_luci_ma &
 clone_repo $openwrt_add_repo master OpenWrt-Add &
 clone_repo $dockerman_repo master dockerman &
 clone_repo $docker_lib_repo master docker_lib &
-clone_repo $linkease_repo main linkease &
-clone_repo $sirpdboy_repo main sirpdboy &
 # 等待所有后台任务完成
 wait
 
