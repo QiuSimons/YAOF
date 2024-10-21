@@ -18,6 +18,7 @@ sed -i '/client_max_body_size/a\\tserver_names_hash_bucket_size 128;' feeds/pack
 sed -i '/ubus_parallel_req/a\        ubus_script_timeout 600;' feeds/packages/net/nginx/files-luci-support/60_nginx-luci-support
 sed -ri "/luci-webui.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
 sed -ri "/luci-cgi_io.socket/i\ \t\tuwsgi_send_timeout 600\;\n\t\tuwsgi_connect_timeout 600\;\n\t\tuwsgi_read_timeout 600\;" feeds/packages/net/nginx/files-luci-support/luci.locations
+sed -i 's,luci-app-opkg,luci-app-package-manager,g' feeds/luci/collections/luci-nginx/Makefile
 # uwsgi
 sed -i 's,procd_set_param stderr 1,procd_set_param stderr 0,g' feeds/packages/net/uwsgi/files/uwsgi.init
 sed -i 's,buffer-size = 10000,buffer-size = 131072,g' feeds/packages/net/uwsgi/files-luci-support/luci-webui.ini
@@ -36,15 +37,17 @@ cp -rf ../openwrt_ma/package/network/config/firewall4 ./package/network/config/f
 
 ### 必要的 Patches ###
 # TCP optimizations
-cp -rf ../PATCH/backport/TCP/* ./target/linux/generic/backport-5.15/
-# x86_csum
-cp -rf ../PATCH/backport/x86_csum/* ./target/linux/generic/backport-5.15/
+cp -rf ../PATCH/kernel/6.7_Boost_For_Single_TCP_Flow/* ./target/linux/generic/backport-6.6/
+cp -rf ../PATCH/kernel/6.8_Boost_TCP_Performance_For_Many_Concurrent_Connections-bp_but_put_in_hack/* ./target/linux/generic/hack-6.6/
+cp -rf ../PATCH/kernel/6.8_Better_data_locality_in_networking_fast_paths-bp_but_put_in_hack/* ./target/linux/generic/hack-6.6/
+# UDP optimizations
+cp -rf ../PATCH/kernel/6.7_FQ_packet_scheduling/* ./target/linux/generic/backport-6.6/
 # Patch arm64 型号名称
-cp -rf ../immortalwrt_23/target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch ./target/linux/generic/hack-5.15/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch
+cp -rf ../PATCH/kernel/arm/* ./target/linux/generic/hack-6.6/
 # BBRv3
-cp -rf ../PATCH/BBRv3/kernel/* ./target/linux/generic/backport-5.15/
+cp -rf ../PATCH/kernel/bbr3/* ./target/linux/generic/backport-6.6/
 # LRNG
-cp -rf ../PATCH/LRNG/* ./target/linux/generic/hack-5.15/
+cp -rf ../PATCH/kernel/lrng/* ./target/linux/generic/hack-6.6/
 echo '
 # CONFIG_RANDOM_DEFAULT_IMPL is not set
 CONFIG_LRNG=y
@@ -52,69 +55,65 @@ CONFIG_LRNG=y
 CONFIG_LRNG_JENT=y
 CONFIG_LRNG_CPU=y
 # CONFIG_LRNG_SCHED is not set
-' >>./target/linux/generic/config-5.15
+' >>./target/linux/generic/config-6.6
 # wg
-cp -rf ../PATCH/wg/* ./target/linux/generic/hack-5.15/
+cp -rf ../PATCH/kernel/wg/* ./target/linux/generic/hack-6.6/
 # dont wrongly interpret first-time data
 echo "net.netfilter.nf_conntrack_tcp_max_retrans=5" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
 ### Fullcone-NAT 部分 ###
-# Patch Kernel 以解决 FullCone 冲突
-cp -rf ../lede/target/linux/generic/hack-5.15/952-add-net-conntrack-events-support-multiple-registrant.patch ./target/linux/generic/hack-5.15/952-add-net-conntrack-events-support-multiple-registrant.patch
 # bcmfullcone
-cp -a ../PATCH/bcmfullcone/*.patch target/linux/generic/hack-5.15/
+cp -rf ../PATCH/kernel/bcmfullcone/* ./target/linux/generic/hack-6.6/
 # set nf_conntrack_expect_max for fullcone
 wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
 echo "net.netfilter.nf_conntrack_helper = 1" >>./package/kernel/linux/files/sysctl-nf-conntrack.conf
 # FW4
 mkdir -p package/network/config/firewall4/patches
-cp -f ../PATCH/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
+cp -f ../PATCH/pkgs/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
 mkdir -p package/libs/libnftnl/patches
-cp -f ../PATCH/firewall/libnftnl/*.patch ./package/libs/libnftnl/patches/
+cp -f ../PATCH/pkgs/firewall/libnftnl/*.patch ./package/libs/libnftnl/patches/
 sed -i '/PKG_INSTALL:=/iPKG_FIXUP:=autoreconf' package/libs/libnftnl/Makefile
 mkdir -p package/network/utils/nftables/patches
-cp -f ../PATCH/firewall/nftables/*.patch ./package/network/utils/nftables/patches/
+cp -f ../PATCH/pkgs/firewall/nftables/*.patch ./package/network/utils/nftables/patches/
 # Patch LuCI 以增添 FullCone 开关
 pushd feeds/luci
-patch -p1 <../../../PATCH/firewall/01-luci-app-firewall_add_nft-fullcone-bcm-fullcone_option.patch
+patch -p1 <../../../PATCH/pkgs/firewall/01-luci-app-firewall_add_nft-fullcone-bcm-fullcone_option.patch
 popd
 
 ### Shortcut-FE 部分 ###
 # Patch Kernel 以支持 Shortcut-FE
-cp -rf ../lede/target/linux/generic/hack-5.15/953-net-patch-linux-kernel-to-support-shortcut-fe.patch ./target/linux/generic/hack-5.15/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
-cp -f ../PATCH/backport/sfe/601-netfilter-export-udp_get_timeouts-function.patch ./target/linux/generic/hack-5.15/
-cp -rf ../lede/target/linux/generic/pending-5.15/613-netfilter_optional_tcp_window_check.patch ./target/linux/generic/pending-5.15/613-netfilter_optional_tcp_window_check.patch
+cp -rf ../PATCH/kernel/sfe/* ./target/linux/generic/hack-6.6/
+cp -rf ../lede/target/linux/generic/pending-6.6/613-netfilter_optional_tcp_window_check.patch ./target/linux/generic/pending-6.6/613-netfilter_optional_tcp_window_check.patch
 # Patch LuCI 以增添 Shortcut-FE 开关
-patch -p1 < ../PATCH/firewall/luci-app-firewall_add_sfe_switch.patch
+patch -p1 < ../PATCH/pkgs/firewall/luci-app-firewall_add_sfe_switch.patch
 # natflow
-# patch -p1 < ../PATCH/firewall/luci-app-firewall_add_natflow_switch.patch
+# patch -p1 < ../PATCH/pkgs/firewall/luci-app-firewall_add_natflow_switch.patch
 
 ### NAT6 部分 ###
 # custom nft command
-patch -p1 < ../PATCH/firewall/100-openwrt-firewall4-add-custom-nft-command-support.patch
+patch -p1 < ../PATCH/pkgs/firewall/100-openwrt-firewall4-add-custom-nft-command-support.patch
 # Patch LuCI 以增添 NAT6 开关
 pushd feeds/luci
-patch -p1 <../../../PATCH/firewall/03-luci-app-firewall_add_ipv6-nat.patch
+patch -p1 <../../../PATCH/pkgs/firewall/03-luci-app-firewall_add_ipv6-nat.patch
 # Patch LuCI 以支持自定义 nft 规则
-patch -p1 <../../../PATCH/firewall/04-luci-add-firewall4-nft-rules-file.patch
+patch -p1 <../../../PATCH/pkgs/firewall/04-luci-add-firewall4-nft-rules-file.patch
 popd
 
 ### Other Kernel Hack 部分 ###
 # make olddefconfig
 wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
 # igc-fix
-cp -rf ../lede/target/linux/x86/patches-5.15/996-intel-igc-i225-i226-disable-eee.patch ./target/linux/x86/patches-5.15/996-intel-igc-i225-i226-disable-eee.patch
+cp -rf ../lede/target/linux/x86/patches-6.6/996-intel-igc-i225-i226-disable-eee.patch ./target/linux/x86/patches-6.6/996-intel-igc-i225-i226-disable-eee.patch
 # btf
-wget -qO - https://github.com/immortalwrt/immortalwrt/commit/73e5679.patch | patch -p1
-wget https://github.com/immortalwrt/immortalwrt/raw/openwrt-23.05/target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch -O target/linux/generic/backport-5.15/051-v5.18-bpf-Add-config-to-allow-loading-modules-with-BTF-mismatch.patch
-# bpf_loop
-cp -f ../PATCH/bpf_loop/*.patch ./target/linux/generic/backport-5.15/
+cp -rf ../PATCH/kernel/btf/* ./target/linux/generic/hack-6.6/
 
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
 cp -rf ../immortalwrt_23/target/linux/rockchip ./target/linux/rockchip
-cp -rf ../PATCH/rockchip-5.15/* ./target/linux/rockchip/patches-5.15/
+cp -rf ../PATCH/kernel/rockchip/* ./target/linux/rockchip/patches-6.6/
+wget https://github.com/immortalwrt/immortalwrt/raw/refs/heads/openwrt-23.05/target/linux/rockchip/patches-5.15/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch -O target/linux/rockchip/patches-6.6/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch
+rm -rf ./package/boot/rkbin
 rm -rf ./package/boot/uboot-rockchip
 cp -rf ../immortalwrt_23/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
 rm -rf ./package/boot/arm-trusted-firmware-rockchip
@@ -123,7 +122,7 @@ sed -i '/REQUIRE_IMAGE_METADATA/d' target/linux/rockchip/armv8/base-files/lib/up
 # intel-firmware
 wget -qO - https://github.com/openwrt/openwrt/commit/9c58add.patch | patch -p1
 wget -qO - https://github.com/openwrt/openwrt/commit/64f1a65.patch | patch -p1
-sed -i '/I915/d' target/linux/x86/64/config-5.15
+sed -i '/I915/d' target/linux/x86/64/config-6.6
 # Disable Mitigations
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
 sed -i 's,@CMDLINE@ noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-efi.cfg
@@ -132,9 +131,8 @@ sed -i 's,@CMDLINE@ noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/
 
 ### ADD PKG 部分 ###
 cp -rf ../OpenWrt-Add ./package/new
-rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box}
-rm -rf feeds/luci/applications/{luci-app-frps,luci-app-frpc}
-rm -rf feeds/packages/net/{frp,microsocks,shadowsocks-libev}
+rm -rf feeds/packages/net/{xray-core,v2ray-core,v2ray-geodata,sing-box,frp,microsocks,shadowsocks-libev,zerotier}
+rm -rf feeds/luci/applications/{luci-app-frps,luci-app-frpc,luci-app-zerotier}
 rm -rf feeds/packages/utils/coremark
 
 ### 获取额外的 LuCI 应用、主题和依赖 ###
@@ -147,12 +145,12 @@ rm -rf ./feeds/packages/lang/golang
 cp -rf ../openwrt_pkg_ma/lang/golang ./feeds/packages/lang/golang
 # mount cgroupv2
 pushd feeds/packages
-patch -p1 <../../../PATCH/cgroupfs-mount/0001-fix-cgroupfs-mount.patch
+patch -p1 <../../../PATCH/pkgs/cgroupfs-mount/0001-fix-cgroupfs-mount.patch
 popd
 mkdir -p feeds/packages/utils/cgroupfs-mount/patches
-cp -rf ../PATCH/cgroupfs-mount/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-cp -rf ../PATCH/cgroupfs-mount/901-fix-cgroupfs-umount.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-cp -rf ../PATCH/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch ./feeds/packages/utils/cgroupfs-mount/patches/
+cp -rf ../PATCH/pkgs/cgroupfs-mount/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
+cp -rf ../PATCH/pkgs/cgroupfs-mount/901-fix-cgroupfs-umount.patch ./feeds/packages/utils/cgroupfs-mount/patches/
+cp -rf ../PATCH/pkgs/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch ./feeds/packages/utils/cgroupfs-mount/patches/
 # fstool
 wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
 # dae
@@ -174,10 +172,10 @@ wget https://github.com/miniupnp/miniupnp/commit/60f5705.patch -O feeds/packages
 sed -i 's,/miniupnpd/,/,g' ./feeds/packages/net/miniupnpd/patches/60f5705.patch
 wget https://github.com/miniupnp/miniupnp/commit/3f3582b.patch -O feeds/packages/net/miniupnpd/patches/3f3582b.patch
 sed -i 's,/miniupnpd/,/,g' ./feeds/packages/net/miniupnpd/patches/3f3582b.patch
-cp -rf ../PATCH/miniupnpd/301-options-force_forwarding-support.patch ./feeds/packages/net/miniupnpd/patches/
+cp -rf ../PATCH/pkgs/miniupnpd/301-options-force_forwarding-support.patch ./feeds/packages/net/miniupnpd/patches/
 pushd feeds/packages
-patch -p1 <../../../PATCH/miniupnpd/01-set-presentation_url.patch
-patch -p1 <../../../PATCH/miniupnpd/02-force_forwarding.patch
+patch -p1 <../../../PATCH/pkgs/miniupnpd/01-set-presentation_url.patch
+patch -p1 <../../../PATCH/pkgs/miniupnpd/02-force_forwarding.patch
 popd
 pushd feeds/luci
 wget -qO- https://github.com/openwrt/luci/commit/0b5fb915.patch | patch -p1
@@ -196,10 +194,10 @@ sed -i '/sysctl.d/d' feeds/packages/utils/dockerd/Makefile
 rm -rf ./feeds/luci/collections/luci-lib-docker
 cp -rf ../docker_lib/collections/luci-lib-docker ./feeds/luci/collections/luci-lib-docker
 # IPv6 兼容助手
-patch -p1 <../PATCH/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
+patch -p1 <../PATCH/pkgs/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 # ODHCPD
 mkdir -p package/network/services/odhcpd/patches
-cp -f ../PATCH/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/network/services/odhcpd/patches/0001-odhcpd-improve-RFC-9096-compliance.patch
+cp -f ../PATCH/pkgs/odhcpd/0001-odhcpd-improve-RFC-9096-compliance.patch ./package/network/services/odhcpd/patches/0001-odhcpd-improve-RFC-9096-compliance.patch
 mkdir -p package/network/ipv6/odhcp6c/patches
 wget https://github.com/openwrt/odhcp6c/pull/75.patch -O package/network/ipv6/odhcp6c/patches/75.patch
 wget https://github.com/openwrt/odhcp6c/pull/80.patch -O package/network/ipv6/odhcp6c/patches/80.patch

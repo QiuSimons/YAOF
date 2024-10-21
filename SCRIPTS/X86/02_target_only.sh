@@ -22,7 +22,7 @@ exit 0
 echo '
 CONFIG_X86_INTEL_PSTATE=y
 CONFIG_SMP=y
-' >>./target/linux/x86/config-5.15
+' >>./target/linux/x86/config-6.6
 
 #Vermagic
 latest_version="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][3-9]/p' | sed -n 1p | sed 's/v//g' | sed 's/.tar.gz//g')"
