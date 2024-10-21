@@ -1,0 +1,223 @@
+--- a/drivers/net/wireguard/Makefile
++++ b/drivers/net/wireguard/Makefile
+@@ -14,4 +14,5 @@ wireguard-y += allowedips.o
+ wireguard-y += ratelimiter.o
+ wireguard-y += cookie.o
+ wireguard-y += netlink.o
++wireguard-y += hotplug.o
+ obj-$(CONFIG_WIREGUARD) := wireguard.o
+--- /dev/null
++++ b/drivers/net/wireguard/hotplug.c
+@@ -0,0 +1,124 @@
++/*
++ *  oui-tertf Hotplug driver
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/version.h>
++#include <linux/kmod.h>
++#include <linux/input.h>
++
++#include <linux/workqueue.h>
++#include <linux/skbuff.h>
++#include <linux/netlink.h>
++#include <linux/kobject.h>
++
++#include <linux/workqueue.h>
++
++#define SUBSYSTEM_NAME	"wireguard"
++
++
++#define BH_SKB_SIZE	2048
++#define	IFNAMSIZ	16
++
++struct work_struct wg_event_work;
++struct wg_event {
++    struct work_struct work;
++    char ifname[IFNAMSIZ];
++    const char *action;
++};
++struct wg_event *gl_wg_event;
++
++static DEFINE_SPINLOCK(event_lock);
++
++
++/* -------------------------------------------------------------------------*/
++static int bh_event_add_var(struct sk_buff *skb, int argv,
++                            const char *format, ...)
++{
++    static char buf[128];
++    char *s;
++    va_list args;
++    int len;
++
++    if (argv)
++        return 0;
++
++    va_start(args, format);
++    len = vsnprintf(buf, sizeof(buf), format, args);
++    va_end(args);
++
++    if (len >= sizeof(buf)) {
++        //WARN(1, "buffer size too small\n");
++        return -ENOMEM;
++    }
++
++    s = skb_put(skb, len + 1);
++    strcpy(s, buf);
++
++    return 0;
++}
++
++
++static void wireguard_send_hotplug(struct work_struct *mywork)
++{
++    struct wg_event *event;
++    struct sk_buff *skb;
++    char ifname[IFNAMSIZ];
++    const char *action;
++
++    event = container_of(mywork, struct wg_event, work);
++    if (!event)
++        return;
++    skb = alloc_skb(BH_SKB_SIZE, GFP_KERNEL);
++    if (!skb)
++        return;
++    strcpy(ifname, event->ifname);
++    action = event->action;
++
++    /*pr_info("wireguard-hotplug IFNAME=%s ACTION=%s\n", ifname, action);*/
++
++    bh_event_add_var(skb, 0, "SUBSYSTEM=%s", SUBSYSTEM_NAME);
++
++    spin_lock(&event_lock);
++    bh_event_add_var(skb, 0, "ACTION=%s", action);
++    bh_event_add_var(skb, 0, "ifname=%s", ifname);
++    spin_unlock(&event_lock);
++
++    NETLINK_CB(skb).dst_group = 1;
++    broadcast_uevent(skb, 0, 1, GFP_KERNEL);
++}
++
++void wireguard_hotplug(const char *ifname, const char *action)
++{
++    if(gl_wg_event == NULL){
++        return;
++    }
++    if (0 == strcmp(ifname,"wgserver"))
++	return;
++
++    spin_lock(&event_lock);
++    memcpy(gl_wg_event->ifname, ifname, IFNAMSIZ);
++    gl_wg_event->action = action;
++    spin_unlock(&event_lock);
++
++    schedule_work(&gl_wg_event->work);
++}
++
++void wg_hotplug_init(void)
++{
++    gl_wg_event = (struct wg_event *)kzalloc(sizeof(struct wg_event),GFP_KERNEL);
++    if(gl_wg_event == NULL){
++        return;
++    }
++    gl_wg_event->work = wg_event_work;
++    INIT_WORK(&gl_wg_event->work, wireguard_send_hotplug);
++}
++
++void wg_hotplug_free(void)
++{
++    if(gl_wg_event){
++        kfree(gl_wg_event);
++    }
++    return;
++}
+--- /dev/null
++++ b/drivers/net/wireguard/hotplug.h
+@@ -0,0 +1,13 @@
++#ifndef __HOTPLUG_H__
++#define __HOTPLUG_H__
++
++#define  REKEY_GIVEUP_EVENT "REKEY-GIVEUP"
++#define  REKEY_TIMEOUT_EVENT "REKEY-TIMEOUT"
++#define  KEYPAIR_CREATED_EVENT "KEYPAIR-CREATED"
++
++extern void wireguard_hotplug(const char *ifname, const char *action);
++extern void wg_hotplug_init(void);
++extern void wg_hotplug_free(void);
++
++#endif
++
+--- a/drivers/net/wireguard/main.c
++++ b/drivers/net/wireguard/main.c
+@@ -17,6 +17,8 @@
+ #include <linux/genetlink.h>
+ #include <net/rtnetlink.h>
+ 
++#include "hotplug.h"
++
+ static int __init wg_mod_init(void)
+ {
+ 	int ret;
+@@ -45,6 +47,8 @@ static int __init mod_init(void)
+ 	if (ret < 0)
+ 		goto err_netlink;
+ 
++	wg_hotplug_init();
++
+ 	pr_info("WireGuard " WIREGUARD_VERSION " loaded. See www.wireguard.com for information.\n");
+ 	pr_info("Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.\n");
+ 
+@@ -62,6 +66,7 @@ err_allowedips:
+ 
+ static void __exit mod_exit(void)
+ {
++	wg_hotplug_free();
+ 	wg_genetlink_uninit();
+ 	wg_device_uninit();
+ 	wg_peer_uninit();
+--- a/drivers/net/wireguard/noise.c
++++ b/drivers/net/wireguard/noise.c
+@@ -9,6 +9,7 @@
+ #include "messages.h"
+ #include "queueing.h"
+ #include "peerlookup.h"
++#include "hotplug.h"
+ 
+ #include <linux/rcupdate.h>
+ #include <linux/slab.h>
+@@ -850,6 +851,7 @@ bool wg_noise_handshake_begin_session(st
+ 		ret = wg_index_hashtable_replace(
+ 			handshake->entry.peer->device->index_hashtable,
+ 			&handshake->entry, &new_keypair->entry);
++		wireguard_hotplug(handshake->entry.peer->device->dev->name, KEYPAIR_CREATED_EVENT);
+ 	} else {
+ 		kfree_sensitive(new_keypair);
+ 	}
+--- a/drivers/net/wireguard/timers.c
++++ b/drivers/net/wireguard/timers.c
+@@ -8,6 +8,7 @@
+ #include "peer.h"
+ #include "queueing.h"
+ #include "socket.h"
++#include "hotplug.h"
+ 
+ /*
+  * - Timer for retransmitting the handshake if we don't hear back after
+@@ -60,6 +61,7 @@ static void wg_expired_retransmit_handsh
+ 		if (!timer_pending(&peer->timer_zero_key_material))
+ 			mod_peer_timer(peer, &peer->timer_zero_key_material,
+ 				       jiffies + REJECT_AFTER_TIME * 3 * HZ);
++		wireguard_hotplug(peer->device->dev->name, REKEY_GIVEUP_EVENT);
+ 	} else {
+ 		++peer->timer_handshake_attempts;
+ 		pr_debug("%s: Handshake for peer %llu (%pISpfsc) did not complete after %d seconds, retrying (try %d)\n",
+@@ -73,6 +75,7 @@ static void wg_expired_retransmit_handsh
+ 		wg_socket_clear_peer_endpoint_src(peer);
+ 
+ 		wg_packet_send_queued_handshake_initiation(peer, true);
++		wireguard_hotplug(peer->device->dev->name, REKEY_TIMEOUT_EVENT);
+ 	}
+ }
+ 

@@ -1,0 +1,32 @@
+From b2277680a6fbb06e7af2b1583d72a587ca4c637a Mon Sep 17 00:00:00 2001
+From: Sumit Gupta <sumitg@nvidia.com>
+Date: Mon, 29 Aug 2016 14:32:25 +0530
+Subject: [PATCH 1/2] arm64: cpuinfo: Add "model name" in /proc/cpuinfo for
+ 64bit tasks also
+
+Removed restriction of displaying model name for 32 bit tasks only.
+Because of this Processor details were not displayed in
+"System setting -> Details" in Ubuntu model name display is generic
+and can be printed for 64 bit also.
+
+model name : ARMv8 Processor rev X (v8l)
+
+Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+---
+ arch/arm64/kernel/cpuinfo.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+--- a/arch/arm64/kernel/cpuinfo.c
++++ b/arch/arm64/kernel/cpuinfo.c
+@@ -189,9 +189,8 @@ static int c_show(struct seq_file *m, vo
+ 		 * "processor".  Give glibc what it expects.
+ 		 */
+ 		seq_printf(m, "processor\t: %d\n", i);
+-		if (compat)
+-			seq_printf(m, "model name\t: ARMv8 Processor rev %d (%s)\n",
+-				   MIDR_REVISION(midr), COMPAT_ELF_PLATFORM);
++		seq_printf(m, "model name\t: ARMv8 Processor rev %d (%s)\n",
++			   MIDR_REVISION(midr), COMPAT_ELF_PLATFORM);
+ 
+ 		seq_printf(m, "BogoMIPS\t: %lu.%02lu\n",
+ 			   loops_per_jiffy / (500000UL/HZ),

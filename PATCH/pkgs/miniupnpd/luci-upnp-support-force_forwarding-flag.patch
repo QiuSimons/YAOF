@@ -1,0 +1,53 @@
+From 0b5fb91507c6c0e1a90fd1a5c8764570e5b2f9c4 Mon Sep 17 00:00:00 2001
+From: Liangbin Lian <jjm2473@gmail.com>
+Date: Sun, 24 Apr 2022 13:58:06 +0800
+Subject: [PATCH] luci-app-upnp: support force_forwarding flag
+
+---
+ .../htdocs/luci-static/resources/view/upnp/upnp.js          | 3 +++
+ applications/luci-app-upnp/po/templates/upnp.pot            | 6 ++++++
+ applications/luci-app-upnp/po/zh_Hans/upnp.po               | 6 ++++++
+ 3 files changed, 15 insertions(+)
+
+diff --git a/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js b/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
+index e0a326d4fcf4..f6b518437aa9 100644
+--- a/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
++++ b/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
+@@ -178,6 +178,9 @@ return view.extend({
+ 		o.datatype    = 'port'
+ 		o.placeholder = '0-65535'
+ 
++		s.taboption('advanced', form.Flag, 'force_forwarding', _('Force Forwarding'),
++			_('Force forwarding even there is no public IP (please try STUN first)'))
++
+ 		s = m.section(form.GridSection, 'perm_rule', _('Service ACLs'),
+ 			_('ACLs specify which external ports can be forwarded to which client addresses and ports, IPv6 always allowed.'))
+ 
+diff --git a/applications/luci-app-upnp/po/templates/upnp.pot b/applications/luci-app-upnp/po/templates/upnp.pot
+index 1728a18d1a50..1bb30e2ba905 100644
+--- a/applications/luci-app-upnp/po/templates/upnp.pot
++++ b/applications/luci-app-upnp/po/templates/upnp.pot
+@@ -214,3 +214,9 @@ msgstr ""
+ #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:140
+ msgid "Value in KByte/s, informational only"
+ msgstr ""
++
++msgid "Force Forwarding"
++msgstr ""
++
++msgid "Force forwarding even there is no public IP (please try STUN first)"
++msgstr ""
+diff --git a/applications/luci-app-upnp/po/zh_Hans/upnp.po b/applications/luci-app-upnp/po/zh_Hans/upnp.po
+index 58b96270024d..9a31b0a881c9 100644
+--- a/applications/luci-app-upnp/po/zh_Hans/upnp.po
++++ b/applications/luci-app-upnp/po/zh_Hans/upnp.po
+@@ -230,3 +230,9 @@ msgstr "使用 STUN"
+ #: applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js:140
+ msgid "Value in KByte/s, informational only"
+ msgstr "单位为 KByte/s，仅供参考"
++
++msgid "Force Forwarding"
++msgstr "强制转发"
++
++msgid "Force forwarding even there is no public IP (please try STUN first)"
++msgstr "就算没有公网IP也进行转发（请先尝试STUN）"

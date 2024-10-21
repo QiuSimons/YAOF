@@ -1,0 +1,114 @@
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1477,12 +1477,16 @@ enum nft_tproxy_attributes {
+  * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
+  * @NFTA_MASQ_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
+  * @NFTA_MASQ_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
++ * @NFTA_MASQ_REG_ADDR_MIN: source register of address range start (NLA_U32: nft_registers) non zero to enable bcm fullcone
++ * @NFTA_MASQ_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
+  */
+ enum nft_masq_attributes {
+ 	NFTA_MASQ_UNSPEC,
+ 	NFTA_MASQ_FLAGS,
+ 	NFTA_MASQ_REG_PROTO_MIN,
+ 	NFTA_MASQ_REG_PROTO_MAX,
++	NFTA_MASQ_REG_ADDR_MIN,
++	NFTA_MASQ_REG_ADDR_MAX,
+ 	__NFTA_MASQ_MAX
+ };
+ #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
+--- a/net/netfilter/nft_masq.c
++++ b/net/netfilter/nft_masq.c
+@@ -17,6 +17,8 @@ struct nft_masq {
+ 	u32			flags;
+ 	u8			sreg_proto_min;
+ 	u8			sreg_proto_max;
++	u8			sreg_addr_min; // non zero to enable brcm fullconenat
++	u8			sreg_addr_max;
+ };
+ 
+ static const struct nla_policy nft_masq_policy[NFTA_MASQ_MAX + 1] = {
+@@ -24,6 +26,8 @@ static const struct nla_policy nft_masq_
+ 		NLA_POLICY_MASK(NLA_BE32, NF_NAT_RANGE_MASK),
+ 	[NFTA_MASQ_REG_PROTO_MIN]	= { .type = NLA_U32 },
+ 	[NFTA_MASQ_REG_PROTO_MAX]	= { .type = NLA_U32 },
++	[NFTA_MASQ_REG_ADDR_MIN]	 = { .type = NLA_U32 },
++	[NFTA_MASQ_REG_ADDR_MAX]	 = { .type = NLA_U32 },
+ };
+ 
+ static int nft_masq_validate(const struct nft_ctx *ctx,
+@@ -45,6 +49,7 @@ static int nft_masq_init(const struct nf
+ 			 const struct nlattr * const tb[])
+ {
+ 	u32 plen = sizeof_field(struct nf_nat_range, min_proto.all);
++	u32 alen = sizeof_field(struct nf_nat_range, min_addr.all);
+ 	struct nft_masq *priv = nft_expr_priv(expr);
+ 	int err;
+ 
+@@ -68,6 +73,25 @@ static int nft_masq_init(const struct nf
+ 		}
+ 	}
+ 
++	if (tb[NFTA_MASQ_REG_ADDR_MIN]) {
++		err = nft_parse_register_load(tb[NFTA_MASQ_REG_ADDR_MIN],
++					      &priv->sreg_addr_min, alen);
++		if (err < 0)
++			return err;
++
++		if (tb[NFTA_MASQ_REG_ADDR_MAX]) {
++			err = nft_parse_register_load(tb[NFTA_MASQ_REG_ADDR_MAX],
++						      &priv->sreg_addr_max,
++						      alen);
++			if (err < 0)
++				return err;
++		} else {
++			priv->sreg_addr_max = priv->sreg_addr_min;
++		}
++
++		priv->flags |= NF_NAT_RANGE_MAP_IPS;
++	}
++
+ 	return nf_ct_netns_get(ctx->net, ctx->family);
+ }
+ 
+@@ -88,6 +112,14 @@ static int nft_masq_dump(struct sk_buff
+ 			goto nla_put_failure;
+ 	}
+ 
++	if (priv->sreg_addr_min) {
++		if (nft_dump_register(skb, NFTA_MASQ_REG_ADDR_MIN,
++				      priv->sreg_addr_min) ||
++		    nft_dump_register(skb, NFTA_MASQ_REG_ADDR_MAX,
++				      priv->sreg_addr_max))
++			goto nla_put_failure;
++	}
++
+ 	return 0;
+ 
+ nla_put_failure:
+@@ -112,6 +144,12 @@ static void nft_masq_eval(const struct n
+ 
+ 	switch (nft_pf(pkt)) {
+ 	case NFPROTO_IPV4:
++		if (priv->sreg_addr_min) {
++			range.min_addr.ip = (__force __be32)
++					regs->data[priv->sreg_addr_min];
++			range.max_addr.ip = (__force __be32)
++					regs->data[priv->sreg_addr_max];
++		}
+ 		regs->verdict.code = nf_nat_masquerade_ipv4(pkt->skb,
+ 							    nft_hook(pkt),
+ 							    &range,
+@@ -119,6 +157,12 @@ static void nft_masq_eval(const struct n
+ 		break;
+ #ifdef CONFIG_NF_TABLES_IPV6
+ 	case NFPROTO_IPV6:
++		if (priv->sreg_addr_min) {
++			memcpy(range.min_addr.ip6, &regs->data[priv->sreg_addr_min],
++			       sizeof(range.min_addr.ip6));
++			memcpy(range.max_addr.ip6, &regs->data[priv->sreg_addr_max],
++			       sizeof(range.max_addr.ip6));
++		}
+ 		regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range,
+ 							    nft_out(pkt));
+ 		break;

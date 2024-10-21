@@ -1,0 +1,118 @@
+--- a/Documentation/networking/ip-sysctl.rst
++++ b/Documentation/networking/ip-sysctl.rst
+@@ -745,6 +745,13 @@ tcp_comp_sack_nr - INTEGER
+ 
+ 	Default : 44
+ 
++tcp_backlog_ack_defer - BOOLEAN
++	If set, user thread processing socket backlog tries sending
++	one ACK for the whole queue. This helps to avoid potential
++	long latencies at end of a TCP socket syscall.
++
++	Default : true
++
+ tcp_slow_start_after_idle - BOOLEAN
+ 	If set, provide RFC2861 behavior and time out the congestion
+ 	window after an idle period.  An idle period is defined at
+--- a/include/linux/tcp.h
++++ b/include/linux/tcp.h
+@@ -471,15 +471,17 @@ enum tsq_enum {
+ 	TCP_MTU_REDUCED_DEFERRED,  /* tcp_v{4|6}_err() could not call
+ 				    * tcp_v{4|6}_mtu_reduced()
+ 				    */
++	TCP_ACK_DEFERRED,	   /* TX pure ack is deferred */
+ };
+ 
+ enum tsq_flags {
+-	TSQF_THROTTLED			= (1UL << TSQ_THROTTLED),
+-	TSQF_QUEUED			= (1UL << TSQ_QUEUED),
+-	TCPF_TSQ_DEFERRED		= (1UL << TCP_TSQ_DEFERRED),
+-	TCPF_WRITE_TIMER_DEFERRED	= (1UL << TCP_WRITE_TIMER_DEFERRED),
+-	TCPF_DELACK_TIMER_DEFERRED	= (1UL << TCP_DELACK_TIMER_DEFERRED),
+-	TCPF_MTU_REDUCED_DEFERRED	= (1UL << TCP_MTU_REDUCED_DEFERRED),
++	TSQF_THROTTLED			= BIT(TSQ_THROTTLED),
++	TSQF_QUEUED			= BIT(TSQ_QUEUED),
++	TCPF_TSQ_DEFERRED		= BIT(TCP_TSQ_DEFERRED),
++	TCPF_WRITE_TIMER_DEFERRED	= BIT(TCP_WRITE_TIMER_DEFERRED),
++	TCPF_DELACK_TIMER_DEFERRED	= BIT(TCP_DELACK_TIMER_DEFERRED),
++	TCPF_MTU_REDUCED_DEFERRED	= BIT(TCP_MTU_REDUCED_DEFERRED),
++	TCPF_ACK_DEFERRED		= BIT(TCP_ACK_DEFERRED),
+ };
+ 
+ #define tcp_sk(ptr) container_of_const(ptr, struct tcp_sock, inet_conn.icsk_inet.sk)
+--- a/include/net/netns/ipv4.h
++++ b/include/net/netns/ipv4.h
+@@ -132,6 +132,7 @@ struct netns_ipv4 {
+ 	u8 sysctl_tcp_syncookies;
+ 	u8 sysctl_tcp_migrate_req;
+ 	u8 sysctl_tcp_comp_sack_nr;
++	u8 sysctl_tcp_backlog_ack_defer;
+ 	int sysctl_tcp_reordering;
+ 	u8 sysctl_tcp_retries1;
+ 	u8 sysctl_tcp_retries2;
+--- a/net/ipv4/sysctl_net_ipv4.c
++++ b/net/ipv4/sysctl_net_ipv4.c
+@@ -1367,6 +1367,15 @@ static struct ctl_table ipv4_net_table[]
+ 		.extra1		= SYSCTL_ZERO,
+ 	},
+ 	{
++		.procname	= "tcp_backlog_ack_defer",
++		.data		= &init_net.ipv4.sysctl_tcp_backlog_ack_defer,
++		.maxlen		= sizeof(u8),
++		.mode		= 0644,
++		.proc_handler	= proc_dou8vec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++	{
+ 		.procname       = "tcp_reflect_tos",
+ 		.data           = &init_net.ipv4.sysctl_tcp_reflect_tos,
+ 		.maxlen         = sizeof(u8),
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -5655,6 +5655,14 @@ static void __tcp_ack_snd_check(struct s
+ 	    tcp_in_quickack_mode(sk) ||
+ 	    /* Protocol state mandates a one-time immediate ACK */
+ 	    inet_csk(sk)->icsk_ack.pending & ICSK_ACK_NOW) {
++		/* If we are running from __release_sock() in user context,
++		 * Defer the ack until tcp_release_cb().
++		 */
++		if (sock_owned_by_user_nocheck(sk) &&
++		    READ_ONCE(sock_net(sk)->ipv4.sysctl_tcp_backlog_ack_defer)) {
++			set_bit(TCP_ACK_DEFERRED, &sk->sk_tsq_flags);
++			return;
++		}
+ send_now:
+ 		tcp_send_ack(sk);
+ 		return;
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -3279,6 +3279,7 @@ static int __net_init tcp_sk_init(struct
+ 	net->ipv4.sysctl_tcp_comp_sack_delay_ns = NSEC_PER_MSEC;
+ 	net->ipv4.sysctl_tcp_comp_sack_slack_ns = 100 * NSEC_PER_USEC;
+ 	net->ipv4.sysctl_tcp_comp_sack_nr = 44;
++	net->ipv4.sysctl_tcp_backlog_ack_defer = 1;
+ 	net->ipv4.sysctl_tcp_fastopen = TFO_CLIENT_ENABLE;
+ 	net->ipv4.sysctl_tcp_fastopen_blackhole_timeout = 0;
+ 	atomic_set(&net->ipv4.tfo_active_disable_times, 0);
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1078,7 +1078,8 @@ static void tcp_tasklet_func(struct task
+ #define TCP_DEFERRED_ALL (TCPF_TSQ_DEFERRED |		\
+ 			  TCPF_WRITE_TIMER_DEFERRED |	\
+ 			  TCPF_DELACK_TIMER_DEFERRED |	\
+-			  TCPF_MTU_REDUCED_DEFERRED)
++			  TCPF_MTU_REDUCED_DEFERRED |	\
++			  TCPF_ACK_DEFERRED)
+ /**
+  * tcp_release_cb - tcp release_sock() callback
+  * @sk: socket
+@@ -1115,6 +1116,8 @@ void tcp_release_cb(struct sock *sk)
+ 		inet_csk(sk)->icsk_af_ops->mtu_reduced(sk);
+ 		__sock_put(sk);
+ 	}
++	if ((flags & TCPF_ACK_DEFERRED) && inet_csk_ack_scheduled(sk))
++		tcp_send_ack(sk);
+ }
+ EXPORT_SYMBOL(tcp_release_cb);
+ 

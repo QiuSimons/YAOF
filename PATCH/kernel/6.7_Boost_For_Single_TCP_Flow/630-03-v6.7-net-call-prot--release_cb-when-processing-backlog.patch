@@ -1,0 +1,12 @@
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -3003,6 +3003,9 @@ void __sk_flush_backlog(struct sock *sk)
+ {
+ 	spin_lock_bh(&sk->sk_lock.slock);
+ 	__release_sock(sk);
++
++	if (sk->sk_prot->release_cb)
++		sk->sk_prot->release_cb(sk);
+ 	spin_unlock_bh(&sk->sk_lock.slock);
+ }
+ EXPORT_SYMBOL_GPL(__sk_flush_backlog);

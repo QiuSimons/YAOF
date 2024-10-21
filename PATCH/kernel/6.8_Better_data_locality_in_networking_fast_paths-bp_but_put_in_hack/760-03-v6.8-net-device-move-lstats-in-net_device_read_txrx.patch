@@ -1,0 +1,42 @@
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -2128,6 +2128,11 @@ struct net_device {
+ 
+ 	/* TXRX read-mostly hotpath */
+ 	__cacheline_group_begin(net_device_read_txrx);
++	union {
++		struct pcpu_lstats __percpu		*lstats;
++		struct pcpu_sw_netstats __percpu	*tstats;
++		struct pcpu_dstats __percpu		*dstats;
++	};
+ 	unsigned int		flags;
+ 	unsigned short		hard_header_len;
+ 	netdev_features_t	features;
+@@ -2391,11 +2396,6 @@ struct net_device {
+ 	enum netdev_ml_priv_type	ml_priv_type;
+ 
+ 	enum netdev_stat_type		pcpu_stat_type:8;
+-	union {
+-		struct pcpu_lstats __percpu		*lstats;
+-		struct pcpu_sw_netstats __percpu	*tstats;
+-		struct pcpu_dstats __percpu		*dstats;
+-	};
+ 
+ #if IS_ENABLED(CONFIG_GARP)
+ 	struct garp_port __rcu	*garp_port;
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -11685,11 +11685,12 @@ static void __init net_dev_struct_check(
+ 	CACHELINE_ASSERT_GROUP_SIZE(struct net_device, net_device_read_tx, 152);
+ 
+ 	/* TXRX read-mostly hotpath */
++	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, lstats);
+ 	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, flags);
+ 	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, hard_header_len);
+ 	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, features);
+ 	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, ip6_ptr);
+-	CACHELINE_ASSERT_GROUP_SIZE(struct net_device, net_device_read_txrx, 30);
++	CACHELINE_ASSERT_GROUP_SIZE(struct net_device, net_device_read_txrx, 38);
+ 
+ 	/* RX read-mostly hotpath */
+ 	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_rx, ptype_specific);

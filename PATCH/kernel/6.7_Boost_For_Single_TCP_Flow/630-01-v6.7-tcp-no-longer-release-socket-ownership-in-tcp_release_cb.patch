@@ -1,0 +1,31 @@
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -3521,9 +3521,6 @@ void release_sock(struct sock *sk)
+ 	if (sk->sk_backlog.tail)
+ 		__release_sock(sk);
+ 
+-	/* Warning : release_cb() might need to release sk ownership,
+-	 * ie call sock_release_ownership(sk) before us.
+-	 */
+ 	if (sk->sk_prot->release_cb)
+ 		sk->sk_prot->release_cb(sk);
+ 
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1102,16 +1102,6 @@ void tcp_release_cb(struct sock *sk)
+ 		tcp_tsq_write(sk);
+ 		__sock_put(sk);
+ 	}
+-	/* Here begins the tricky part :
+-	 * We are called from release_sock() with :
+-	 * 1) BH disabled
+-	 * 2) sk_lock.slock spinlock held
+-	 * 3) socket owned by us (sk->sk_lock.owned == 1)
+-	 *
+-	 * But following code is meant to be called from BH handlers,
+-	 * so we should keep BH disabled, but early release socket ownership
+-	 */
+-	sock_release_ownership(sk);
+ 
+ 	if (flags & TCPF_WRITE_TIMER_DEFERRED) {
+ 		tcp_write_timer_handler(sk);

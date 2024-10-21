@@ -1,0 +1,21 @@
+From 5e5aa2d2722f835878447e93f7bc623d344611ae Mon Sep 17 00:00:00 2001
+From: sbwml <admin@cooluc.com>
+Date: Sun, 14 Jan 2024 04:35:39 +0800
+Subject: [PATCH] btf: silence btf module warning messages
+
+Signed-off-by: sbwml <admin@cooluc.com>
+---
+ kernel/bpf/btf.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+--- a/kernel/bpf/btf.c
++++ b/kernel/bpf/btf.c
+@@ -7376,8 +7376,6 @@ static int btf_module_notify(struct noti
+ 				pr_warn("failed to validate module [%s] BTF: %ld\n",
+ 					mod->name, PTR_ERR(btf));
+ 				err = PTR_ERR(btf);
+-			} else {
+-				pr_warn_once("Kernel module BTF mismatch detected, BTF debug info may be unavailable for some modules\n");
+ 			}
+ 			goto out;
+ 		}
