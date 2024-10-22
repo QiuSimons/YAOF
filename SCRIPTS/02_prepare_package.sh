@@ -110,19 +110,15 @@ cp -rf ../PATCH/kernel/btf/* ./target/linux/generic/hack-6.6/
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
-cp -rf ../immortalwrt_23/target/linux/rockchip ./target/linux/rockchip
+cp -rf ../immortalwrt_ma/target/linux/rockchip ./target/linux/rockchip
 cp -rf ../PATCH/kernel/rockchip/* ./target/linux/rockchip/patches-6.6/
 wget https://github.com/immortalwrt/immortalwrt/raw/refs/heads/openwrt-23.05/target/linux/rockchip/patches-5.15/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch -O target/linux/rockchip/patches-6.6/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch
 rm -rf ./package/boot/rkbin
 rm -rf ./package/boot/uboot-rockchip
-cp -rf ../immortalwrt_23/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
+cp -rf ../immortalwrt_ma/package/boot/uboot-rockchip ./package/boot/uboot-rockchip
 rm -rf ./package/boot/arm-trusted-firmware-rockchip
-cp -rf ../immortalwrt_23/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
+cp -rf ../immortalwrt_ma/package/boot/arm-trusted-firmware-rockchip ./package/boot/arm-trusted-firmware-rockchip
 sed -i '/REQUIRE_IMAGE_METADATA/d' target/linux/rockchip/armv8/base-files/lib/upgrade/platform.sh
-# intel-firmware
-wget -qO - https://github.com/openwrt/openwrt/commit/9c58add.patch | patch -p1
-wget -qO - https://github.com/openwrt/openwrt/commit/64f1a65.patch | patch -p1
-sed -i '/I915/d' target/linux/x86/64/config-6.6
 # Disable Mitigations
 sed -i 's,rootwait,rootwait mitigations=off,g' target/linux/rockchip/image/default.bootscript
 sed -i 's,@CMDLINE@ noinitrd,noinitrd mitigations=off,g' target/linux/x86/image/grub-efi.cfg
@@ -178,7 +174,7 @@ patch -p1 <../../../PATCH/pkgs/miniupnpd/01-set-presentation_url.patch
 patch -p1 <../../../PATCH/pkgs/miniupnpd/02-force_forwarding.patch
 popd
 pushd feeds/luci
-wget -qO- https://github.com/openwrt/luci/commit/0b5fb915.patch | patch -p1
+patch -p1 <../../../PATCH/pkgs/miniupnpd/luci-upnp-support-force_forwarding-flag.patch
 popd
 # 动态DNS
 sed -i '/boot()/,+2d' feeds/packages/net/ddns-scripts/files/etc/init.d/ddns
@@ -216,7 +212,7 @@ mkdir -p package/base-files/files/usr/bin
 cp -rf ../OpenWrt-Add/fuck ./package/base-files/files/usr/bin/fuck
 # 生成默认配置及缓存
 rm -rf .config
-sed -i 's,CONFIG_WERROR=y,# CONFIG_WERROR is not set,g' target/linux/generic/config-5.15
+sed -i 's,CONFIG_WERROR=y,# CONFIG_WERROR is not set,g' target/linux/generic/config-6.6
 
 #LTO/GC
 # Grub 2
