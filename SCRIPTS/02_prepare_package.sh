@@ -106,6 +106,8 @@ wget -qO - https://github.com/openwrt/openwrt/commit/c21a3570.patch | patch -p1
 cp -rf ../lede/target/linux/x86/patches-6.6/996-intel-igc-i225-i226-disable-eee.patch ./target/linux/x86/patches-6.6/996-intel-igc-i225-i226-disable-eee.patch
 # btf
 cp -rf ../PATCH/kernel/btf/* ./target/linux/generic/hack-6.6/
+# i915
+wget -qO - https://github.com/openwrt/openwrt/pull/16276.patch | patch -p1
 
 ### 获取额外的基础软件包 ###
 # 更换为 ImmortalWrt Uboot 以及 Target
