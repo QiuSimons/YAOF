@@ -123,17 +123,10 @@ jobs:
         zip R2C-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-ext4.zip *r2c*ext4*
         zip R2C-GC404-Docker-$(date +%Y-%m-%d)-${{ env.latest_release }}-sfs.zip *r2c*squashfs*
         ls -Ahl
-    - name: Create release
-      id: create_release
-      uses: ncipollo/release-action@main
+    - name: Upload artifacts
+      uses: actions/upload-artifact@main
       with:
-        name: OpenWRT-${{ env.latest_release }}
-        allowUpdates: true
-        prerelease: false
-        tag: ${{ env.latest_release }}
-        commit: 23.05
-        replacesArtifacts: true
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: ./artifact/*.zip
+        name: my-artifact
+        path: ./artifact/
     - name: Print Disk Space After
       run: df -h
