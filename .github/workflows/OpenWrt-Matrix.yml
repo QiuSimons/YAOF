@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       targets:
-        description: "Select target platforms (comma separated, e.g. R2C,R2S,R3S,R4S,X86 ;leave blank for all, case-insensitive)"
+        description: "Select target platforms (comma separated, e.g. R2C,R2S,R3S,R4S,R76S,X86 ;leave blank for all, case-insensitive)"
         required: false
         type: string
         default: ""
@@ -49,6 +49,7 @@ jobs:
             {"name": "R2S", "script_dir": "R2S", "arch": "rockchip/armv8", "arch_suffix": "3328"},
             {"name": "R3S", "script_dir": "R4S", "arch": "rockchip/armv8", "arch_suffix": "3566"},
             {"name": "R4S", "script_dir": "R4S", "arch": "rockchip/armv8", "arch_suffix": "3399"},
+            {"name": "R76S", "script_dir": "R4S", "arch": "rockchip/armv8", "arch_suffix": "3576"},
             {"name": "X86", "script_dir": "X86", "arch": "x86/64", "arch_suffix": ""}
           ]'
 
