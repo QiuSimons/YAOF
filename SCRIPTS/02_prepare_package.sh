@@ -4,6 +4,15 @@ clear
 ### 基础部分 ###
 # 使用 O2 级别的优化
 sed -i 's/Os/O2/g' include/target.mk
+
+# 替换为 OpenWrt 官方软件源
+cat > feeds.conf.default <<EOF
+src-git packages https://git.openwrt.org/feed/packages.git
+src-git luci https://git.openwrt.org/project/luci.git
+src-git routing https://git.openwrt.org/feed/routing.git
+src-git telephony https://git.openwrt.org/feed/telephony.git
+EOF
+
 # 更新 Feeds
 ./scripts/feeds update -a
 ./scripts/feeds install -a
