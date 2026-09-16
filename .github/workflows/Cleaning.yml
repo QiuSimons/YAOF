@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Cleanup Old Action Artifacts
-      uses: c-hive/gha-remove-artifacts@master
+      uses: c-hive/gha-remove-artifacts@main
       with:
           age: '3 days'
           skip-recent: 3
