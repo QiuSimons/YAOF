@@ -9,8 +9,8 @@ echo '#!/bin/sh
 # Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.
 
-if grep -q "Default string" /tmp/sysinfo/model 2>/dev/null; then
-    echo "Generic PC" > /tmp/sysinfo/model
+if [ ! -s /tmp/sysinfo/model ] || grep -qiE "Default string|To be filled|System manufacturer|Type2 - Board" /tmp/sysinfo/model 2>/dev/null; then
+    echo "Standard PC" > /tmp/sysinfo/model
 fi
 
 PSTATE_STATUS_FILE="/sys/devices/system/cpu/intel_pstate/status"
