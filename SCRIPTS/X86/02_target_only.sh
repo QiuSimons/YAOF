@@ -9,7 +9,7 @@ echo '#!/bin/sh
 # Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.
 
-if [ ! -s /tmp/sysinfo/model ] || grep -qiE "Default string|To be filled|System manufacturer|Type2 - Board" /tmp/sysinfo/model 2>/dev/null; then
+if [ ! -s /tmp/sysinfo/model ] || grep -qiE "Default string|To be filled|System manufacturer|Type2" /tmp/sysinfo/model 2>/dev/null; then
     echo "Standard PC" > /tmp/sysinfo/model
 fi
 
