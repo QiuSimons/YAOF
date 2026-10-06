@@ -103,6 +103,7 @@ CONFIG_LUCI_LANG_en=y
 # CONFIG_LUCI_JSMIN is not set
 CONFIG_PACKAGE_luci-nginx=y
 CONFIG_PACKAGE_luci-compat=y
+CONFIG_PACKAGE_luci-mod-dashboard=y
 
 ### APPLICATION ###
 CONFIG_PACKAGE_luci-app-homeproxy=y
