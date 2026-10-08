@@ -1,0 +1,101 @@
+From e45469e594b281f692fb4a8b7dd55ea0db22e577 Mon Sep 17 00:00:00 2001
+From: Ferenc Fejes <fejes@inf.elte.hu>
+Date: Fri, 17 Jan 2025 15:00:00 +0100
+Subject: [PATCH] net: sock: introduce SO_RCVPRIORITY socket option
+
+Introduce SO_RCVPRIORITY socket option. When set, packets
+received on this socket will have their priority field (skb->priority)
+returned via cmsg control message as SO_PRIORITY.
+
+Signed-off-by: Ferenc Fejes <fejes@inf.elte.hu>
+---
+ include/net/sock.h                | 4 +++-
+ include/uapi/asm-generic/socket.h | 2 ++
+ net/core/sock.c                   | 8 ++++++++
+ net/socket.c                      | 13 +++++++++++++
+ 4 files changed, 26 insertions(+), 1 deletion(-)
+
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -976,6 +976,7 @@ enum sock_flags {
+ 	SOCK_XDP, /* XDP is attached */
+ 	SOCK_TSTAMP_NEW, /* Indicates 64 bit timestamps always */
+ 	SOCK_RCVMARK, /* Receive SO_MARK  ancillary data with packet */
++	SOCK_RCVPRIORITY,
+ };
+ 
+ #define SK_FLAGS_TIMESTAMP ((1UL << SOCK_TIMESTAMP) | (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE))
+@@ -2705,7 +2706,8 @@ static inline void sock_recv_cmsgs(struc
+ {
+ #define FLAGS_RECV_CMSGS ((1UL << SOCK_RXQ_OVFL)			| \
+ 			   (1UL << SOCK_RCVTSTAMP)			| \
+-			   (1UL << SOCK_RCVMARK))
++			   (1UL << SOCK_RCVMARK)			| \
++			   (1UL << SOCK_RCVPRIORITY))
+ #define TSFLAGS_ANY	  (SOF_TIMESTAMPING_SOFTWARE			| \
+ 			   SOF_TIMESTAMPING_RAW_HARDWARE)
+ 
+--- a/include/uapi/asm-generic/socket.h
++++ b/include/uapi/asm-generic/socket.h
+@@ -141,6 +141,8 @@
+ #define SCM_DEVMEM_DMABUF	SO_DEVMEM_DMABUF
+ #define SO_DEVMEM_DONTNEED	80
+ 
++#define SO_RCVPRIORITY		82
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -1526,6 +1526,10 @@ set_sndbuf:
+ 		sock_valbool_flag(sk, SOCK_RCVMARK, valbool);
+ 		break;
+ 
++	case SO_RCVPRIORITY:
++		sock_valbool_flag(sk, SOCK_RCVPRIORITY, valbool);
++		break;
++
+ 	case SO_RXQ_OVFL:
+ 		sock_valbool_flag(sk, SOCK_RXQ_OVFL, valbool);
+ 		break;
+@@ -1954,6 +1958,10 @@ int sk_getsockopt(struct sock *sk, int l
+ 		v.val = sock_flag(sk, SOCK_RCVMARK);
+ 		break;
+ 
++	case SO_RCVPRIORITY:
++		v.val = sock_flag(sk, SOCK_RCVPRIORITY);
++		break;
++
+ 	case SO_RXQ_OVFL:
+ 		v.val = sock_flag(sk, SOCK_RXQ_OVFL);
+ 		break;
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -1009,13 +1009,26 @@ static void sock_recv_mark(struct msghdr
+ 	}
+ }
+ 
++static void sock_recv_priority(struct msghdr *msg, struct sock *sk,
++			       struct sk_buff *skb)
++{
++	if (sock_flag(sk, SOCK_RCVPRIORITY) && skb) {
++		/* We must use a bounce buffer for CONFIG_HARDENED_USERCOPY=y */
++		__u32 priority = skb->priority;
++
++		put_cmsg(msg, SOL_SOCKET, SO_PRIORITY, sizeof(__u32), &priority);
++	}
++}
++
+ void __sock_recv_cmsgs(struct msghdr *msg, struct sock *sk,
+ 		       struct sk_buff *skb)
+ {
+ 	sock_recv_timestamp(msg, sk, skb);
+ 	sock_recv_drops(msg, sk, skb);
+ 	sock_recv_mark(msg, sk, skb);
++	sock_recv_priority(msg, sk, skb);
+ }
++
+ EXPORT_SYMBOL_GPL(__sock_recv_cmsgs);
+ 
+ INDIRECT_CALLABLE_DECLARE(int inet_recvmsg(struct socket *, struct msghdr *,
