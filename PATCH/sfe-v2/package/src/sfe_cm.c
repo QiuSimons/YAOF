@@ -397,7 +397,12 @@ struct sfe_cm_no_accel_set {
 	struct nf_conn *ct[SFE_CM_NO_ACCEL_BUCKETS];
 };
 
-static DEFINE_PER_CPU(struct sfe_cm_no_accel_set, sfe_cm_no_accel);
+/*
+ * Runtime allocated on purpose: a static table this size does not fit in
+ * PERCPU_MODULE_RESERVE (8192 bytes per CPU on x86), so the module would never
+ * load.  alloc_percpu() takes the dynamic pool instead.
+ */
+static struct sfe_cm_no_accel_set __percpu *sfe_cm_no_accel;
 
 static inline unsigned int sfe_cm_no_accel_hash(const struct nf_conn *ct)
 {
@@ -417,7 +422,10 @@ static bool sfe_cm_no_accel_test(struct nf_conn *ct)
 	unsigned int h, i;
 	bool found = false;
 
-	set = get_cpu_ptr(&sfe_cm_no_accel);
+	if (unlikely(!sfe_cm_no_accel))
+		return false;
+
+	set = get_cpu_ptr(sfe_cm_no_accel);
 	h = sfe_cm_no_accel_hash(ct);
 
 	/*
@@ -431,7 +439,7 @@ static bool sfe_cm_no_accel_test(struct nf_conn *ct)
 		}
 	}
 
-	put_cpu_ptr(&sfe_cm_no_accel);
+	put_cpu_ptr(sfe_cm_no_accel);
 
 	return found;
 }
@@ -441,9 +449,12 @@ static void sfe_cm_no_accel_add(struct nf_conn *ct)
 	struct sfe_cm_no_accel_set *set;
 	unsigned int h, i;
 
+	if (unlikely(!sfe_cm_no_accel))
+		return;
+
 	atomic64_inc(&sfe_cm_stat_memo_added);
 
-	set = get_cpu_ptr(&sfe_cm_no_accel);
+	set = get_cpu_ptr(sfe_cm_no_accel);
 	h = sfe_cm_no_accel_hash(ct);
 
 	for (i = 0; i < SFE_CM_NO_ACCEL_PROBE; i++) {
@@ -459,7 +470,7 @@ static void sfe_cm_no_accel_add(struct nf_conn *ct)
 	if (i == SFE_CM_NO_ACCEL_PROBE)
 		WRITE_ONCE(set->ct[h], ct);
 
-	put_cpu_ptr(&sfe_cm_no_accel);
+	put_cpu_ptr(sfe_cm_no_accel);
 }
 
 /*
@@ -471,8 +482,11 @@ static void sfe_cm_no_accel_del(struct nf_conn *ct)
 {
 	int cpu;
 
+	if (unlikely(!sfe_cm_no_accel))
+		return;
+
 	for_each_online_cpu(cpu) {
-		struct sfe_cm_no_accel_set *set = per_cpu_ptr(&sfe_cm_no_accel, cpu);
+		struct sfe_cm_no_accel_set *set = per_cpu_ptr(sfe_cm_no_accel, cpu);
 		unsigned int h = sfe_cm_no_accel_hash(ct), i;
 
 		for (i = 0; i < SFE_CM_NO_ACCEL_PROBE; i++) {
@@ -1746,6 +1760,12 @@ static int __init sfe_cm_init(void)
 
 	pr_info("sfe_cm: Qualcomm Shortcut-FE v2 Connection Manager loading\n");
 
+	sfe_cm_no_accel = alloc_percpu(struct sfe_cm_no_accel_set);
+	if (!sfe_cm_no_accel) {
+		pr_err("sfe_cm: failed to allocate the no-accel cache\n");
+		return -ENOMEM;
+	}
+
 	/*
 	 * The accounting extension is added when a conntrack entry is allocated, so
 	 * it has to be enabled before the flows to hold back are created.
@@ -1886,6 +1906,9 @@ static void __exit sfe_cm_exit(void)
 		init_net.ct.sysctl_acct = sfe_cm_acct_prev;
 
 	synchronize_rcu();
+
+	free_percpu(sfe_cm_no_accel);
+	sfe_cm_no_accel = NULL;
 }
 
 module_init(sfe_cm_init);
