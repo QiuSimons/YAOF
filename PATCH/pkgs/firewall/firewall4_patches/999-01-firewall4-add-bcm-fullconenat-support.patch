@@ -1,0 +1,284 @@
+From: YAOF-1 <dev@localhost>
+Date: Thu, 1 Jan 1970 00:00:00 +0000
+Subject: [PATCH] firewall4: add BCM full-cone NAT support
+
+Full-cone NAT is provided by the Broadcom expectation-based scheme only:
+
+  * nft_try_brcmfullcone() probes the kernel at runtime and disables the
+    feature globally when the "masquerade brcmfullcone" statement is rejected
+  * nft_try_brcmfullcone(family) probes one family at a time, so a kernel
+    without IPv6 support no longer disables IPv4 as well
+  * defaults.brcmfullcone is the global master switch, defaults.fullcone4 /
+    defaults.fullcone6 select the families (IPv4 on, IPv6 off); zones cannot
+    shadow them any more
+  * a zone qualifies when it masquerades - for IPv6 also when masq6 is
+    implied by the "nat6" defaults switch, i.e. when the external nat6
+    service translates the zone
+  * zone-brcmfullcone.uc emits the srcnat rule for each enabled family and
+    the zone srcnat rules are evaluated a second time from a postrouting
+    chain at "priority srcnat - 10": the full cone masquerade must perform
+    the NAT itself to register the expectation, so it has to run before any
+    other NAT chain at the canonical srcnat priority (the nat6 service
+    installs one).  The regular srcnat chain is a no-op afterwards, and the
+    extra chain is only emitted when a zone has a full cone family enabled.
+
+The nft-fullcone scheme (nft_try_fullcone, zone-fullcone.uc, defaults.fullcone,
+the fw4.default_option("brcmfullcone") branches) is gone: brcmfullcone is an
+upper replacement and keeping both only made the ruleset pick between two
+schemes.
+
+Signed-off-by: YAOF-1 <dev@localhost>
+---
+diff --git a/root/etc/config/firewall b/root/etc/config/firewall
+--- a/root/etc/config/firewall
++++ b/root/etc/config/firewall
+@@ -5,6 +5,9 @@ config defaults
+ 	option forward		REJECT
+ # Uncomment this line to disable ipv6 rules
+ #	option disable_ipv6	1
++	option brcmfullcone	0
++	option fullcone4	0
++	option fullcone6	0
+ 
+ config zone
+ 	option name		lan
+diff --git a/root/usr/share/firewall4/templates/ruleset.uc b/root/usr/share/firewall4/templates/ruleset.uc
+--- a/root/usr/share/firewall4/templates/ruleset.uc
++++ b/root/usr/share/firewall4/templates/ruleset.uc
+@@ -304,6 +304,28 @@ table inet fw4 {
+ {% fw4.includes('chain-append', 'dstnat') %}
+ 	}
+ 
++{% let fullcone_zones = filter(fw4.zones(), zone => zone.fullcone4 || zone.fullcone6); %}
++{% if (length(fullcone_zones)): %}
++	#
++	# A full cone expectation is only registered by the masquerade statement
++	# which actually performs the NAT, so the zone srcnat rules must run before
++	# every other NAT postrouting chain at priority srcnat (such as the one the
++	# external nat6 service installs).  Evaluate them a second time from a lower
++	# priority hook; the regular srcnat chain below is a no-op then.
++	#
++	chain brcmfullcone_srcnat {
++		type nat hook postrouting priority srcnat - 10; policy accept;
++{%  for (let redirect in fw4.redirects("srcnat")): %}
++		{%+ include("redirect.uc", { fw4, zone: null, redirect }) %}
++{%  endfor %}
++{%  for (let zone in fullcone_zones): %}
++{%   for (let rule in zone.match_rules): %}
++		{%+ include("zone-jump.uc", { fw4, zone, rule, direction: "srcnat" }) %}
++{%   endfor %}
++{%  endfor %}
++	}
++
++{% endif %}
+ 	chain srcnat {
+ 		type nat hook postrouting priority srcnat; policy accept;
+ {% fw4.includes('chain-prepend', 'srcnat') %}
+@@ -337,20 +359,26 @@ table inet fw4 {
+ {%   for (let redirect in fw4.redirects(`srcnat_${zone.name}`)): %}
+ 		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
+ {%   endfor %}
+-{%   if (zone.masq): %}
++{%   if (zone.masq && !zone.fullcone4): %}
+ {%    for (let saddrs in zone.masq4_src_subnets): %}
+ {%     for (let daddrs in zone.masq4_dest_subnets): %}
+ 		{%+ include("zone-masq.uc", { fw4, zone, family: 4, saddrs, daddrs }) %}
+ {%     endfor %}
+ {%    endfor %}
+ {%   endif %}
+-{%   if (zone.masq6): %}
++{%   if (zone.masq6 && !zone.fullcone6): %}
+ {%    for (let saddrs in zone.masq6_src_subnets): %}
+ {%     for (let daddrs in zone.masq6_dest_subnets): %}
+ 		{%+ include("zone-masq.uc", { fw4, zone, family: 6, saddrs, daddrs }) %}
+ {%     endfor %}
+ {%    endfor %}
+ {%   endif %}
++{%   if (zone.fullcone4): %}
++		{%+ include("zone-brcmfullcone.uc", { fw4, zone, family: 4, direction: "srcnat" }) %}
++{%   endif %}
++{%   if (zone.fullcone6): %}
++		{%+ include("zone-brcmfullcone.uc", { fw4, zone, family: 6, direction: "srcnat" }) %}
++{%   endif %}
+ {%   fw4.includes('chain-append', `srcnat_${zone.name}`) %}
+ 	}
+ 
+diff --git a/root/usr/share/firewall4/templates/zone-brcmfullcone.uc b/root/usr/share/firewall4/templates/zone-brcmfullcone.uc
+new file mode 100644
+--- /dev/null
++++ b/root/usr/share/firewall4/templates/zone-brcmfullcone.uc
+@@ -0,0 +1,4 @@
++{# /usr/share/firewall4/templates/zone-brcmfullcone.uc #}
++		meta nfproto {{ fw4.nfproto(family) }} masquerade {{ family == 6 ? 'ip6' : 'ip' }} brcmfullcone comment "!fw4: Handle {{
++		zone.name
++}} {{ fw4.nfproto(family, true) }} BCM fullcone NAT {{ direction }} traffic"
+diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
+--- a/root/usr/share/ucode/fw4.uc
++++ b/root/usr/share/ucode/fw4.uc
+@@ -1,3 +1,5 @@
++// /usr/share/ucode/fw4.uc
++
+ const fs = require("fs");
+ const uci = require("uci");
+ const ubus = require("ubus");
+@@ -490,6 +492,23 @@ function nft_try_hw_offload(devices) {
+ }
+ 
+ 
++function nft_try_brcmfullcone(family, loud) {
++	let nft_test =
++		'add table inet fw4-brcmfullcone-test; ' +
++		'add chain inet fw4-brcmfullcone-test srcnat { ' +
++			'type nat hook postrouting priority srcnat; policy accept; ' +
++			sprintf('meta nfproto %s masquerade %s brcmfullcone; ', family == 6 ? 'ipv6' : 'ipv4', family == 6 ? 'ip6' : 'ip') +
++		'}; ';
++	let cmd = sprintf("/usr/sbin/nft -c '%s' 2>/dev/null", replace(nft_test, "'", "'\\''"));
++
++	if (system(cmd) == 0)
++		return true;
++
++	if (loud)
++		warn("nft_try_brcmfullcone: IPv" + (family == 6 ? "6" : "4") + " not supported\n");
++	return false;
++}
++
+ return {
+ 	read_kernel_version: function() {
+ 		let fd = fs.open("/proc/version", "r"),
+@@ -897,6 +916,18 @@ return {
+ 			warn(`[!] ${msg}\n`);
+ 	},
+ 
++	myinfo: function(fmt, ...args) {
++		if (getenv("QUIET"))
++			return;
++
++		let msg = sprintf(fmt, ...args);
++
++		if (getenv("TTY"))
++			warn(`\033[32m${msg}\033[m\n`);
++		else
++			warn(`[I] ${msg}\n`);
++	},
++
+ 	get: function(sid, opt) {
+ 		return this.cursor.get("firewall", sid, opt);
+ 	},
+@@ -1080,6 +1111,21 @@ return {
+ 		}
+ 	},
+ 
++	myinfo_section: function(s, msg) {
++		if (s[".name"]) {
++			if (s.name)
++				this.myinfo("Section %s (%s) %s", this.section_id(s[".name"]), s.name, msg);
++			else
++				this.myinfo("Section %s %s", this.section_id(s[".name"]), msg);
++		}
++		else {
++			if (s.name)
++				this.myinfo("ubus %s (%s) %s", s.type || "rule", s.name, msg);
++			else
++				this.myinfo("ubus %s %s", s.type || "rule", msg);
++		}
++	},
++
+ 	parse_policy: function(val) {
+ 		return this.parse_enum(val, [
+ 			"accept",
+@@ -1519,6 +1565,7 @@ return {
+ 			"dnat",
+ 			"snat",
+ 			"masquerade",
++			"fullcone",
+ 			"accept",
+ 			"reject",
+ 			"drop"
+@@ -1990,6 +2037,10 @@ return {
+ 		}
+ 
+ 		let defs = this.parse_options(data, {
++			brcmfullcone: [ "int", "0" ],
++			nat6: [ "bool", "0" ],
++			fullcone4: [ "bool", "0" ],
++			fullcone6: [ "bool", "0" ],
+ 			input: [ "policy", "drop" ],
+ 			output: [ "policy", "drop" ],
+ 			forward: [ "policy", "drop" ],
+@@ -2024,6 +2075,17 @@ return {
+ 
+ 		delete defs.syn_flood;
+ 
++		if (defs.brcmfullcone == 1) {
++			if (!nft_try_brcmfullcone(4, defs.fullcone4))
++				defs.fullcone4 = 0;
++			if (!nft_try_brcmfullcone(6, defs.fullcone6))
++				defs.fullcone6 = 0;
++			if (!defs.fullcone4 && !defs.fullcone6) {
++				delete defs.brcmfullcone;
++				this.warn_section(data, "kernel has no BRCM full cone NAT support, disable fullcone globally");
++			}
++		}
++
+ 		this.state.defaults = defs;
+ 	},
+ 
+@@ -2052,6 +2114,8 @@ return {
+ 			masq_dest: [ "network", null, PARSE_LIST ],
+ 
+ 			masq6: [ "bool" ],
++			fullcone4: [ "bool", "0" ],
++			fullcone6: [ "bool", "0" ],
+ 
+ 			extra: [ "string", null, UNSUPPORTED ],
+ 			extra_src: [ "string", null, UNSUPPORTED ],
+@@ -2100,6 +2164,29 @@ return {
+ 			}
+ 		}
+ 
++		if (this.state.defaults) {
++			/* the switches are global only: a zone key left over from an older
++			 * configuration must not be able to shadow them */
++			zone.fullcone4 = this.state.defaults.fullcone4 && zone.masq;
++			zone.fullcone6 = this.state.defaults.fullcone6 &&
++				(zone.masq6 || (zone.masq && this.state.defaults.nat6));
++		}
++
++		if (this.state.defaults && this.state.defaults.brcmfullcone != 1) {
++			this.warn_section(data, "BRCM full cone NAT not enabled in defaults, ignoring zone settings");
++			zone.fullcone4 = false;
++			zone.fullcone6 = false;
++		}
++		else if (zone.fullcone6) {
++			this.myinfo_section(data, "IPv6 BRCM full cone NAT enabled for zone '" + zone.name + "'");
++		}
++		if (zone.fullcone4) {
++			this.myinfo_section(data, "IPv4 BRCM full cone NAT enabled for zone '" + zone.name + "'");
++		}
++		if (zone.fullcone6) {
++			this.myinfo_section(data, "IPv6 fullcone enabled for zone '" + zone.name + "'");
++		}
++
+ 		if (zone.mtu_fix && this.kernel < 0x040a0000) {
+ 			this.warn_section(data, "option 'mtu_fix' requires kernel 4.10 or later");
+ 			return;
+@@ -2269,10 +2356,18 @@ return {
+ 		zone.related_subnets = related_subnets;
+ 		zone.related_physdevs = related_physdevs;
+ 
++		if (zone.fullcone4 || zone.fullcone6) {
++			zone.dflags.snat = true;
++			zone.dflags.dnat = true;
++		}
++
+ 		if (zone.masq || zone.masq6)
+ 			zone.dflags.snat = true;
+ 
+-		if ((zone.auto_helper && !(zone.masq || zone.masq6)) || length(zone.helper)) {
++		if (this.state.defaults && this.state.defaults.brcmfullcone == 1)
++			zone.dflags.dnat = false;
++
++		if ((zone.auto_helper && !(zone.masq || zone.masq6 || zone.fullcone4 || zone.fullcone6)) || length(zone.helper)) {
+ 			zone.dflags.helper = true;
+ 
+ 			for (let helper in (length(zone.helper) ? zone.helper : this.state.helpers)) {
