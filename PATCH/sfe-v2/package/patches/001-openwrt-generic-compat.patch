@@ -31,7 +31,7 @@ diff --git a/sfe.c b/sfe.c
 index 66c6187..c437360 100644
 --- a/sfe.c
 +++ b/sfe.c
-@@ -39,7 +39,87 @@
+@@ -39,7 +39,88 @@
  
  extern int max_ipv4_conn;
  extern int max_ipv6_conn;
@@ -101,19 +101,20 @@ index 66c6187..c437360 100644
 +
 +static bool sfe_netdev_ingress_registered;
 +
++/* Registered last before conntrack, so an earlier hook always wins. */
 +static const struct nf_hook_ops sfe_prerouting_ops[] = {
 +	{
 +		.hook = sfe_ipv4_pre_routing_hook,
 +		.pf = NFPROTO_IPV4,
 +		.hooknum = NF_INET_PRE_ROUTING,
-+		.priority = NF_IP_PRI_FIRST,
++		.priority = NF_IP_PRI_CONNTRACK - 1,
 +	},
 +#if defined(SFE_SUPPORT_IPV6)
 +	{
 +		.hook = sfe_ipv6_pre_routing_hook,
 +		.pf = NFPROTO_IPV6,
 +		.hooknum = NF_INET_PRE_ROUTING,
-+		.priority = NF_IP6_PRI_FIRST,
++		.priority = NF_IP6_PRI_CONNTRACK - 1,
 +	},
 +#endif
 +};

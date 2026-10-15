@@ -386,30 +386,51 @@ static inline u8 sfe_cm_skb_dscp(struct sk_buff *skb, bool is_v4)
 /*
  * A flow that was refused acceleration keeps walking through post-routing, so its
  * route and neighbour lookups would be repeated for every packet.  Remember the
- * conntrack entry in a per-CPU ring to skip that work; entries are dropped when
- * the conntrack entry dies.
+ * conntrack entry in a per-CPU hash set to skip that work; an entry is dropped
+ * when the conntrack entry dies.  A set instead of a ring, so the lookup cost
+ * does not grow with the number of remembered flows.
  */
-#define SFE_CM_NO_ACCEL_SLOTS	32
-struct sfe_cm_no_accel_ring {
-	struct nf_conn *ct[SFE_CM_NO_ACCEL_SLOTS];
+#define SFE_CM_NO_ACCEL_BUCKETS	1024	/* power of two, 8 KiB per CPU */
+#define SFE_CM_NO_ACCEL_PROBE	4
+
+struct sfe_cm_no_accel_set {
+	struct nf_conn *ct[SFE_CM_NO_ACCEL_BUCKETS];
 };
 
-static DEFINE_PER_CPU(struct sfe_cm_no_accel_ring, sfe_cm_no_accel);
-static DEFINE_PER_CPU(unsigned int, sfe_cm_no_accel_next);
+static DEFINE_PER_CPU(struct sfe_cm_no_accel_set, sfe_cm_no_accel);
+
+static inline unsigned int sfe_cm_no_accel_hash(const struct nf_conn *ct)
+{
+	unsigned long v = (unsigned long)ct;
+
+	/* Mix: a bare shift maps whole slab pages onto a couple of buckets. */
+	v ^= v >> 16;
+	v *= 0x7feb352dUL;
+	v ^= v >> 15;
+
+	return (unsigned int)v & (SFE_CM_NO_ACCEL_BUCKETS - 1);
+}
 
 static bool sfe_cm_no_accel_test(struct nf_conn *ct)
 {
-	struct sfe_cm_no_accel_ring *ring;
+	struct sfe_cm_no_accel_set *set;
+	unsigned int h, i;
 	bool found = false;
-	int i;
 
-	ring = get_cpu_ptr(&sfe_cm_no_accel);
-	for (i = 0; i < SFE_CM_NO_ACCEL_SLOTS; i++) {
-		if (READ_ONCE(ring->ct[i]) == ct) {
+	set = get_cpu_ptr(&sfe_cm_no_accel);
+	h = sfe_cm_no_accel_hash(ct);
+
+	/*
+	 * The whole window is walked: a slot vacated by a destroyed connection in
+	 * front of this one must not hide it.  Four pointers, one cache line.
+	 */
+	for (i = 0; i < SFE_CM_NO_ACCEL_PROBE; i++) {
+		if (READ_ONCE(set->ct[(h + i) & (SFE_CM_NO_ACCEL_BUCKETS - 1)]) == ct) {
 			found = true;
 			break;
 		}
 	}
+
 	put_cpu_ptr(&sfe_cm_no_accel);
 
 	return found;
@@ -417,16 +438,27 @@ static bool sfe_cm_no_accel_test(struct nf_conn *ct)
 
 static void sfe_cm_no_accel_add(struct nf_conn *ct)
 {
-	struct sfe_cm_no_accel_ring *ring;
-	unsigned int *next;
+	struct sfe_cm_no_accel_set *set;
+	unsigned int h, i;
 
 	atomic64_inc(&sfe_cm_stat_memo_added);
 
-	ring = get_cpu_ptr(&sfe_cm_no_accel);
-	next = this_cpu_ptr(&sfe_cm_no_accel_next);
+	set = get_cpu_ptr(&sfe_cm_no_accel);
+	h = sfe_cm_no_accel_hash(ct);
 
-	WRITE_ONCE(ring->ct[*next], ct);
-	*next = (*next + 1) % SFE_CM_NO_ACCEL_SLOTS;
+	for (i = 0; i < SFE_CM_NO_ACCEL_PROBE; i++) {
+		struct nf_conn **slot = &set->ct[(h + i) & (SFE_CM_NO_ACCEL_BUCKETS - 1)];
+
+		if (!READ_ONCE(*slot) || READ_ONCE(*slot) == ct) {
+			WRITE_ONCE(*slot, ct);
+			break;
+		}
+	}
+
+	/* Probe window full: displace the entry this one hashes to. */
+	if (i == SFE_CM_NO_ACCEL_PROBE)
+		WRITE_ONCE(set->ct[h], ct);
+
 	put_cpu_ptr(&sfe_cm_no_accel);
 }
 
@@ -440,12 +472,14 @@ static void sfe_cm_no_accel_del(struct nf_conn *ct)
 	int cpu;
 
 	for_each_online_cpu(cpu) {
-		struct sfe_cm_no_accel_ring *ring = per_cpu_ptr(&sfe_cm_no_accel, cpu);
-		int i;
+		struct sfe_cm_no_accel_set *set = per_cpu_ptr(&sfe_cm_no_accel, cpu);
+		unsigned int h = sfe_cm_no_accel_hash(ct), i;
 
-		for (i = 0; i < SFE_CM_NO_ACCEL_SLOTS; i++) {
-			if (READ_ONCE(ring->ct[i]) == ct)
-				WRITE_ONCE(ring->ct[i], NULL);
+		for (i = 0; i < SFE_CM_NO_ACCEL_PROBE; i++) {
+			struct nf_conn **slot = &set->ct[(h + i) & (SFE_CM_NO_ACCEL_BUCKETS - 1)];
+
+			if (READ_ONCE(*slot) == ct)
+				WRITE_ONCE(*slot, NULL);
 		}
 	}
 }
@@ -1213,16 +1247,6 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 	/* A refused flow is not examined again on every packet. */
 	if (unlikely(sfe_cm_no_accel_test(ct)))
 		return NF_ACCEPT;
-
-	/*
-	 * A packet mark the engine cannot reproduce means a netfilter rule matches
-	 * on it.  Decided here so a refused flow never pays for the device lookup.
-	 */
-	if (unlikely(!sfe_cm_refuse_all_shaped && skb->mark && skb->mark != ct->mark)) {
-		atomic64_inc(&sfe_cm_stat_refused);
-		sfe_cm_no_accel_add(ct);
-		return NF_ACCEPT;
-	}
 
 	struct nf_conn_help *help = nfct_help(ct);
 
