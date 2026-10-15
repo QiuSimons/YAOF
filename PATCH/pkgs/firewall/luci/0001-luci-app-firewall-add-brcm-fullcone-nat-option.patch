@@ -1,0 +1,48 @@
+From: YAOF-1 <dev@localhost>
+Date: Thu, 1 Jan 1970 00:00:00 +0000
+Subject: [PATCH] luci-app-firewall: add BRCM full cone NAT switches
+
+Adds the global BRCM full cone NAT switch (firewall.<section>.brcmfullcone)
+and the per-zone family switches (fullcone4 / fullcone6).
+
+Deliberately not wrapped in L.hasSystemFeature(): the switch has to be visible
+even when the kernel or nftables side is missing, so fw4's runtime probe can
+report the failure instead of the option silently not existing.
+
+Both are keyed on the section being edited; the family switches are shown
+only while the global switch is on, and IPv4 defaults to enabled.  The
+earlier version read and wrote a hardcoded '@zone[1]', so it silently
+applied to whichever zone happened to be second.
+
+Signed-off-by: YAOF-1 <dev@localhost>
+---
+--- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
++++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
+@@ -53,6 +53,27 @@ return view.extend({
+ 			uci.unset('firewall', section_id, 'syn_flood');
+ 			uci.unset('firewall', section_id, 'synflood_protect');
+ 		};
++		/* Broadcom full cone NAT (expectation based).  Deliberately not gated
++		 * on a system feature: the option has to be visible so a missing
++		 * kernel/nftables piece is reported by fw4 instead of the switch
++		 * silently not existing. */
++
++		o = s.option(form.ListValue, "fullcone", _("BRCM Full Cone NAT"));
++		o.value('0', _("Disable"));
++		o.value('1', _("Enable IPv4"));
++		o.value('2', _("Enable IPv4 and IPv6"));
++		o.cfgvalue = function(section_id) {
++			/* fw4 declares both family switches with default 0, so an absent key
++			 * has to read as disabled. */
++			var v4 = (uci.get('firewall', section_id, 'fullcone4') === '1');
++			var v6 = (uci.get('firewall', section_id, 'fullcone6') === '1');
++
++			return v4 ? (v6 ? '2' : '1') : '0';
++		};
++		o.write = function(section_id, value) {
++			uci.set('firewall', section_id, 'fullcone4', (value === '1' || value === '2') ? '1' : '0');
++			uci.set('firewall', section_id, 'fullcone6', (value === '2') ? '1' : '0');
++		};
+ 
+ 		o = s.option(form.Flag, 'drop_invalid', _('Drop invalid packets'));
+ 

@@ -5,19 +5,19 @@ Subject: [PATCH 2/7] luci-app-firewall: add shortcut-fe option
 
 Signed-off-by: sbwml <admin@cooluc.com>
 ---
- .../resources/view/firewall/zones.js          | 27 ++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+ .../resources/view/firewall/zones.js          | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
 diff --git a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 index 4675a44efd..98334c9165 100644
 --- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
-@@ -102,18 +102,39 @@ return view.extend({
+@@ -102,18 +102,30 @@ return view.extend({
  			o.value('0', _("None"));
  			o.value('1', _("Software flow offloading"), _('Software based offloading for routing/NAT.'));
  			o.value('2', _("Hardware flow offloading"), _('Hardware based offloading for routing with/without NAT.') + ' ' + _(' Requires hardware NAT support.'));
 +			if (L.hasSystemFeature('shortcutfe')) {
-+				o.value('3', _("Shortcut-FE flow offloading"), _('Shortcut-FE based offloading for routing/NAT'));
++				o.value('3', _("Shortcut-FE v2 flow offloading"), _('Shortcut-FE v2 based offloading for routing/NAT'));
 +			}
  			o.optional = false;
  			o.load = function (section_id) {
@@ -43,18 +43,8 @@ index 4675a44efd..98334c9165 100644
 +					uci.set('firewall', section_id, 'shortcut_fe', value === '3' ? '1' : null);
 +				}
  			};
-+
-+			/* Shortcut-FE flow connection manager */
-+			o = s.option(form.ListValue, 'shortcut_fe_module',
-+			_('Connection Manager'),
-+			_('Set up the Shortcut-FE engine connection manager'));
-+			o.value('shortcut-fe-cm', _('shortcut-fe-cm'));
-+			o.value('fast-classifier', _('fast-classifier'));
-+			o.default = 'shortcut-fe-cm';
-+			o.depends('offloading_type', '3');
  		}
  
  
 -- 
 2.43.5
-
