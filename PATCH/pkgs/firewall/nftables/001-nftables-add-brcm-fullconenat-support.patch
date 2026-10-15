@@ -1,21 +1,23 @@
-From ae87b5c969b8020a229054493467b272a3f2a79d Mon Sep 17 00:00:00 2001
-From: sbwml <admin@cooluc.com>
-Date: Sat, 26 Oct 2024 06:06:30 +0800
-Subject: [PATCH 2/2] nftables: add brcm fullconenat support
+From: YAOF-1 <dev@localhost>
+Date: Thu, 1 Jan 1970 00:00:00 +0000
+Subject: [PATCH] nftables: add brcm fullconenat support
 
-Signed-off-by: sbwml <admin@cooluc.com>
+Adds the brcmfullcone keyword to the masquerade statement so fw4 can emit
+"masquerade brcmfullcone", which sets the masquerade address register to a
+non-zero value that the kernel uses to enable the full-cone mapping.
+
+Regenerated against the nftables version OpenWrt pins (1.1.6).  The previous
+change was written against an older nftables and did not apply cleanly: its
+parser_bison.y and scanner.l hunks were rejected outright.
+
+Self-contained: it does not depend on the "fullcone" expression support that
+was dropped together with nft-fullcone (no %token FULLCONE, no NFT_NAT_FULLCONE).
+
+Signed-off-by: YAOF-1 <dev@localhost>
 ---
- include/linux/netfilter/nf_tables.h |  4 ++++
- src/netlink_delinearize.c           | 24 ++++++++++++++++++++++++
- src/netlink_linearize.c             | 15 ++++++++++-----
- src/parser_bison.y                  | 10 ++++++++++
- src/scanner.l                       |  1 +
- src/statement.c                     |  9 ++++++---
- 6 files changed, 55 insertions(+), 8 deletions(-)
-
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
-@@ -1474,12 +1474,16 @@ enum nft_tproxy_attributes {
+@@ -1489,12 +1489,16 @@
   * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
   * @NFTA_MASQ_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
   * @NFTA_MASQ_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
@@ -34,7 +36,7 @@ Signed-off-by: sbwml <admin@cooluc.com>
  #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -1426,6 +1426,7 @@ static void netlink_parse_masq(struct ne
+@@ -1480,6 +1480,7 @@
  {
  	enum nft_registers reg1, reg2;
  	struct expr *proto;
@@ -42,7 +44,7 @@ Signed-off-by: sbwml <admin@cooluc.com>
  	struct stmt *stmt;
  	uint32_t flags = 0;
  
-@@ -1461,6 +1462,29 @@ static void netlink_parse_masq(struct ne
+@@ -1515,6 +1516,29 @@
  		stmt->nat.proto = proto;
  	}
  
@@ -56,7 +58,7 @@ Signed-off-by: sbwml <admin@cooluc.com>
 +		}
 +	}
 +
-+	reg2 = netlink_parse_register(nle, NFTNL_EXPR_NAT_REG_ADDR_MAX);
++	reg2 = netlink_parse_register(nle, NFTNL_EXPR_MASQ_REG_ADDR_MAX);
 +	if (reg2 && reg2 != reg1) {
 +		addr = netlink_get_register(ctx, loc, reg2);
 +		if (addr != NULL) {
@@ -74,27 +76,33 @@ Signed-off-by: sbwml <admin@cooluc.com>
  out_err:
 --- a/src/netlink_linearize.c
 +++ b/src/netlink_linearize.c
-@@ -1205,7 +1205,10 @@ static void netlink_gen_nat_stmt(struct
+@@ -1245,6 +1245,7 @@
  	int registers = 0;
  	int nftnl_flag_attr;
  	int nftnl_reg_pmin, nftnl_reg_pmax;
 +	int nftnl_reg_amin, nftnl_reg_amax;
  
-+	nftnl_reg_amin = NFTNL_EXPR_NAT_REG_ADDR_MIN;
-+	nftnl_reg_amax = NFTNL_EXPR_NAT_REG_ADDR_MAX;
  	switch (stmt->nat.type) {
  	case NFT_NAT_SNAT:
- 	case NFT_NAT_DNAT:
-@@ -1225,6 +1228,8 @@ static void netlink_gen_nat_stmt(struct
+@@ -1258,6 +1259,8 @@
+ 		nftnl_flag_attr = NFTNL_EXPR_NAT_FLAGS;
+ 		nftnl_reg_pmin = NFTNL_EXPR_NAT_REG_PROTO_MIN;
+ 		nftnl_reg_pmax = NFTNL_EXPR_NAT_REG_PROTO_MAX;
++		nftnl_reg_amin = NFTNL_EXPR_NAT_REG_ADDR_MIN;
++		nftnl_reg_amax = NFTNL_EXPR_NAT_REG_ADDR_MAX;
+ 		break;
+ 	case NFT_NAT_MASQ:
+ 		nle = alloc_nft_expr("masq");
+@@ -1265,6 +1268,8 @@
  		nftnl_flag_attr = NFTNL_EXPR_MASQ_FLAGS;
  		nftnl_reg_pmin = NFTNL_EXPR_MASQ_REG_PROTO_MIN;
  		nftnl_reg_pmax = NFTNL_EXPR_MASQ_REG_PROTO_MAX;
 +		nftnl_reg_amin = NFTNL_EXPR_MASQ_REG_ADDR_MIN;
 +		nftnl_reg_amax = NFTNL_EXPR_MASQ_REG_ADDR_MAX;
  		break;
- 	case NFT_NAT_FULLCONE:
- 		nle = alloc_nft_expr("fullcone");
-@@ -1258,13 +1263,13 @@ static void netlink_gen_nat_stmt(struct
+ 	case NFT_NAT_REDIR:
+ 		nle = alloc_nft_expr("redir");
+@@ -1291,13 +1296,13 @@
  
  			netlink_gen_expr(ctx, stmt->nat.addr->left, amin_reg);
  			netlink_gen_expr(ctx, stmt->nat.addr->right, amax_reg);
@@ -111,7 +119,7 @@ Signed-off-by: sbwml <admin@cooluc.com>
  					     amin_reg);
  			if (stmt->nat.addr->etype == EXPR_MAP &&
  			    stmt->nat.addr->mappings->set->data->flags & EXPR_F_INTERVAL) {
-@@ -1273,7 +1278,7 @@ static void netlink_gen_nat_stmt(struct
+@@ -1306,7 +1311,7 @@
  					netlink_put_register(nle, nftnl_reg_pmin,
  							     amin_reg);
  				} else {
@@ -120,7 +128,7 @@ Signed-off-by: sbwml <admin@cooluc.com>
  							     amin_reg);
  				}
  			}
-@@ -1289,7 +1294,7 @@ static void netlink_gen_nat_stmt(struct
+@@ -1322,7 +1327,7 @@
  
  			if (stmt->nat.type_flags & STMT_NAT_F_INTERVAL) {
  				pmin_reg += netlink_register_space(nat_addrlen(family));
@@ -131,55 +139,74 @@ Signed-off-by: sbwml <admin@cooluc.com>
  
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -644,6 +644,7 @@ int nft_lex(void *, void *, void *);
+@@ -668,6 +668,7 @@
+ %token SNAT			"snat"
  %token DNAT			"dnat"
  %token MASQUERADE		"masquerade"
- %token FULLCONE		"fullcone"
 +%token BRCMFULLCONE		"brcmfullcone"
  %token REDIRECT			"redirect"
  %token RANDOM			"random"
  %token FULLY_RANDOM		"fully-random"
-@@ -4010,6 +4011,15 @@ masq_stmt_args		:	TO 	COLON	stmt_expr
+@@ -4114,6 +4115,34 @@
  			{
  				$<stmt>0->nat.flags = $1;
  			}
++			|	nf_key_proto BRCMFULLCONE
++			{
++				/* non-zero address register selects the brcm full-cone path */
++				if ($1 == NFPROTO_IPV6) {
++					struct in6_addr addr = { .s6_addr = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x04, 0xE5 } };
++
++					$<stmt>0->nat.addr = constant_expr_alloc(&@$, &ip6addr_type,
++										BYTEORDER_BIG_ENDIAN,
++										sizeof(addr) * BITS_PER_BYTE,
++										&addr);
++				} else {
++					uint32_t addr = htonl(0x4E5);
++
++					$<stmt>0->nat.addr = constant_expr_alloc(&@$, &ipaddr_type,
++										BYTEORDER_BIG_ENDIAN,
++										sizeof(addr) * BITS_PER_BYTE,
++										&addr);
++				}
++			}
 +			|	BRCMFULLCONE
 +			{
-+				/* set addr to non zero to enable brcmfullcone, we pass YES -> 0x4E5 */
++				/* non-zero address register selects the brcm full-cone path */
 +				char str[64];
 +				snprintf(str, sizeof(str), "%" PRIu64, 0x4E5);
 +				$<stmt>0->nat.addr = symbol_expr_alloc(&@$, SYMBOL_VALUE,
-+									       current_scope(state),
-+									       str);
++								       current_scope(state),
++								       str);
 +			}
  			;
  
- fullcone_stmt		:	fullcone_stmt_alloc		fullcone_stmt_args
+ redir_stmt		:	redir_stmt_alloc	redir_stmt_arg
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -463,6 +463,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr
+@@ -470,6 +470,7 @@
+ "snat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return SNAT; }
  "dnat"			{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return DNAT; }
  "masquerade"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return MASQUERADE; }
- "fullcone"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return FULLCONE; }
 +"brcmfullcone"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return BRCMFULLCONE; }
  "redirect"		{ scanner_push_start_cond(yyscanner, SCANSTATE_STMT_NAT); return REDIRECT; }
  "random"		{ return RANDOM; }
  <SCANSTATE_STMT_NAT>{
 --- a/src/statement.c
 +++ b/src/statement.c
-@@ -683,6 +683,7 @@ const char *nat_etype2str(enum nft_nat_e
+@@ -689,6 +689,8 @@
  
  static void nat_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
  {
 +	bool isbrcmfullcone = stmt->nat.addr && stmt->nat.type == NFT_NAT_MASQ;
++
  	nft_print(octx, "%s", nat_etype2str(stmt->nat.type));
  	if (stmt->nat.addr || stmt->nat.proto) {
  		switch (stmt->nat.family) {
-@@ -696,11 +697,13 @@ static void nat_stmt_print(const struct
- 
+@@ -703,10 +705,13 @@
  		if (stmt->nat.type_flags & STMT_NAT_F_PREFIX)
  			nft_print(octx, " prefix");
--
+ 
 -		nft_print(octx, " to");
 +		if (!isbrcmfullcone)
 +			nft_print(octx, " to");
