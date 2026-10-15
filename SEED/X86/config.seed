@@ -76,7 +76,6 @@ CONFIG_PACKAGE_bind-host=y
 # CONFIG_PACKAGE_firewall is not set
 CONFIG_PACKAGE_firewall4=y
 CONFIG_PACKAGE_kmod-nft-offload=y
-CONFIG_PACKAGE_kmod-nft-fullcone=y
 # CONFIG_PACKAGE_arptables-legacy is not set
 CONFIG_PACKAGE_arptables-nft=y
 # CONFIG_PACKAGE_ebtables-legacy is not set
