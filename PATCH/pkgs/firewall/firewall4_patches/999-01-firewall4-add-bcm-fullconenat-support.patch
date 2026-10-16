@@ -14,13 +14,14 @@ Full-cone NAT is provided by the Broadcom expectation-based scheme only:
   * a zone qualifies when it masquerades - for IPv6 also when masq6 is
     implied by the "nat6" defaults switch, i.e. when the external nat6
     service translates the zone
-  * zone-brcmfullcone.uc emits the srcnat rule for each enabled family and
-    the zone srcnat rules are evaluated a second time from a postrouting
-    chain at "priority srcnat - 10": the full cone masquerade must perform
-    the NAT itself to register the expectation, so it has to run before any
-    other NAT chain at the canonical srcnat priority (the nat6 service
-    installs one).  The regular srcnat chain is a no-op afterwards, and the
-    extra chain is only emitted when a zone has a full cone family enabled.
+  * zone-brcmfullcone.uc emits the srcnat rule for each enabled family, and
+    the same zone rules are also emitted into a postrouting chain at
+    "priority srcnat - 10" so they run before any other NAT chain at
+    the canonical srcnat priority (the nat6 service installs one).  The
+    full cone masquerade has to perform the NAT itself to register the
+    expectation, so that ordering is what ties it to the right statement.
+    The extra chain only exists when a zone has a full cone family
+    enabled.
 
 The nft-fullcone scheme (nft_try_fullcone, zone-fullcone.uc, defaults.fullcone,
 the fw4.default_option("brcmfullcone") branches) is gone: brcmfullcone is an
@@ -114,30 +115,26 @@ new file mode 100644
 diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
 --- a/root/usr/share/ucode/fw4.uc
 +++ b/root/usr/share/ucode/fw4.uc
-@@ -1,3 +1,5 @@
-+// /usr/share/ucode/fw4.uc
-+
- const fs = require("fs");
- const uci = require("uci");
- const ubus = require("ubus");
-@@ -490,6 +492,45 @@
+@@ -490,6 +492,47 @@
  }
  
  
 +function nft_try_brcmfullcone(family, loud) {
 +	/*
-+	 * A kernel that carries the BRCM full-cone support echoes
-+	 * NFTA_MASQ_REG_FULLCONE back on dump, so the statement round-trips with
-+	 * the "brcmfullcone" keyword.  A kernel without it silently ignores the
-+	 * unknown attribute (nf_tables parses expression attributes with
-+	 * nla_parse_nested_deprecated(), which drops types past maxtype) and dumps
-+	 * a plain masquerade - so "nft -c" always succeeds and cannot probe for
-+	 * support.  Install the rule for real, list it back, require the keyword
-+	 * on the masquerade statement itself (the scratch table name also contains
-+	 * "brcmfullcone", so the match must be anchored to "masquerade"),
-+	 * and drop the scratch table on every path.  The temporary rule matches an
-+	 * interface name that cannot exist, so the probe chain can never NAT live
-+	 * traffic while it is installed.
++	 * A kernel that carries the support echoes NFTA_MASQ_REG_FULLCONE back
++	 * on dump, so the statement round-trips with the keyword.  A kernel
++	 * without it silently drops the unknown attribute (nf_tables parses
++	 * expression attributes with nla_parse_nested_deprecated(), which
++	 * discards types past maxtype), so the rule installs and dumps as a plain
++	 * masquerade: \"nft -c\" always succeeds and cannot be used to probe.
++	 * Hence: install the rule for real, list it back, require the keyword on
++	 * the masquerade statement, and drop the scratch table on every path.
++	 * The rule matches a device name that cannot exist, so it can never NAT
++	 * live traffic while the scratch table is installed.  The name has to be a
++	 * syntactically valid one as well: iifname \"/never/\" is an nft syntax
++	 * error (the scanner strips the double quotes and then chokes on the bare
++	 * slashes), and a probe that fails that way is indistinguishable from a
++	 * kernel without the attribute.
 +	 */
 +	let name = 'fw4-brcmfullcone-test';
 +	let nfproto = (family == 6) ? 'ipv6' : 'ipv4';
@@ -146,7 +143,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
 +		'add table inet ' + name + '; ' +
 +		'add chain inet ' + name + ' srcnat { ' +
 +			'type nat hook postrouting priority srcnat; policy accept; ' +
-+			sprintf('meta nfproto %s iifname "/never/" masquerade %s brcmfullcone; ',
++			sprintf('meta nfproto %s iifname "fw4-brcmfullcone-never" masquerade %s brcmfullcone; ',
 +				nfproto, ipproto) +
 +		'}; ';
 +	let cmd = sprintf("/usr/sbin/nft delete table inet %s 2>/dev/null; " +
