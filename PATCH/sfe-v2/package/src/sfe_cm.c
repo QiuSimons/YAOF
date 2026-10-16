@@ -1601,17 +1601,23 @@ static struct nf_ct_event_notifier sfe_cm_conntrack_notifier = {
  *	Own the (single) conntrack event notifier slot, remembering its previous
  *	owner so its events can be forwarded.
  */
+static DEFINE_MUTEX(sfe_cm_conntrack_notifier_lock);
+
 static void sfe_cm_conntrack_notifier_reclaim(void)
 {
 	const struct nf_ct_event_notifier *cur;
 
+	mutex_lock(&sfe_cm_conntrack_notifier_lock);
+
 	cur = rcu_access_pointer(init_net.ct.nf_conntrack_event_cb);
 	if (cur == &sfe_cm_conntrack_notifier)
-		return;
+		goto out;
 
 	rcu_assign_pointer(sfe_cm_prev_notifier, cur);
 	nf_conntrack_unregister_notifier(&init_net);
 	nf_conntrack_register_notifier(&init_net, &sfe_cm_conntrack_notifier);
+out:
+	mutex_unlock(&sfe_cm_conntrack_notifier_lock);
 }
 
 /*
@@ -1622,8 +1628,10 @@ static void sfe_cm_conntrack_notifier_release(void)
 {
 	const struct nf_ct_event_notifier *prev;
 
+	mutex_lock(&sfe_cm_conntrack_notifier_lock);
+
 	if (rcu_access_pointer(init_net.ct.nf_conntrack_event_cb) != &sfe_cm_conntrack_notifier)
-		return;
+		goto out;
 
 	rcu_read_lock();
 	prev = rcu_dereference(sfe_cm_prev_notifier);
@@ -1632,6 +1640,8 @@ static void sfe_cm_conntrack_notifier_release(void)
 	nf_conntrack_unregister_notifier(&init_net);
 	if (prev)
 		nf_conntrack_register_notifier(&init_net, prev);
+out:
+	mutex_unlock(&sfe_cm_conntrack_notifier_lock);
 }
 #endif
 
@@ -1902,12 +1912,6 @@ static void __exit sfe_cm_exit(void)
 
 	pr_info("sfe_cm: unloading\n");
 
-	cancel_delayed_work_sync(&sfe_cm_sync[0].dwork);
-
-#ifdef SFE_SUPPORT_IPV6
-	cancel_delayed_work_sync(&sfe_cm_sync[1].dwork);
-#endif
-
 	nf_unregister_net_hooks(&init_net, sfe_cm_ops_post_routing, ARRAY_SIZE(sfe_cm_ops_post_routing));
 #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
 	nf_conntrack_unregister_notifier(&init_net, &sfe_cm_conntrack_notifier);
@@ -1923,6 +1927,15 @@ static void __exit sfe_cm_exit(void)
 #ifdef SFE_SUPPORT_IPV6
 	if (sfe_v6_ctx)
 		sfe_ipv6_notify_unregister();
+#endif
+
+	/*
+	 * Both engines drained their work above; only now can a callback no
+	 * longer rearm the sync work.
+	 */
+	cancel_delayed_work_sync(&sfe_cm_sync[0].dwork);
+#ifdef SFE_SUPPORT_IPV6
+	cancel_delayed_work_sync(&sfe_cm_sync[1].dwork);
 #endif
 
 	/*
