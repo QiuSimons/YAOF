@@ -147,7 +147,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  %token REDIRECT			"redirect"
  %token RANDOM			"random"
  %token FULLY_RANDOM		"fully-random"
-@@ -4114,6 +4115,34 @@
+@@ -4114,6 +4115,36 @@
  			{
  				$<stmt>0->nat.flags = $1;
  			}
@@ -172,6 +172,8 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +			}
 +			|	BRCMFULLCONE
 +			{
++				/* netlink_parse_masq() leaves nat.family unset, so the printer
++				 * emits the family-less form: accept it here, not dead code. */
 +				/* non-zero address register selects the brcm full-cone path */
 +				char str[64];
 +				snprintf(str, sizeof(str), "%" PRIu64, 0x4E5);

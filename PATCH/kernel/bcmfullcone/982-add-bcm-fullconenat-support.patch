@@ -10,7 +10,7 @@
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,151 @@
+@@ -24,6 +27,193 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -118,42 +118,84 @@
 +#endif
 +
 +/****************************************************************************/
-+static inline int find_exp(__be32 ip, __be16 port, struct nf_conn *ct)
++/*
++ * Which internal endpoint owns this external port?
++ *   0 - nobody: the port is free
++ *   1 - this connection's internal endpoint: reuse it
++ *   2 - a different internal endpoint: the table is keyed on (external
++ *       address, port) alone, so the two cannot be told apart
++ */
++static inline int exp_port_state(__be32 ip, __be16 port,
++                                 const struct nf_conntrack_tuple *orig,
++                                 struct nf_conn *ct)
 +{
-+       struct nf_conntrack_tuple tuple;
-+       struct nf_conntrack_expect *i = NULL;
++        struct nf_conntrack_tuple tuple;
++        struct nf_conntrack_expect *i;
++        int state = 0;
 +
++        memset(&tuple, 0, sizeof(tuple));
++        tuple.src.l3num = AF_INET;
++        tuple.dst.protonum = IPPROTO_UDP;
++        tuple.dst.u3.ip = ip;
++        tuple.dst.u.udp.port = port;
 +
-+       memset(&tuple, 0, sizeof(tuple));
-+       tuple.src.l3num = AF_INET;
-+       tuple.dst.protonum = IPPROTO_UDP;
-+       tuple.dst.u3.ip = ip;
-+       tuple.dst.u.udp.port = port;
++        rcu_read_lock();        /* saved_* must be read inside the RCU section:
++                                 * the pointer returned by __nf_ct_expect_find()
++                                 * is not stable once the section ends */
++        i = __nf_ct_expect_find(nf_ct_net(ct), nf_ct_zone(ct), &tuple);
++        if (i) {
++                if (i->saved_addr.ip == orig->src.u3.ip &&
++                    i->saved_proto.udp.port == orig->src.u.udp.port) {
++                        /* Do not re-arm a detached timer: the expectation is being freed. */
++                        if (timer_pending(&i->timeout))
++                                mod_timer(&i->timeout,
++                                          jiffies + bcm_nat_exp_policy.timeout * HZ);
++                        state = 1;
++                } else {
++                        state = 2;
++                }
++        }
++        rcu_read_unlock();
 +
-+       rcu_read_lock();
-+       i = __nf_ct_expect_find(nf_ct_net(ct), nf_ct_zone(ct), &tuple);
-+       rcu_read_unlock();
-+
-+       return i != NULL;
++        return state;
 +}
 +
 +#if IS_ENABLED(CONFIG_IPV6)
-+static inline int find_exp6(const struct in6_addr *ip6, __be16 port, struct nf_conn *ct)
++/* IPv6 twin of exp_port_state(). */
++static inline int exp_port_state6(const struct in6_addr *ip6, __be16 port,
++                                  const struct nf_conntrack_tuple *orig,
++                                  struct nf_conn *ct)
 +{
-+       struct nf_conntrack_tuple tuple;
-+       struct nf_conntrack_expect *i = NULL;
++        struct nf_conntrack_tuple tuple;
++        struct nf_conntrack_expect *i;
++        int state = 0;
 +
-+       memset(&tuple, 0, sizeof(tuple));
-+       tuple.src.l3num = AF_INET6;
-+       tuple.dst.protonum = IPPROTO_UDP;
-+       tuple.dst.u3.in6 = *ip6;
-+       tuple.dst.u.udp.port = port;
++        memset(&tuple, 0, sizeof(tuple));
++        tuple.src.l3num = AF_INET6;
++        tuple.dst.protonum = IPPROTO_UDP;
++        tuple.dst.u3.in6 = *ip6;
++        tuple.dst.u.udp.port = port;
 +
-+       rcu_read_lock();
-+       i = __nf_ct_expect_find(nf_ct_net(ct), nf_ct_zone(ct), &tuple);
-+       rcu_read_unlock();
++        rcu_read_lock();        /* saved_* must be read inside the RCU section:
++                                 * the pointer returned by __nf_ct_expect_find()
++                                 * is not stable once the section ends */
++        i = __nf_ct_expect_find(nf_ct_net(ct), nf_ct_zone(ct), &tuple);
++        if (i) {
++                if (ipv6_addr_equal(&i->saved_addr.in6,
++                                    &orig->src.u3.in6) &&
++                    i->saved_proto.udp.port == orig->src.u.udp.port) {
++                        /* Do not re-arm a detached timer: the expectation is being freed. */
++                        if (timer_pending(&i->timeout))
++                                mod_timer(&i->timeout,
++                                          jiffies + bcm_nat_exp_policy.timeout * HZ);
++                        state = 1;
++                } else {
++                        state = 2;
++                }
++        }
++        rcu_read_unlock();
 +
-+       return i != NULL;
++        return state;
 +}
 +#endif
 +
@@ -162,13 +204,11 @@
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +209,77 @@
+@@ -61,6 +251,112 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
-+/* RFC 4787 - 4.2.2.  Port Parity
-+   i.e., an even port will be mapped to an even port, and an odd port will be mapped to an odd port.
-+*/
++/* RFC 4787 4.2.2: preserve port parity. */
 +#define CHECK_PORT_PARITY(a, b) ((a%2)==(b%2))
 +       if (range->min_addr.ip != 0 /* nat_mode == full cone */
 +           && nf_ct_protonum(ct) == IPPROTO_UDP
@@ -183,6 +223,11 @@
 +               spin_lock_bh(&nf_conntrack_expect_lock);
 +                              {
 +                       u_int16_t newport, tmpport, orgport;
++                       const struct nf_conntrack_tuple *orig =
++                               &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++                       union nf_inet_addr mapped_addr;
++                       __be16 mapped_port = 0;
++                       int found = 0;
 +
 +                       minport = range->min_proto.all == 0 ?
 +                               ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.
@@ -190,10 +235,39 @@
 +                       maxport = range->max_proto.all == 0 ?
 +                               htons(65535) : range->max_proto.all;
 +                       orgport = ntohs(minport);
++                       /* 1) nf_nat_bysource: an existing mapping for this endpoint. */
++                       if (nf_nat_src_mapping(nf_ct_net(ct), nf_ct_zone(ct),
++                                              orig, &mapped_addr,
++                                              &mapped_port) &&
++                           mapped_addr.ip == newsrc &&
++                           ntohs(mapped_port) >= ntohs(minport) &&
++                           ntohs(mapped_port) <= ntohs(maxport) &&
++                           CHECK_PORT_PARITY(orgport, ntohs(mapped_port)) &&
++                           exp_port_state(newsrc, mapped_port, orig, ct) != 2) {
++                               pr_debug("bcm_nat: source mapping port = %hu\n",
++                                        ntohs(mapped_port));
++                               minport = maxport = mapped_port;
++                               found = 1;
++                       }
++                       /* 2) The expectation table: ours and still live. */
 +                       for (newport = ntohs(minport), tmpport = ntohs(maxport);
-+                            newport <= tmpport; newport++) {
++                            !found && newport <= tmpport; newport++) {
 +                               if (CHECK_PORT_PARITY(orgport, newport) &&
-+                                   !find_exp(newsrc, htons(newport), ct)) {
++                                   exp_port_state(newsrc, htons(newport), orig,
++                                                  ct) == 1) {
++                                       pr_debug("bcm_nat: reusing mapped port = %hu\n",
++                                                newport);
++                                       minport = maxport = htons(newport);
++                                       found = 1;
++                                       break;
++                               }
++                       }
++                       /* 3) The expectation table: nobody owns the port. */
++                       for (newport = ntohs(minport), tmpport = ntohs(maxport);
++                            !found && newport <= tmpport; newport++) {
++                               if (CHECK_PORT_PARITY(orgport, newport) &&
++                                   exp_port_state(newsrc, htons(newport), orig,
++                                                  ct) == 0) {
 +                                       pr_debug("bcm_nat: new mapped port = %hu\n",
 +                                                newport);
 +                                       minport = maxport = htons(newport);
@@ -213,34 +287,37 @@
 +               newrange.min_proto.udp.port = newrange.max_proto.udp.port = minport;
 +
 +               ret = nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_SRC);
-+               if (ret == NF_ACCEPT) {
-+                                              set_bit(IPS_FULLCONE_BIT, &ct->status);
-+                       struct nf_conn_help *help = nfct_help(ct);
-+                       if (help == NULL)
-+                               help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-+                       if (help != NULL) {
-+                               struct nf_conntrack_expect *exp;
++		if (ret == NF_ACCEPT) {
++			struct nf_conn_help *help;
 +
-+                               help->helper = &nf_conntrack_helper_bcm_nat;
-+                               /* holds the expectation list; no helper is registered */
-+                               exp = bcm_nat_expect_create(ct, AF_INET,
-+                                                           IP_CT_DIR_ORIGINAL);
-+                               if (exp != NULL)
-+                                       nf_ct_expect_put(exp);
-+                               else
-+                                       pr_debug("bcm_nat: expect create failed\n");
-+                       }
-+                       set_bit(IPS_FULLCONE_BIT, &ct->status);
-+                       pr_debug("bcm_nat: full cone mapping %hu installed\n",
-+                                ntohs(newrange.min_proto.udp.port));
-+               }
++			set_bit(IPS_FULLCONE_BIT, &ct->status);
++			help = nfct_help(ct);
++			if (help == NULL)
++				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
++			if (help != NULL) {
++				struct nf_conntrack_expect *exp;
++
++				help->helper = &nf_conntrack_helper_bcm_nat;
++				exp = bcm_nat_expect_create(ct, AF_INET,
++							   IP_CT_DIR_ORIGINAL);
++				if (exp != NULL) {
++					nf_ct_expect_put(exp);
++				} else {
++					/* Port owned or create failed; helper never registered. */
++					RCU_INIT_POINTER(help->helper, NULL);
++					pr_debug("bcm_nat: no new expectation, helper cleared\n");
++				}
++			}
++			pr_debug("bcm_nat: full cone mapping %hu installed\n",
++				 ntohs(newrange.min_proto.udp.port));
++		}
 +               return ret;
 +       }
 +
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +478,74 @@
+@@ -259,6 +555,111 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -258,6 +335,11 @@
 +               spin_lock_bh(&nf_conntrack_expect_lock);
 +               {
 +                       u_int16_t newport, tmpport, orgport;
++                       const struct nf_conntrack_tuple *orig =
++                               &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++                       union nf_inet_addr mapped_addr;
++                       __be16 mapped_port = 0;
++                       int found = 0;
 +
 +                       minport = range->min_proto.all == 0 ?
 +                               ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.
@@ -265,10 +347,39 @@
 +                       maxport = range->max_proto.all == 0 ?
 +                               htons(65535) : range->max_proto.all;
 +                       orgport = ntohs(minport);
++                       /* 1) nf_nat_bysource: an existing mapping for this endpoint. */
++                       if (nf_nat_src_mapping(nf_ct_net(ct), nf_ct_zone(ct),
++                                              orig, &mapped_addr,
++                                              &mapped_port) &&
++                           ipv6_addr_equal(&mapped_addr.in6, &src) &&
++                           ntohs(mapped_port) >= ntohs(minport) &&
++                           ntohs(mapped_port) <= ntohs(maxport) &&
++                           CHECK_PORT_PARITY(orgport, ntohs(mapped_port)) &&
++                           exp_port_state6(&src, mapped_port, orig, ct) != 2) {
++                               pr_debug("bcm_nat6: source mapping port = %hu\n",
++                                        ntohs(mapped_port));
++                               minport = maxport = mapped_port;
++                               found = 1;
++                       }
++                       /* 2) The expectation table: ours and still live. */
 +                       for (newport = ntohs(minport), tmpport = ntohs(maxport);
-+                            newport <= tmpport; newport++) {
++                            !found && newport <= tmpport; newport++) {
 +                               if (CHECK_PORT_PARITY(orgport, newport) &&
-+                                   !find_exp6(&src, htons(newport), ct)) {
++                                   exp_port_state6(&src, htons(newport), orig,
++                                                  ct) == 1) {
++                                       pr_debug("bcm_nat6: reusing mapped port = %hu\n",
++                                                newport);
++                                       minport = maxport = htons(newport);
++                                       found = 1;
++                                       break;
++                               }
++                       }
++                       /* 3) The expectation table: nobody owns the port. */
++                       for (newport = ntohs(minport), tmpport = ntohs(maxport);
++                            !found && newport <= tmpport; newport++) {
++                               if (CHECK_PORT_PARITY(orgport, newport) &&
++                                   exp_port_state6(&src, htons(newport), orig,
++                                                  ct) == 0) {
 +                                       pr_debug("bcm_nat6: new mapped port = %hu\n",
 +                                                newport);
 +                                       minport = maxport = htons(newport);
@@ -287,27 +398,30 @@
 +               newrange.min_proto.udp.port = newrange.max_proto.udp.port = minport;
 +
 +               ret = nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_SRC);
-+               if (ret == NF_ACCEPT) {
-+                                              set_bit(IPS_FULLCONE_BIT, &ct->status);
-+                       struct nf_conn_help *help = nfct_help(ct);
-+                       if (help == NULL)
-+                               help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-+                       if (help != NULL) {
-+                               struct nf_conntrack_expect *exp;
++		if (ret == NF_ACCEPT) {
++			struct nf_conn_help *help;
 +
-+                               help->helper = &nf_conntrack_helper_bcm_nat6;
-+                               /* holds the expectation list; no helper is registered */
-+                               exp = bcm_nat_expect_create(ct, AF_INET6,
-+                                                           IP_CT_DIR_ORIGINAL);
-+                               if (exp != NULL)
-+                                       nf_ct_expect_put(exp);
-+                               else
-+                                       pr_debug("bcm_nat6: expect create failed\n");
-+                       }
-+                       set_bit(IPS_FULLCONE_BIT, &ct->status);
-+                       pr_debug("bcm_nat6: full cone mapping %hu installed\n",
-+                                ntohs(newrange.min_proto.udp.port));
-+               }
++			set_bit(IPS_FULLCONE_BIT, &ct->status);
++			help = nfct_help(ct);
++			if (help == NULL)
++				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
++			if (help != NULL) {
++				struct nf_conntrack_expect *exp;
++
++				help->helper = &nf_conntrack_helper_bcm_nat6;
++				exp = bcm_nat_expect_create(ct, AF_INET6,
++							    IP_CT_DIR_ORIGINAL);
++				if (exp != NULL) {
++					nf_ct_expect_put(exp);
++				} else {
++					/* Port owned or create failed; helper never registered. */
++					RCU_INIT_POINTER(help->helper, NULL);
++					pr_debug("bcm_nat6: no new expectation, helper cleared\n");
++				}
++			}
++			pr_debug("bcm_nat6: full cone mapping %hu installed\n",
++				 ntohs(newrange.min_proto.udp.port));
++		}
 +               return ret;
 +       }
 +#endif
@@ -315,31 +429,16 @@
  	newrange.flags		= range->flags | NF_NAT_RANGE_MAP_IPS;
  	newrange.min_addr.in6	= src;
  	newrange.max_addr.in6	= src;
-@@ -352,7 +639,11 @@
- 
- void nf_nat_masquerade_inet_unregister_notifiers(void)
- {
--	mutex_lock(&masq_mutex);
-+	nf_conntrack_helper_unregister(&nf_conntrack_helper_bcm_nat);
-+#if IS_ENABLED(CONFIG_IPV6)
-+nf_conntrack_helper_unregister(&nf_conntrack_helper_bcm_nat6);
-+#endif
-+mutex_lock(&masq_mutex);
- 	/* check if the notifiers still have clients */
- 	if (--masq_refcnt > 0)
- 		goto out_unlock;
 --- a/net/netfilter/xt_MASQUERADE.c
 +++ b/net/netfilter/xt_MASQUERADE.c
-@@ -42,6 +42,9 @@
+@@ -38,6 +38,7 @@
+ 	const struct nf_nat_ipv4_multi_range_compat *mr;
+ 
+ 	mr = par->targinfo;
++	memset(&range, 0, sizeof(range));
+ 	range.flags = mr->range[0].flags;
  	range.min_proto = mr->range[0].min;
  	range.max_proto = mr->range[0].max;
- 
-+       range.min_addr.ip = mr->range[0].min_ip;
-+       range.max_addr.ip = mr->range[0].max_ip;
-+
- 	return nf_nat_masquerade_ipv4(skb, xt_hooknum(par), &range,
- 				      xt_out(par));
- }
 --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
 +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
 @@ -118,15 +118,21 @@
@@ -368,17 +467,15 @@
  /* Connection tracking event types */
 --- a/net/netfilter/nft_flow_offload.c
 +++ b/net/netfilter/nft_flow_offload.c
-@@ -346,8 +346,17 @@
+@@ -353,8 +353,15 @@
  		goto out;
  	}
  
 -	if (nf_ct_ext_exist(ct, NF_CT_EXT_HELPER) ||
 -	    ct->status & (IPS_SEQ_ADJUST | IPS_NAT_CLASH))
 +	/*
-+	 * A helper extension normally vetoes offload.  A full-cone mapping is
-+	 * complete in conntrack and kept alive by a permanent expectation, so it
-+	 * may go to a software flowtable; hardware offload additionally has to punt
-+	 * packets from a peer outside the flow, so those stay on the stack.
++	 * Software offload is safe here (the mapping is complete in conntrack);
++	 * hardware offload is not, it cannot punt an outside peer's packets.
 +	 */
 +	if (nf_ct_ext_exist(ct, NF_CT_EXT_HELPER) &&
 +	    !(ct->status & IPS_FULLCONE && !nf_flowtable_hw_offload(&priv->flowtable->data)))
@@ -388,3 +485,73 @@
  		goto out;
  
  	if (!nf_ct_is_confirmed(ct))
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -493,6 +493,53 @@
+ 	return 0;
+ }
+ 
++/**
++ * nf_nat_src_mapping - the source mapping NAT already has for an endpoint
++ * @net: network namespace of the connection
++ * @zone: conntrack zone of the connection
++ * @orig: original tuple of the connection being set up
++ * @addr: output, the mapped source address if a live mapping exists
++ * @port: output, the mapped source port if a live mapping exists
++ *
++ * Walks nf_nat_bysource, so a new connection from an already-mapped endpoint
++ * keeps that port (RFC 4787 4.1).  Returns true and stores the mapping in
++ * @addr and @port, which the caller must reuse as a pair.
++ */
++bool nf_nat_src_mapping(struct net *net, const struct nf_conntrack_zone *zone,
++		      const struct nf_conntrack_tuple *orig,
++		      union nf_inet_addr *addr, __be16 *port)
++{
++	unsigned int h;
++	const struct nf_conn *ct;
++	struct nf_conntrack_tuple result;
++
++	if (orig->dst.protonum != IPPROTO_UDP)
++		return false;
++
++	h = hash_by_src(net, zone, orig);
++
++	rcu_read_lock();
++	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
++		/* same_src() ignores l3num and hash_by_src() shares the bucket. */
++		if (nf_ct_l3num(ct) != orig->src.l3num ||
++		    !same_src(ct, orig) ||
++		    !net_eq(net, nf_ct_net(ct)) ||
++		    !nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL))
++			continue;
++
++		/* Copy source part from reply tuple. */
++		nf_ct_invert_tuple(&result,
++				   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++		*addr = result.src.u3;
++		*port = result.src.u.udp.port;
++		rcu_read_unlock();
++		return true;
++	}
++	rcu_read_unlock();
++
++	return false;
++}
++
+ /* For [FUTURE] fragmentation handling, we want the least-used
+  * src-ip/dst-ip/proto triple.  Fairness doesn't come into it.  Thus
+  * if the range specifies 1.2.3.4 ports 10000-10005 and 1.2.3.5 ports
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -40,6 +40,11 @@
+ 			       const struct nf_nat_range2 *range,
+ 			       enum nf_nat_manip_type maniptype);
+ 
++/* The source mapping NAT already has for this internal endpoint, if any. */
++bool nf_nat_src_mapping(struct net *net, const struct nf_conntrack_zone *zone,
++		      const struct nf_conntrack_tuple *orig,
++		      union nf_inet_addr *addr, __be16 *port);
++
+ extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
+ 					      unsigned int hooknum);
+ 

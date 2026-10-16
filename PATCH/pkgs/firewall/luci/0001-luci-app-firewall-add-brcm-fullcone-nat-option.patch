@@ -1,17 +1,19 @@
 From: YAOF-1 <dev@localhost>
 Date: Thu, 1 Jan 1970 00:00:00 +0000
-Subject: [PATCH] luci-app-firewall: add BRCM full cone NAT switches
+Subject: [PATCH] luci-app-firewall: add BRCM full cone NAT option
 
-Adds the global BRCM full cone NAT switch (firewall.<section>.brcmfullcone)
-and the per-zone family switches (fullcone4 / fullcone6).
+Adds a per-zone "BRCM Full Cone NAT" list option (Disable / Enable IPv4 /
+Enable IPv4 and IPv6) to the zone edit page.  The option is a view over the
+fullcone4 and fullcone6 keys of the section being edited: reading maps the
+pair back to one of the three states, writing sets both keys.  There is no
+global switch, and because fw4 declares both keys with default 0 an absent
+key reads as disabled.
 
-Deliberately not wrapped in L.hasSystemFeature(): the switch has to be visible
+Deliberately not wrapped in L.hasSystemFeature(): the option has to be visible
 even when the kernel or nftables side is missing, so fw4's runtime probe can
 report the failure instead of the option silently not existing.
 
-Both are keyed on the section being edited; the family switches are shown
-only while the global switch is on, and IPv4 defaults to enabled.  The
-earlier version read and wrote a hardcoded '@zone[1]', so it silently
+The earlier version read and wrote a hardcoded '@zone[1]', so it silently
 applied to whichever zone happened to be second.
 
 Signed-off-by: YAOF-1 <dev@localhost>

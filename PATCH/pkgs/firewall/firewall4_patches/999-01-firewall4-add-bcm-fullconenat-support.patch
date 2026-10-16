@@ -4,13 +4,13 @@ Subject: [PATCH] firewall4: add BCM full-cone NAT support
 
 Full-cone NAT is provided by the Broadcom expectation-based scheme only:
 
-  * nft_try_brcmfullcone() probes the kernel at runtime and disables the
-    feature globally when the "masquerade brcmfullcone" statement is rejected
+  * nft_try_brcmfullcone() probes the kernel at runtime and drops a family
+    whose "masquerade brcmfullcone" statement is rejected
   * nft_try_brcmfullcone(family) probes one family at a time, so a kernel
     without IPv6 support no longer disables IPv4 as well
-  * defaults.brcmfullcone is the global master switch, defaults.fullcone4 /
-    defaults.fullcone6 select the families (IPv4 on, IPv6 off); zones cannot
-    shadow them any more
+  * defaults.fullcone4 / defaults.fullcone6 are the switches themselves
+    (both off by default); there is no separate global master switch, and
+    zones cannot shadow them any more
   * a zone qualifies when it masquerades - for IPv6 also when masq6 is
     implied by the "nat6" defaults switch, i.e. when the external nat6
     service translates the zone
@@ -32,11 +32,10 @@ Signed-off-by: YAOF-1 <dev@localhost>
 diff --git a/root/etc/config/firewall b/root/etc/config/firewall
 --- a/root/etc/config/firewall
 +++ b/root/etc/config/firewall
-@@ -5,6 +5,9 @@ config defaults
+@@ -5,6 +5,8 @@ config defaults
  	option forward		REJECT
  # Uncomment this line to disable ipv6 rules
  #	option disable_ipv6	1
-+	option brcmfullcone	0
 +	option fullcone4	0
 +	option fullcone6	0
  
@@ -145,48 +144,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  return {
  	read_kernel_version: function() {
  		let fd = fs.open("/proc/version", "r"),
-@@ -897,6 +916,18 @@ return {
- 			warn(`[!] ${msg}\n`);
- 	},
- 
-+	myinfo: function(fmt, ...args) {
-+		if (getenv("QUIET"))
-+			return;
-+
-+		let msg = sprintf(fmt, ...args);
-+
-+		if (getenv("TTY"))
-+			warn(`\033[32m${msg}\033[m\n`);
-+		else
-+			warn(`[I] ${msg}\n`);
-+	},
-+
- 	get: function(sid, opt) {
- 		return this.cursor.get("firewall", sid, opt);
- 	},
-@@ -1080,6 +1111,21 @@ return {
- 		}
- 	},
- 
-+	myinfo_section: function(s, msg) {
-+		if (s[".name"]) {
-+			if (s.name)
-+				this.myinfo("Section %s (%s) %s", this.section_id(s[".name"]), s.name, msg);
-+			else
-+				this.myinfo("Section %s %s", this.section_id(s[".name"]), msg);
-+		}
-+		else {
-+			if (s.name)
-+				this.myinfo("ubus %s (%s) %s", s.type || "rule", s.name, msg);
-+			else
-+				this.myinfo("ubus %s %s", s.type || "rule", msg);
-+		}
-+	},
-+
- 	parse_policy: function(val) {
- 		return this.parse_enum(val, [
- 			"accept",
-@@ -1519,6 +1565,7 @@ return {
+@@ -1475,6 +1494,7 @@ return {
  			"dnat",
  			"snat",
  			"masquerade",
@@ -194,36 +152,39 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  			"accept",
  			"reject",
  			"drop"
-@@ -1990,6 +2037,10 @@ return {
+@@ -1946,6 +1966,9 @@ return {
  		}
  
  		let defs = this.parse_options(data, {
-+			brcmfullcone: [ "int", "0" ],
 +			nat6: [ "bool", "0" ],
 +			fullcone4: [ "bool", "0" ],
 +			fullcone6: [ "bool", "0" ],
  			input: [ "policy", "drop" ],
  			output: [ "policy", "drop" ],
  			forward: [ "policy", "drop" ],
-@@ -2024,6 +2075,17 @@ return {
+@@ -1980,6 +2003,21 @@ return {
  
  		delete defs.syn_flood;
  
-+		if (defs.brcmfullcone == 1) {
-+			if (!nft_try_brcmfullcone(4, defs.fullcone4))
-+				defs.fullcone4 = 0;
-+			if (!nft_try_brcmfullcone(6, defs.fullcone6))
-+				defs.fullcone6 = 0;
-+			if (!defs.fullcone4 && !defs.fullcone6) {
-+				delete defs.brcmfullcone;
-+				this.warn_section(data, "kernel has no BRCM full cone NAT support, disable fullcone globally");
-+			}
++		/*
++		 * fullcone4 / fullcone6 are the switches themselves - there is no
++		 * separate global master switch.  Probe the kernel per family, and only
++		 * for a family that was actually asked for, so a kernel without the
++		 * nftables statement disables exactly the family it cannot do.
++		 */
++		if (defs.fullcone4 && !nft_try_brcmfullcone(4, true)) {
++			this.warn_section(data, "kernel has no IPv4 BRCM full cone NAT support, disabling fullcone4");
++			defs.fullcone4 = 0;
++		}
++		if (defs.fullcone6 && !nft_try_brcmfullcone(6, true)) {
++			this.warn_section(data, "kernel has no IPv6 BRCM full cone NAT support, disabling fullcone6");
++			defs.fullcone6 = 0;
 +		}
 +
  		this.state.defaults = defs;
  	},
  
-@@ -2052,6 +2114,8 @@ return {
+@@ -2004,6 +2042,8 @@ return {
  			masq_dest: [ "network", null, PARSE_LIST ],
  
  			masq6: [ "bool" ],
@@ -232,7 +193,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  
  			extra: [ "string", null, UNSUPPORTED ],
  			extra_src: [ "string", null, UNSUPPORTED ],
-@@ -2100,6 +2164,29 @@ return {
+@@ -2036,6 +2076,15 @@ return {
  			}
  		}
  
@@ -244,25 +205,11 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
 +				(zone.masq6 || (zone.masq && this.state.defaults.nat6));
 +		}
 +
-+		if (this.state.defaults && this.state.defaults.brcmfullcone != 1) {
-+			this.warn_section(data, "BRCM full cone NAT not enabled in defaults, ignoring zone settings");
-+			zone.fullcone4 = false;
-+			zone.fullcone6 = false;
-+		}
-+		else if (zone.fullcone6) {
-+			this.myinfo_section(data, "IPv6 BRCM full cone NAT enabled for zone '" + zone.name + "'");
-+		}
-+		if (zone.fullcone4) {
-+			this.myinfo_section(data, "IPv4 BRCM full cone NAT enabled for zone '" + zone.name + "'");
-+		}
-+		if (zone.fullcone6) {
-+			this.myinfo_section(data, "IPv6 fullcone enabled for zone '" + zone.name + "'");
-+		}
 +
  		if (zone.mtu_fix && this.kernel < 0x040a0000) {
  			this.warn_section(data, "option 'mtu_fix' requires kernel 4.10 or later");
  			return;
-@@ -2269,10 +2356,18 @@ return {
+@@ -2205,10 +2254,18 @@ return {
  		zone.related_subnets = related_subnets;
  		zone.related_physdevs = related_physdevs;
  
@@ -275,7 +222,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  			zone.dflags.snat = true;
  
 -		if ((zone.auto_helper && !(zone.masq || zone.masq6)) || length(zone.helper)) {
-+		if (this.state.defaults && this.state.defaults.brcmfullcone == 1)
++		if (zone.fullcone4 || zone.fullcone6)
 +			zone.dflags.dnat = false;
 +
 +		if ((zone.auto_helper && !(zone.masq || zone.masq6 || zone.fullcone4 || zone.fullcone6)) || length(zone.helper)) {
