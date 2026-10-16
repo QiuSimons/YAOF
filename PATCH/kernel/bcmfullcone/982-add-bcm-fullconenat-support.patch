@@ -10,7 +10,7 @@
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,193 @@
+@@ -24,6 +27,200 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -75,6 +75,13 @@
 +{
 +       int dir = CTINFO2DIR(ctinfo);
 +       struct nf_conntrack_expect *exp;
++
++       /* Only a connection this feature masqueraded owns the mapping: a
++        * connection created from the expectation inherits exp->helper and must
++        * not install a second expectation aimed at its peer.
++        */
++       if (!(ct->status & IPS_FULLCONE))
++               return NF_ACCEPT;
 +
 +       if (dir != IP_CT_DIR_ORIGINAL)
 +               return NF_ACCEPT;
@@ -204,7 +211,7 @@
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +251,112 @@
+@@ -61,6 +258,113 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -222,7 +229,8 @@
 +               /* Choose port */
 +               spin_lock_bh(&nf_conntrack_expect_lock);
 +                              {
-+                       u_int16_t newport, tmpport, orgport;
++                       unsigned int newport, tmpport;
++                       u_int16_t orgport;
 +                       const struct nf_conntrack_tuple *orig =
 +                               &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
 +                       union nf_inet_addr mapped_addr;
@@ -317,7 +325,7 @@
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +555,111 @@
+@@ -259,6 +563,112 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -334,7 +342,8 @@
 +               /* Choose port */
 +               spin_lock_bh(&nf_conntrack_expect_lock);
 +               {
-+                       u_int16_t newport, tmpport, orgport;
++                       unsigned int newport, tmpport;
++                       u_int16_t orgport;
 +                       const struct nf_conntrack_tuple *orig =
 +                               &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
 +                       union nf_inet_addr mapped_addr;
@@ -439,17 +448,32 @@
  	range.flags = mr->range[0].flags;
  	range.min_proto = mr->range[0].min;
  	range.max_proto = mr->range[0].max;
+@@ -55,7 +56,15 @@
+ static unsigned int
+ masquerade_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	return nf_nat_masquerade_ipv6(skb, par->targinfo, xt_out(par));
++	const struct nf_nat_range2 *mr = par->targinfo;
++	struct nf_nat_range2 range;
++
++	memset(&range, 0, sizeof(range));
++	range.flags = mr->flags;
++	range.min_proto = mr->min_proto;
++	range.max_proto = mr->max_proto;
++
++	return nf_nat_masquerade_ipv6(skb, &range, xt_out(par));
+ }
+ 
+ static int masquerade_tg6_checkentry(const struct xt_tgchk_param *par)
 --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
 +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -118,15 +118,21 @@
+@@ -118,15 +118,19 @@
  	IPS_HW_OFFLOAD_BIT = 15,
  	IPS_HW_OFFLOAD = (1 << IPS_HW_OFFLOAD_BIT),
  
-+#ifdef __KERNEL__
 +	/* Full-cone mapping installed. */
 +	IPS_FULLCONE_BIT = 16,
 +	IPS_FULLCONE = (1 << IPS_FULLCONE_BIT),
-+#endif
 +
  	/* Be careful here, modifying these bits can make things messy,
  	 * so don't let users modify them directly.
@@ -487,7 +511,7 @@
  	if (!nf_ct_is_confirmed(ct))
 --- a/net/netfilter/nf_nat_core.c
 +++ b/net/netfilter/nf_nat_core.c
-@@ -493,6 +493,53 @@
+@@ -493,6 +493,55 @@
  	return 0;
  }
  
@@ -518,7 +542,9 @@
 +
 +	rcu_read_lock();
 +	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
-+		/* same_src() ignores l3num and hash_by_src() shares the bucket. */
++		/* same_src() does not compare l3num; a bucket collision could
++		 * otherwise match a v4 lookup against an aliasing v6 address.
++		 */
 +		if (nf_ct_l3num(ct) != orig->src.l3num ||
 +		    !same_src(ct, orig) ||
 +		    !net_eq(net, nf_ct_net(ct)) ||

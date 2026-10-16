@@ -120,18 +120,40 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  const fs = require("fs");
  const uci = require("uci");
  const ubus = require("ubus");
-@@ -490,6 +492,23 @@ function nft_try_hw_offload(devices) {
+@@ -490,6 +492,45 @@
  }
  
  
 +function nft_try_brcmfullcone(family, loud) {
-+	let nft_test =
-+		'add table inet fw4-brcmfullcone-test; ' +
-+		'add chain inet fw4-brcmfullcone-test srcnat { ' +
++	/*
++	 * A kernel that carries the BRCM full-cone support echoes
++	 * NFTA_MASQ_REG_FULLCONE back on dump, so the statement round-trips with
++	 * the "brcmfullcone" keyword.  A kernel without it silently ignores the
++	 * unknown attribute (nf_tables parses expression attributes with
++	 * nla_parse_nested_deprecated(), which drops types past maxtype) and dumps
++	 * a plain masquerade - so "nft -c" always succeeds and cannot probe for
++	 * support.  Install the rule for real, list it back, require the keyword
++	 * on the masquerade statement itself (the scratch table name also contains
++	 * "brcmfullcone", so the match must be anchored to "masquerade"),
++	 * and drop the scratch table on every path.  The temporary rule matches an
++	 * interface name that cannot exist, so the probe chain can never NAT live
++	 * traffic while it is installed.
++	 */
++	let name = 'fw4-brcmfullcone-test';
++	let nfproto = (family == 6) ? 'ipv6' : 'ipv4';
++	let ipproto = (family == 6) ? 'ip6' : 'ip';
++	let rset =
++		'add table inet ' + name + '; ' +
++		'add chain inet ' + name + ' srcnat { ' +
 +			'type nat hook postrouting priority srcnat; policy accept; ' +
-+			sprintf('meta nfproto %s masquerade %s brcmfullcone; ', family == 6 ? 'ipv6' : 'ipv4', family == 6 ? 'ip6' : 'ip') +
++			sprintf('meta nfproto %s iifname "/never/" masquerade %s brcmfullcone; ',
++				nfproto, ipproto) +
 +		'}; ';
-+	let cmd = sprintf("/usr/sbin/nft -c '%s' 2>/dev/null", replace(nft_test, "'", "'\\''"));
++	let cmd = sprintf("/usr/sbin/nft delete table inet %s 2>/dev/null; " +
++			  "/usr/sbin/nft '%s' 2>/dev/null; " +
++			  "/usr/sbin/nft list table inet %s 2>/dev/null | grep -q 'masquerade.*brcmfullcone'; rc=$?; " +
++			  "/usr/sbin/nft delete table inet %s 2>/dev/null; [ $rc -eq 0 ]",
++			  name, replace(rset, "'", "'\\''"), name, name);
 +
 +	if (system(cmd) == 0)
 +		return true;
@@ -144,15 +166,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  return {
  	read_kernel_version: function() {
  		let fd = fs.open("/proc/version", "r"),
-@@ -1475,6 +1494,7 @@ return {
- 			"dnat",
- 			"snat",
- 			"masquerade",
-+			"fullcone",
- 			"accept",
- 			"reject",
- 			"drop"
-@@ -1946,6 +1966,9 @@ return {
+@@ -1946,6 +1987,9 @@
  		}
  
  		let defs = this.parse_options(data, {
@@ -162,7 +176,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  			input: [ "policy", "drop" ],
  			output: [ "policy", "drop" ],
  			forward: [ "policy", "drop" ],
-@@ -1980,6 +2003,21 @@ return {
+@@ -1980,6 +2024,21 @@
  
  		delete defs.syn_flood;
  
@@ -184,7 +198,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  		this.state.defaults = defs;
  	},
  
-@@ -2004,6 +2042,8 @@ return {
+@@ -2004,6 +2063,8 @@
  			masq_dest: [ "network", null, PARSE_LIST ],
  
  			masq6: [ "bool" ],
@@ -193,7 +207,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  
  			extra: [ "string", null, UNSUPPORTED ],
  			extra_src: [ "string", null, UNSUPPORTED ],
-@@ -2036,6 +2076,15 @@ return {
+@@ -2036,6 +2097,15 @@
  			}
  		}
  
@@ -209,7 +223,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
  		if (zone.mtu_fix && this.kernel < 0x040a0000) {
  			this.warn_section(data, "option 'mtu_fix' requires kernel 4.10 or later");
  			return;
-@@ -2205,10 +2254,18 @@ return {
+@@ -2205,10 +2275,18 @@
  		zone.related_subnets = related_subnets;
  		zone.related_physdevs = related_physdevs;
  
