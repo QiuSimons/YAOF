@@ -312,16 +312,19 @@ static inline bool sfe_dev_is_shaped(struct net_device *dev)
  * offsets, so fill them in when the engine left them unset: otherwise
  * validate_xmit_skb() -> skb_csum_hwoffload_help() -> skb_checksum_help() warns
  * and drops the packet.
+ *  The engine may already have encapsulated the packet (PPPoE), so the L3 header
+ *  is located through skb->network_header instead of skb->protocol.
  */
 static inline void sfe_skb_complete_csum_offsets(struct sk_buff *skb)
 {
 	unsigned int l4_off;
-	u8 proto;
+	u8 proto, version;
 
 	if (skb->ip_summed != CHECKSUM_PARTIAL || skb->csum_start)
 		return;
 
-	if (skb->protocol == htons(ETH_P_IP)) {
+	version = ip_hdr(skb)->version;
+	if (version == 4) {
 		const struct iphdr *iph = ip_hdr(skb);
 
 		if (iph->ihl < 5 || (iph->frag_off & htons(IP_OFFSET)))
@@ -329,7 +332,7 @@ static inline void sfe_skb_complete_csum_offsets(struct sk_buff *skb)
 
 		l4_off = (unsigned int)skb->network_header + iph->ihl * 4;
 		proto = iph->protocol;
-	} else if (skb->protocol == htons(ETH_P_IPV6)) {
+	} else if (version == 6) {
 		const struct ipv6hdr *ip6h = ipv6_hdr(skb);
 
 		l4_off = (unsigned int)skb->network_header + sizeof(*ip6h);
@@ -425,7 +428,7 @@ static inline bool dev_fast_xmit_state(struct sk_buff *skb,
 
 	if (likely(txq->xmit_lock_owner != cpu)) {
 		HARD_TX_LOCK(dev, txq, cpu);
-		if (likely(!netif_xmit_stopped(txq))) {
+		if (likely(!netif_xmit_frozen_or_stopped(txq))) {
 			skb->dev = dev;
 			rc = netdev_start_xmit(skb, dev, txq, 0);
 			if (unlikely(!dev_xmit_complete(rc))) {

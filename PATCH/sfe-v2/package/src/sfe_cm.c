@@ -932,6 +932,18 @@ static bool sfe_cm_find_dev_and_mac_addr(sfe_ip_addr_t *addr, struct net_device 
 		return false;
 	}
 
+	/*
+	 * A point to point device has no usable L2 address: its PPPoE encapsulation is
+	 * handled through dev_fill_forward_path() above, and accelerating it with what
+	 * the neighbour holds (a zero MAC) sends every packet nowhere.
+	 */
+	if (unlikely(!mac_dev->addr_len || (mac_dev->flags & IFF_POINTOPOINT))) {
+		rcu_read_unlock();
+		neigh_release(neigh);
+		dst_release(dst);
+		return false;
+	}
+
 	memcpy(mac_addr, neigh->ha, ETH_ALEN);
 	dev_hold(mac_dev);
 	*dev = mac_dev;
@@ -1423,6 +1435,15 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 	sic.dest_dev = dest_dev;
 	sic.src_mtu = src_dev->mtu;
 	sic.dest_mtu = dest_dev->mtu;
+
+	/*
+	 * A PPPoE session on top of the transmitting device carries the smaller MTU;
+	 * the engine sizes and fragments on what it is told here.
+	 */
+	if (sic.flow_is_pppoe && sic.flow_top_dev && sic.flow_top_dev->mtu < sic.src_mtu)
+		sic.src_mtu = sic.flow_top_dev->mtu;
+	if (sic.return_is_pppoe && sic.return_top_dev && sic.return_top_dev->mtu < sic.dest_mtu)
+		sic.dest_mtu = sic.return_top_dev->mtu;
 
 	if (likely(is_v4)) {
 		result = sfe_cm_v2_ipv4_create_rule(&sic, skb, ctinfo);

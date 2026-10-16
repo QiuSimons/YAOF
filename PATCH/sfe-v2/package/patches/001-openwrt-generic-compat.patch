@@ -1,8 +1,7 @@
 diff --git a/Makefile b/Makefile
-index 03fb87c..6dd1c20 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -6,7 +6,7 @@ KERNELVERSION := $(word 1, $(subst ., ,$(KERNELVERSION))).$(word 2, $(subst ., ,
+@@ -6,7 +6,7 @@
  SFE_BASE_OBJS := sfe.o sfe_init.o
  SFE_IPV4_OBJS := sfe_ipv4.o sfe_ipv4_udp.o sfe_ipv4_tcp.o sfe_ipv4_icmp.o sfe_ipv4_pppoe_br.o sfe_ipv4_multicast.o
  SFE_IPV6_OBJS := sfe_ipv6.o sfe_ipv6_udp.o sfe_ipv6_tcp.o sfe_ipv6_icmp.o sfe_ipv6_pppoe_br.o sfe_ipv6_multicast.o sfe_ipv6_etherip.o sfe_ipv6_frag.o
@@ -11,7 +10,7 @@ index 03fb87c..6dd1c20 100644
  ifndef SFE_256M_PROFILE
  ifndef SFE_16M_PROFILE
  SFE_IPV4_OBJS += sfe_ipv4_tun6rd.o sfe_ipv4_esp.o
-@@ -27,6 +27,8 @@ ccflags-y += -DSFE_L2TPV3_ENABLED
+@@ -27,6 +27,8 @@
  endif
  
  obj-m += qca-nss-sfe.o
@@ -20,7 +19,7 @@ index 03fb87c..6dd1c20 100644
  
  #
  # Base files
-@@ -71,4 +73,5 @@ ccflags-y += -DSFE_DSLITE_ENABLE
+@@ -71,4 +73,5 @@
  endif
  endif
  
@@ -28,7 +27,6 @@ index 03fb87c..6dd1c20 100644
 +ccflags-y += -Wall -Wno-missing-prototypes -Wno-error -I$(src)/exports/ -I$(src) -include $(src)/sfe_compat.h
 +
 diff --git a/sfe.c b/sfe.c
-index 66c6187..c437360 100644
 --- a/sfe.c
 +++ b/sfe.c
 @@ -39,7 +39,88 @@
@@ -121,7 +119,7 @@ index 66c6187..c437360 100644
  uint8_t sfe_fls_flush_on_hwm_enable;
  
  #define SFE_MESSAGE_VERSION 0x1
-@@ -2256,7 +2336,7 @@ EXPORT_SYMBOL(sfe_tun6rd_msg_init);
+@@ -2256,7 +2337,7 @@
   *
   * Returns 1 if the packet is forwarded or 0 if it isn't.
   */
@@ -130,7 +128,7 @@ index 66c6187..c437360 100644
  {
  	struct net_device *dev;
  	struct sfe_l2_info l2_info = {};
-@@ -2271,25 +2351,15 @@ int sfe_recv(struct sk_buff *skb)
+@@ -2271,25 +2352,15 @@
  	 * - for IFB case it taken care by netif_recv_skb
  	 * - for simple filters on ingress tc_skip_classify would never be
  	 *   set and hence this check should be skipped.
@@ -159,7 +157,7 @@ index 66c6187..c437360 100644
  	} else {
  		/*
  		 * Update Vlan l2 info by parsing vlan netdev
-@@ -2868,10 +2938,42 @@ int sfe_init_if(void)
+@@ -2868,10 +2939,42 @@
  	INIT_WORK(&sfe_ctx->work, sfe_process_response_msg);
  
  	/*
@@ -205,7 +203,7 @@ index 66c6187..c437360 100644
  
  	return 0;
  exit2:
-@@ -2888,9 +2990,21 @@ void sfe_exit_if(void)
+@@ -2888,9 +2991,21 @@
  	struct sfe_ctx_instance_internal *sfe_ctx = &__sfe_ctx;
  
  	/*
@@ -230,7 +228,6 @@ index 66c6187..c437360 100644
  	sfe_pppoe_mgr_exit();
  
 diff --git a/sfe.h b/sfe.h
-index 6cedf95..71355db 100644
 --- a/sfe.h
 +++ b/sfe.h
 @@ -29,7 +29,7 @@
@@ -243,10 +240,9 @@ index 6cedf95..71355db 100644
  
  #define SFE_L2_PARSE_FLAGS_PPPOE_INGRESS 0x01		/* Indicates presence of a valid PPPoE header */
 diff --git a/sfe_ipv4.c b/sfe_ipv4.c
-index 46421b6..abc1464 100644
 --- a/sfe_ipv4.c
 +++ b/sfe_ipv4.c
-@@ -1745,9 +1745,15 @@ bool sfe_ipv4_mark_rule_update(struct sfe_connection_mark *mark)
+@@ -1745,9 +1745,15 @@
  
  	switch (mark->type) {
  	case SFE_CONNECTION_MARK_TYPE_CONNMARK:
@@ -262,7 +258,7 @@ index 46421b6..abc1464 100644
  		}
  		spin_unlock_bh(&si->lock);
  		break;
-@@ -2359,6 +2365,16 @@ update_done:
+@@ -2359,6 +2365,16 @@
  
  	original_cm->xmit_dev_mtu = if_min_mtu;
  
@@ -279,7 +275,7 @@ index 46421b6..abc1464 100644
  	original_cm->connection = c;
  	original_cm->counter_match = NULL;
  
-@@ -2599,6 +2615,26 @@ sfe_response_t sfe_ipv4_create_rule(struct sfe_ipv4_rule_create_msg *msg)
+@@ -2599,6 +2615,26 @@
  		return_interface_num = msg->conn_rule.return_interface_num;
  	}
  
@@ -306,11 +302,10 @@ index 46421b6..abc1464 100644
  	src_dev = dev_get_by_index(&init_net, flow_interface_num);
  	if (!src_dev) {
  		DEBUG_WARN("%px: Unable to find src_dev corresponding to %d\n", msg,
-@@ -2756,6 +2792,20 @@ sfe_response_t sfe_ipv4_create_rule(struct sfe_ipv4_rule_create_msg *msg)
- 	original_cm->top_interface_dev = NULL;
+@@ -2757,6 +2793,20 @@
  	reply_cm->top_interface_dev = NULL;
  
-+	/*
+ 	/*
 +	 * Remember the top device of a stacked interface (PPPoE) even when the frame
 +	 * is sent on the bottom one: the connection manager uses it to notice traffic
 +	 * control attached to a device this engine bypasses, and the flush path matches
@@ -324,10 +319,11 @@ index 46421b6..abc1464 100644
 +		original_cm->top_interface_dev = dev_get_by_index(&init_net, msg->conn_rule.flow_top_interface_num);
 +	}
 +
- 	/*
++	/*
  	 * Enable qdisc fast xmit path if single qdisc is present on non-bottom interface.
  	 * For qdisc is enabled on bottom interface alone, we use dev_queue_xmit() instead to transmit to bottom interface.
-@@ -3193,6 +3243,11 @@ sfe_response_t sfe_ipv4_create_rule(struct sfe_ipv4_rule_create_msg *msg)
+ 	 */
+@@ -3193,6 +3243,11 @@
  
  	reply_cm->xmit_dev_mtu = msg->conn_rule.flow_mtu;
  
@@ -339,7 +335,7 @@ index 46421b6..abc1464 100644
  	if (msg->valid_flags & SFE_RULE_CREATE_SKIP_FRAG_OFFLOAD_VALID) {
                  reply_cm->flags |= SFE_IPV4_CONNECTION_MATCH_FLAG_SKIP_FRAG_OFFLOAD;
          }
-@@ -3977,7 +4032,9 @@ another_round:
+@@ -3977,7 +4032,9 @@
  		 */
  		if (!dev
  		    || (dev == c->original_dev)
@@ -350,24 +346,23 @@ index 46421b6..abc1464 100644
  			break;
  		}
  	}
-@@ -3996,6 +4053,12 @@ another_round:
- 	}
+@@ -3997,6 +4054,12 @@
  }
  
-+/*
+ /*
 + * Exported for the connection manager: a stacked device (top interface, e.g.
 + * pppoe-wan) has to be matched too when its flows are torn down.
 + */
 +EXPORT_SYMBOL(sfe_ipv4_destroy_all_rules_for_dev);
 +
- /*
++/*
   * sfe_ipv4_periodic_sync()
   */
+ static void sfe_ipv4_periodic_sync(struct work_struct *work)
 diff --git a/sfe_ipv4.h b/sfe_ipv4.h
-index 65b7fd8..d360ee1 100644
 --- a/sfe_ipv4.h
 +++ b/sfe_ipv4.h
-@@ -164,6 +164,8 @@ struct sfe_ipv4_connection_match {
+@@ -164,6 +164,8 @@
  					/* Source MAC address to use when forwarding */
  	struct net_device *xmit_dev;	/* Network device on which to transmit */
  	struct net_device *qdisc_xmit_dev;      /* Interface used for fast qdisc xmit */
@@ -376,7 +371,7 @@ index 65b7fd8..d360ee1 100644
  
  	/*
  	 * xmit device's feature
-@@ -341,7 +343,7 @@ struct sfe_ipv4_connection {
+@@ -341,7 +343,7 @@
  /*
   * IPv4 connections and hash table size information.
   */
@@ -386,10 +381,9 @@ index 65b7fd8..d360ee1 100644
  #define SFE_IPV4_CONNECTION_HASH_MASK (SFE_IPV4_CONNECTION_HASH_SIZE - 1)
  
 diff --git a/sfe_ipv4_tcp.c b/sfe_ipv4_tcp.c
-index 55769af..438e504 100644
 --- a/sfe_ipv4_tcp.c
 +++ b/sfe_ipv4_tcp.c
-@@ -163,8 +163,6 @@ int sfe_ipv4_recv_tcp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -163,8 +163,6 @@
  #ifdef SFE_SW_L4_CHECKSUM_VERIFICATION
  	struct net *net;
  #endif
@@ -398,7 +392,16 @@ index 55769af..438e504 100644
  
  	/*
  	 * Is our packet too short to contain a valid TCP header?
-@@ -933,7 +931,6 @@ int sfe_ipv4_recv_tcp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -814,6 +812,8 @@
+ 	 */
+ 	if (likely(hw_csum)) {
+ 		skb->ip_summed = CHECKSUM_PARTIAL;
++		sfe_skb_complete_csum_offsets(skb);
++		iph->check = sfe_ipv4_gen_ip_csum(iph);
+ 	} else {
+ 		/*
+ 		 * Received GRO packet and tx csum is not enabled.
+@@ -933,7 +933,6 @@
  	}
  	features = cm->features;
  	fast_xmit = !!(cm->flags & SFE_IPV4_CONNECTION_MATCH_FLAG_FAST_XMIT);
@@ -406,7 +409,7 @@ index 55769af..438e504 100644
  
  	/*
  	 * In the map-t tunnel, it needs correct transport header.
-@@ -943,22 +940,6 @@ int sfe_ipv4_recv_tcp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -943,22 +942,6 @@
  
  	this_cpu_inc(si->stats_pcpu->packets_forwarded64);
  
@@ -429,7 +432,7 @@ index 55769af..438e504 100644
  	rcu_read_unlock();
  
  	/*
-@@ -966,15 +947,16 @@ int sfe_ipv4_recv_tcp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -966,15 +949,16 @@
  	 * packet.
  	 */
  	if (likely(fast_xmit)) {
@@ -451,10 +454,9 @@ index 55769af..438e504 100644
  	}
  
 diff --git a/sfe_ipv4_udp.c b/sfe_ipv4_udp.c
-index baedc0f..f92c5b0 100644
 --- a/sfe_ipv4_udp.c
 +++ b/sfe_ipv4_udp.c
-@@ -169,8 +169,6 @@ int sfe_ipv4_recv_udp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -169,8 +169,6 @@
  #ifdef SFE_SW_L4_CHECKSUM_VERIFICATION
  	struct net *net;
  #endif
@@ -463,7 +465,7 @@ index baedc0f..f92c5b0 100644
  
  	/*
  	 * Is our packet too short to contain a valid UDP header?
-@@ -488,18 +486,12 @@ int sfe_ipv4_recv_udp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -488,18 +486,12 @@
  
  	/*
  	 * For PPPoE flows, add PPPoE header before L2 header is added.
@@ -485,7 +487,16 @@ index baedc0f..f92c5b0 100644
  			rcu_read_unlock();
  			sfe_ipv4_exception_stats_inc(si, SFE_IPV4_EXCEPTION_EVENT_GSO_NOT_SUPPORTED);
  			return 0;
-@@ -773,7 +765,6 @@ int sfe_ipv4_recv_udp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -664,6 +656,8 @@
+ 	 */
+ 	if (likely(hw_csum)) {
+ 		skb->ip_summed = CHECKSUM_PARTIAL;
++		sfe_skb_complete_csum_offsets(skb);
++		iph->check = sfe_ipv4_gen_ip_csum(iph);
+ 	} else {
+ 		iph->check = sfe_ipv4_gen_ip_csum(iph);
+ 	}
+@@ -773,7 +767,6 @@
  	features = cm->features;
  
  	fast_xmit = !!(cm->flags & SFE_IPV4_CONNECTION_MATCH_FLAG_FAST_XMIT);
@@ -493,7 +504,7 @@ index baedc0f..f92c5b0 100644
  
  	/*
  	 * In the map-t tunnel, it needs correct transport header.
-@@ -790,22 +781,6 @@ int sfe_ipv4_recv_udp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -790,22 +783,6 @@
  
  	this_cpu_inc(si->stats_pcpu->packets_forwarded64);
  
@@ -516,7 +527,7 @@ index baedc0f..f92c5b0 100644
  	rcu_read_unlock();
  
  	/*
-@@ -813,7 +788,7 @@ int sfe_ipv4_recv_udp(struct sfe_ipv4 *si, struct sk_buff *skb, struct net_devic
+@@ -813,7 +790,7 @@
  	 * packet.
  	 */
  	mem_debug_update_skb(skb);
@@ -526,10 +537,9 @@ index baedc0f..f92c5b0 100644
  		return 1;
  	}
 diff --git a/sfe_ipv6.c b/sfe_ipv6.c
-index 3dadf70..caee5ea 100644
 --- a/sfe_ipv6.c
 +++ b/sfe_ipv6.c
-@@ -1486,9 +1486,14 @@ bool sfe_ipv6_mark_rule_update(struct sfe_connection_mark *mark)
+@@ -1486,9 +1486,14 @@
  
  	switch (mark->type) {
  	case SFE_CONNECTION_MARK_TYPE_CONNMARK:
@@ -545,7 +555,7 @@ index 3dadf70..caee5ea 100644
  		}
  		spin_unlock_bh(&si->lock);
  		break;
-@@ -2053,6 +2058,16 @@ update_done:
+@@ -2053,6 +2058,16 @@
  
  	original_cm->xmit_dev_mtu = if_min_mtu;
  
@@ -562,7 +572,7 @@ index 3dadf70..caee5ea 100644
  	original_cm->connection = c;
  	original_cm->counter_match = NULL;
  
-@@ -2286,6 +2301,26 @@ sfe_response_t sfe_ipv6_create_rule(struct sfe_ipv6_rule_create_msg *msg)
+@@ -2286,6 +2301,26 @@
  		return_interface_num = msg->conn_rule.return_interface_num;
  	}
  
@@ -589,7 +599,7 @@ index 3dadf70..caee5ea 100644
  	src_dev = dev_get_by_index(&init_net, flow_interface_num);
  	if (!src_dev) {
  		DEBUG_WARN("%px: Unable to find src_dev corresponding to %d\n", msg,
-@@ -2415,6 +2450,20 @@ sfe_response_t sfe_ipv6_create_rule(struct sfe_ipv6_rule_create_msg *msg)
+@@ -2415,6 +2450,20 @@
  	original_cm->top_interface_dev = NULL;
  	reply_cm->top_interface_dev = NULL;
  
@@ -610,7 +620,7 @@ index 3dadf70..caee5ea 100644
  #if defined(SFE_RFS_SUPPORTED)
  	original_cm->rfs_enabled = false;
  	original_cm->flow_mtu = msg->conn_rule.flow_mtu;
-@@ -2863,6 +2912,11 @@ sfe_response_t sfe_ipv6_create_rule(struct sfe_ipv6_rule_create_msg *msg)
+@@ -2863,6 +2912,11 @@
  
  	reply_cm->xmit_dev_mtu = msg->conn_rule.flow_mtu;
  
@@ -622,7 +632,7 @@ index 3dadf70..caee5ea 100644
  	reply_cm->connection = c;
  	reply_cm->counter_match = original_cm;
  
-@@ -3637,7 +3691,9 @@ another_round:
+@@ -3637,7 +3691,9 @@
  		 */
  		if (!dev
  		    || (dev == c->original_dev)
@@ -633,24 +643,23 @@ index 3dadf70..caee5ea 100644
  			break;
  		}
  	}
-@@ -3656,6 +3712,12 @@ another_round:
- 	}
+@@ -3657,6 +3713,12 @@
  }
  
-+/*
+ /*
 + * Exported for the connection manager: a stacked device (top interface, e.g.
 + * pppoe-wan) has to be matched too when its flows are torn down.
 + */
 +EXPORT_SYMBOL(sfe_ipv6_destroy_all_rules_for_dev);
 +
- /*
++/*
   * sfe_ipv6_periodic_sync()
   */
+ static void sfe_ipv6_periodic_sync(struct work_struct *work)
 diff --git a/sfe_ipv6.h b/sfe_ipv6.h
-index c87783c..bf931b0 100644
 --- a/sfe_ipv6.h
 +++ b/sfe_ipv6.h
-@@ -187,6 +187,8 @@ struct sfe_ipv6_connection_match {
+@@ -187,6 +187,8 @@
  	 */
  	struct net_device *xmit_dev;	/* Network device on which to transmit */
  	struct net_device *qdisc_xmit_dev;      /* Interface used for fast qdisc xmit */
@@ -659,7 +668,7 @@ index c87783c..bf931b0 100644
  
  	/*
  	 * xmit device's feature
-@@ -354,7 +356,7 @@ struct sfe_ipv6_connection {
+@@ -354,7 +356,7 @@
  /*
   * IPv6 connections and hash table size information.
   */
@@ -669,10 +678,9 @@ index c87783c..bf931b0 100644
  #define SFE_IPV6_CONNECTION_HASH_MASK (SFE_IPV6_CONNECTION_HASH_SIZE - 1)
  
 diff --git a/sfe_ipv6_tcp.c b/sfe_ipv6_tcp.c
-index 5592475..e5d6a0a 100644
 --- a/sfe_ipv6_tcp.c
 +++ b/sfe_ipv6_tcp.c
-@@ -132,8 +132,6 @@ int sfe_ipv6_recv_tcp(struct sfe_ipv6 *si, struct sk_buff *skb, struct net_devic
+@@ -132,8 +132,6 @@
  #ifdef SFE_SW_L4_CHECKSUM_VERIFICATION
  	struct net *net;
  #endif
@@ -681,7 +689,15 @@ index 5592475..e5d6a0a 100644
  
  	/*
  	 * Is our packet too short to contain a valid TCP header?
-@@ -904,26 +902,9 @@ int sfe_ipv6_recv_tcp(struct sfe_ipv6 *si, struct sk_buff *skb, struct net_devic
+@@ -775,6 +773,7 @@
+ 	 */
+ 	if (likely(hw_csum)) {
+ 		skb->ip_summed = CHECKSUM_PARTIAL;
++		sfe_skb_complete_csum_offsets(skb);
+ 	} else {
+ 		/*
+ 		 * Received GRO packet and tx csum is not enabled.
+@@ -904,26 +903,9 @@
  	features = cm->features;
  
  	fast_xmit = !!(cm->flags & SFE_IPV6_CONNECTION_MATCH_FLAG_FAST_XMIT);
@@ -708,7 +724,7 @@ index 5592475..e5d6a0a 100644
  	rcu_read_unlock();
  
  	/*
-@@ -931,15 +912,16 @@ int sfe_ipv6_recv_tcp(struct sfe_ipv6 *si, struct sk_buff *skb, struct net_devic
+@@ -931,15 +913,16 @@
  	 * packet.
  	 */
  	if (likely(fast_xmit)) {
@@ -730,10 +746,9 @@ index 5592475..e5d6a0a 100644
  	}
  
 diff --git a/sfe_ipv6_udp.c b/sfe_ipv6_udp.c
-index d4df982..0cb40b3 100644
 --- a/sfe_ipv6_udp.c
 +++ b/sfe_ipv6_udp.c
-@@ -154,8 +154,6 @@ int sfe_ipv6_recv_udp(struct sfe_ipv6 *si, struct sk_buff *skb, struct net_devic
+@@ -154,8 +154,6 @@
  #ifdef SFE_SW_L4_CHECKSUM_VERIFICATION
  	struct net *net;
  #endif
@@ -742,7 +757,7 @@ index d4df982..0cb40b3 100644
  
  	DEBUG_TRACE("%px: sfe: sfe_ipv6_recv_udp called.\n", skb);
  
-@@ -470,18 +468,12 @@ int sfe_ipv6_recv_udp(struct sfe_ipv6 *si, struct sk_buff *skb, struct net_devic
+@@ -470,18 +468,12 @@
  
  	/*
  	 * For PPPoE flows, add PPPoE header before L2 header is added.
@@ -764,7 +779,15 @@ index d4df982..0cb40b3 100644
  			rcu_read_unlock();
  			sfe_ipv6_exception_stats_inc(si, SFE_IPV6_EXCEPTION_EVENT_GSO_NOT_SUPPORTED);
  			return 0;
-@@ -763,26 +755,9 @@ int sfe_ipv6_recv_udp(struct sfe_ipv6 *si, struct sk_buff *skb, struct net_devic
+@@ -645,6 +637,7 @@
+ 	 */
+ 	if (likely(hw_csum)) {
+ 		skb->ip_summed = CHECKSUM_PARTIAL;
++		sfe_skb_complete_csum_offsets(skb);
+ 	}
+ 
+ 	/*
+@@ -763,26 +756,9 @@
  	features = cm->features;
  
  	fast_xmit = !!(cm->flags & SFE_IPV6_CONNECTION_MATCH_FLAG_FAST_XMIT);
@@ -791,7 +814,7 @@ index d4df982..0cb40b3 100644
  	rcu_read_unlock();
  
  	/*
-@@ -790,7 +765,7 @@ int sfe_ipv6_recv_udp(struct sfe_ipv6 *si, struct sk_buff *skb, struct net_devic
+@@ -790,7 +766,7 @@
  	 * packet.
  	 */
  	mem_debug_update_skb(skb);
@@ -800,47 +823,3 @@ index d4df982..0cb40b3 100644
  		this_cpu_inc(si->stats_pcpu->packets_fast_xmited64);
  		return 1;
  	}
---- a/sfe_ipv4_udp.c
-+++ b/sfe_ipv4_udp.c
-@@ -663,7 +655,8 @@
- 	 * not recalculated further in packet path.
- 	 */
- 	if (likely(hw_csum)) {
- 		skb->ip_summed = CHECKSUM_PARTIAL;
-+		sfe_skb_complete_csum_offsets(skb);
- 	} else {
- 		iph->check = sfe_ipv4_gen_ip_csum(iph);
- 	}
---- a/sfe_ipv4_tcp.c
-+++ b/sfe_ipv4_tcp.c
-@@ -813,7 +811,8 @@
- 	 * not recalculated further in packet path.
- 	 */
- 	if (likely(hw_csum)) {
- 		skb->ip_summed = CHECKSUM_PARTIAL;
-+		sfe_skb_complete_csum_offsets(skb);
- 	} else {
- 		/*
- 		 * Received GRO packet and tx csum is not enabled.
---- a/sfe_ipv6_udp.c
-+++ b/sfe_ipv6_udp.c
-@@ -644,7 +636,8 @@
- 	 * path.
- 	 */
- 	if (likely(hw_csum)) {
- 		skb->ip_summed = CHECKSUM_PARTIAL;
-+		sfe_skb_complete_csum_offsets(skb);
- 	}
- 
- 	/*
---- a/sfe_ipv6_tcp.c
-+++ b/sfe_ipv6_tcp.c
-@@ -774,7 +772,8 @@
- 	 * path.
- 	 */
- 	if (likely(hw_csum)) {
- 		skb->ip_summed = CHECKSUM_PARTIAL;
-+		sfe_skb_complete_csum_offsets(skb);
- 	} else {
- 		/*
- 		 * Received GRO packet and tx csum is not enabled.
