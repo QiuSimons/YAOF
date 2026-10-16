@@ -1,11 +1,14 @@
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
-@@ -1489,12 +1489,16 @@
+@@ -1489,12 +1489,19 @@
   * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
   * @NFTA_MASQ_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
   * @NFTA_MASQ_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
-+ * @NFTA_MASQ_REG_ADDR_MIN: source register of address range start (NLA_U32: nft_registers) non zero to enable bcm fullcone
-+ * @NFTA_MASQ_REG_ADDR_MAX: source register of address range end (NLA_U32: nft_registers)
++ * @NFTA_MASQ_REG_ADDR_MIN: source register carrying the brcm full-cone
++ *   marker; non zero selects the full-cone path (NLA_U32:
++ *   nft_registers).  The kernel side of this change calls the slot
++ *   NFTA_MASQ_REG_FULLCONE and reads it as a boolean, so no address
++ *   range end register is emitted.
   */
  enum nft_masq_attributes {
  	NFTA_MASQ_UNSPEC,
