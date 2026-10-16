@@ -1262,6 +1262,19 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 	if (unlikely(sfe_cm_no_accel_test(ct)))
 		return NF_ACCEPT;
 
+	/*
+	 * A packet mark the engine cannot reproduce means a netfilter rule steers
+	 * this flow: the rule only carries ct->mark, so accelerating it would drop
+	 * the mark and with it policy routing, tproxy and qdisc classification.
+	 * Decided here so a refused flow never pays for the device lookup; with
+	 * refuse_all_shaped the stricter device check above already covered it.
+	 */
+	if (unlikely(!sfe_cm_refuse_all_shaped && skb->mark && skb->mark != ct->mark)) {
+		atomic64_inc(&sfe_cm_stat_refused);
+		sfe_cm_no_accel_add(ct);
+		return NF_ACCEPT;
+	}
+
 	struct nf_conn_help *help = nfct_help(ct);
 
 	if (unlikely(help)) {
