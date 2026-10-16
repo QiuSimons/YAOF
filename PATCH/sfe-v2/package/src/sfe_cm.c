@@ -1434,11 +1434,11 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 #endif
 	}
 
-	if (unlikely(result == -EOPNOTSUPP)) {
+	if (likely(!result)) {
+		atomic64_inc(&sfe_cm_stat_created);
+	} else {
 		atomic64_inc(&sfe_cm_stat_refused);
 		sfe_cm_no_accel_add(ct);
-	} else if (likely(!result)) {
-		atomic64_inc(&sfe_cm_stat_created);
 	}
 
 	if (dest_br_dev)
@@ -1513,6 +1513,7 @@ static void sfe_cm_conntrack_destroy(unsigned int events, const struct nf_ct_eve
 	sfe_cm_no_accel_del(ct);
 
 	orig_tuple = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+	memset(&sid, 0, sizeof(sid));
 	sid.protocol = orig_tuple.dst.protonum;
 
 	switch (sid.protocol) {
@@ -1675,12 +1676,12 @@ static void sfe_cm_flush_dev(struct net_device *dev)
  *
  * Only the sync work touches the list, no locking is needed.
  */
-#define SFE_CM_SHAPED_DEV_MAX	16
+#define SFE_CM_SHAPED_DEV_MAX	64
 static int sfe_cm_shaped_devs[SFE_CM_SHAPED_DEV_MAX];
 
 static void sfe_cm_shaped_dev_scan(void)
 {
-	int seen[SFE_CM_SHAPED_DEV_MAX];
+	int seen[SFE_CM_SHAPED_DEV_MAX] = { 0 };
 	int nseen = 0;
 	int i, j;
 
@@ -1689,8 +1690,11 @@ static void sfe_cm_shaped_dev_scan(void)
 		struct net_device *dev;
 
 		for_each_netdev_rcu(&init_net, dev) {
-			if (nseen == SFE_CM_SHAPED_DEV_MAX)
+			if (nseen == SFE_CM_SHAPED_DEV_MAX) {
+				pr_warn_ratelimited("sfe_cm: more than %d traffic control devices, some accelerated flows are not revoked\n",
+						    SFE_CM_SHAPED_DEV_MAX);
 				break;
+			}
 
 			/*
 			 * Both directions matter: a bypassed ingress program on a
@@ -1817,6 +1821,10 @@ static int __init sfe_cm_init(void)
 					      sfe_cm_v2_ipv4_sync_many_callback, NULL);
 	if (!sfe_v4_ctx) {
 		pr_err("sfe_cm: failed to register with SFE v2 IPv4 engine\n");
+		if (sfe_cm_acct_prev >= 0)
+			init_net.ct.sysctl_acct = sfe_cm_acct_prev;
+		free_percpu(sfe_cm_no_accel);
+		sfe_cm_no_accel = NULL;
 		return -ENODEV;
 	}
 
@@ -1879,6 +1887,12 @@ exit_fail:
 	if (sfe_v6_ctx)
 		sfe_ipv6_notify_unregister();
 #endif
+	/* The module never ran: leave the accounting sysctl as we found it. */
+	if (sfe_cm_acct_prev >= 0)
+		init_net.ct.sysctl_acct = sfe_cm_acct_prev;
+
+	free_percpu(sfe_cm_no_accel);
+	sfe_cm_no_accel = NULL;
 	return result;
 }
 
