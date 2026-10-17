@@ -32,6 +32,11 @@ owner that is about to go away (dying, or not offloaded and thus on its own
 timer); an offloaded owner is exempt from the conntrack gc and keeps the
 mapping, so a flow that is still receiving never loses it.
 
+The related connection created for an inbound peer is marked as well, so the
+software flowtable may forward it too; a mapping is only reused when it
+belongs to the address the packet leaves through, and a source rewrite
+without an explicit range walks the port range the kernel itself uses.
+
 Signed-off-by: YAOF-1 <dev@localhost>
 ---
 
@@ -192,7 +197,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,471 @@
+@@ -24,6 +27,507 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -215,6 +220,12 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +       range.min_proto = range.max_proto = exp->saved_proto;
 +       range.min_addr = range.max_addr = exp->saved_addr;
 +       nf_nat_setup_info(ct, &range, NF_NAT_MANIP_DST);
++
++       /* The related connection is fully set up and carries the helper,
++        * so the software flowtable may forward it; hardware offload stays
++        * excluded.
++        */
++       set_bit(IPS_FULLCONE_BIT, &ct->status);
 +}
 +
 +/* Build the expectation-table key for an external address and port. */
@@ -276,6 +287,12 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +	 * not install a second expectation aimed at its peer.
 +	 */
 +	if (!(ct->status & IPS_FULLCONE))
++		return NF_ACCEPT;
++
++	/* A connection created from the expectation is complete: it must not
++	 * install a second expectation aimed at its peer.
++	 */
++	if (test_bit(IPS_EXPECTED_BIT, &ct->status))
 +		return NF_ACCEPT;
 +
 +	dir = CTINFO2DIR(ctinfo);
@@ -505,7 +522,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +	const struct nf_conntrack_tuple *orig =
 +		&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
 +	u_int16_t srcport = ntohs(orig->src.u.udp.port);
-+	u_int16_t minport, maxport, minp, maxp, parity, start, span;
++	u_int16_t minport, maxport, minp, maxp, parity;
 +	struct nf_conntrack_tuple tuple;
 +	union nf_inet_addr reuse_addr;
 +	__be16 reuse_port = 0;
@@ -521,79 +538,103 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +	if (nf_nat_src_mapping(nf_ct_net(ct), nf_ct_zone(ct), orig, &reuse_addr,
 +			       &reuse_port) &&
 +	    reuse_port != 0) {
-+		int state;
++		bool same_addr = (l3num == AF_INET6) ?
++			ipv6_addr_equal(&reuse_addr.in6,
++					(const struct in6_addr *)addr) :
++			reuse_addr.ip == *(const __be32 *)addr;
 +
-+		bcm_nat_expect_tuple(&tuple, l3num, &reuse_addr, reuse_port);
-+		rcu_read_lock();
-+		state = bcm_nat_expect_state(ct, orig, &tuple);
-+		rcu_read_unlock();
-+
-+		/* A port owned by another endpoint must not be reused. */
-+		if (state == 2)
-+			return NF_DROP;
-+
-+		/* state 1: a live expectation covers this endpoint; keep it
-+		 * unless its owner is about to go away.
-+		 * state 0: the expectation died with the conntrack that owned it
-+		 * (nf_ct_remove_expectations() drops it with its master), so the
-+		 * port is bound but unreachable and has to be registered again.
++		/* The endpoint has a mapping, but not necessarily on the address
++		 * this packet leaves through: with multiple WANs or a changed
++		 * address, reusing it would put a foreign source address on the
++		 * wire.
 +		 */
-+		if (state == 1)
-+			*need_expect = bcm_nat_takeover(ct, &tuple);
-+		else
-+			*need_expect = true;
++		if (same_addr) {
++			int state;
 +
-+		minport = maxport = reuse_port;
-+		if (l3num == AF_INET6)
-+			newrange->min_addr.in6 = newrange->max_addr.in6 =
-+				reuse_addr.in6;
-+		else
-+			newrange->min_addr.ip = newrange->max_addr.ip =
-+				reuse_addr.ip;
-+		newrange->flags = range->flags | NF_NAT_RANGE_MAP_IPS |
-+			NF_NAT_RANGE_PROTO_SPECIFIED;
-+		newrange->min_proto.udp.port =
-+			newrange->max_proto.udp.port = reuse_port;
-+		return NF_ACCEPT;
++			bcm_nat_expect_tuple(&tuple, l3num, &reuse_addr, reuse_port);
++			rcu_read_lock();
++			state = bcm_nat_expect_state(ct, orig, &tuple);
++			rcu_read_unlock();
++
++			/* A port owned by another endpoint must not be reused. */
++			if (state == 2)
++				return NF_DROP;
++
++			/* state 1: a live expectation covers this endpoint; keep it
++			 * unless its owner is about to go away.
++			 * state 0: the expectation died with the conntrack that owned it
++			 * (nf_ct_remove_expectations() drops it with its master), so the
++			 * port is bound but unreachable and has to be registered again.
++			 */
++			if (state == 1)
++				*need_expect = bcm_nat_takeover(ct, &tuple);
++			else
++				*need_expect = true;
++
++			minport = maxport = reuse_port;
++			if (l3num == AF_INET6)
++				newrange->min_addr.in6 = newrange->max_addr.in6 =
++					reuse_addr.in6;
++			else
++				newrange->min_addr.ip = newrange->max_addr.ip =
++					reuse_addr.ip;
++			newrange->flags = range->flags | NF_NAT_RANGE_MAP_IPS |
++				NF_NAT_RANGE_PROTO_SPECIFIED;
++			newrange->min_proto.udp.port =
++				newrange->max_proto.udp.port = reuse_port;
++			return NF_ACCEPT;
++		}
 +	}
 +
-+	minport = range->min_proto.all == 0 ? orig->src.u.udp.port :
-+		range->min_proto.all;
-+	maxport = range->max_proto.all == 0 ? htons(65535) :
-+		range->max_proto.all;
++	minport = range->min_proto.all;
++	maxport = range->max_proto.all;
++	if (minport == 0) {
++		/* No range in the rule: follow the convention the kernel uses for
++		 * a source rewrite.  Starting at the internal port would leave
++		 * only the few ports above a high one available.
++		 */
++		if (srcport < 512) {
++			minport = htons(1);
++			maxport = htons(511);
++		} else if (srcport < 1024) {
++			minport = htons(600);
++			maxport = htons(1023);
++		} else {
++			minport = htons(1024);
++			maxport = htons(65535);
++		}
++	} else if (maxport == 0) {
++		maxport = htons(65535);
++	}
 +	minp = ntohs(minport);
 +	maxp = ntohs(maxport);
 +	parity = srcport & 1;
 +
 +	if (minp <= maxp) {
-+		span = (u_int16_t)(maxp - minp + 1);
-+		/* keep the source port parity (RFC 4787 REQ-4) */
-+		start = minp + (get_random_u16() % span);
-+		start |= (u_int16_t)(parity ^ (start & 1));
-+		for (i = 0; i < BCM_NAT_PORT_PROBES; i++) {
-+			u_int16_t c;
++		/* The source port parity has to be kept (RFC 4787 REQ-4), so the
++		 * candidates are one arithmetic sequence with a step of two.
++		 */
++		u32 first = minp + ((parity ^ (minp & 1)) ? 1 : 0);
++		u32 cnt = (first <= maxp) ? (maxp - first) / 2 + 1 : 0;
++		u32 idx = cnt ? get_random_u16() % cnt : 0;
++		bool have_src = false;
 +
-+			if (i & 1) {
-+				if (start - (i >> 1) < minp)
-+					continue;
-+				c = start - (i >> 1);
-+			} else {
-+				c = minp + ((start - minp + (i >> 1)) % span);
-+			}
-+			if ((c & 1) != parity)
-+				continue;
-+			cands[n] = htons(c);
-+			if (++n == BCM_NAT_PORT_PROBES)
-+				break;
-+		}
-+		/* internal port first: port preservation */
++		/* internal port first: port preservation (RFC 4787 REQ-3) */
 +		if (srcport >= minp && srcport <= maxp &&
-+		    (srcport & 1) == parity &&
-+		    n < BCM_NAT_PORT_PROBES) {
-+			for (i = n; i > 0; i--)
-+				cands[i] = cands[i - 1];
-+			cands[0] = htons(srcport);
-+			n++;
++		    (srcport & 1) == parity) {
++			cands[n++] = htons(srcport);
++			have_src = true;
++		}
++
++		for (i = 0; i < cnt && n < BCM_NAT_PORT_PROBES; i++) {
++			u32 d = (i + 1) >> 1;
++			u32 j = (i & 1) ? (idx + cnt - d) % cnt :
++					 (idx + d) % cnt;
++			u_int16_t c = first + 2 * j;
++
++			if (have_src && c == srcport)
++				continue;
++			cands[n++] = htons(c);
 +		}
 +	}
 +
@@ -664,7 +705,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +529,38 @@
+@@ -61,6 +565,38 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -703,7 +744,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +759,40 @@
+@@ -259,6 +795,40 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
