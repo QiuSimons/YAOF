@@ -187,7 +187,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,373 @@
+@@ -24,6 +27,384 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -328,12 +328,21 @@ Signed-off-by: YAOF-1 <dev@localhost>
 + * A registration failure is not fatal: masquerade keeps working, full cone is
 + * just unavailable, which fw4 probes for.
 + */
++static bool bcm_nat_helper4_registered;
++#if IS_ENABLED(CONFIG_IPV6)
++static bool bcm_nat_helper6_registered;
++#endif
++
 +void nf_nat_fullcone_helpers_register(void)
 +{
-+	if (nf_conntrack_helper_register(&nf_conntrack_helper_bcm_nat))
++	bcm_nat_helper4_registered =
++		nf_conntrack_helper_register(&nf_conntrack_helper_bcm_nat) == 0;
++	if (!bcm_nat_helper4_registered)
 +		pr_warn("bcm_nat: cannot register the BCM-NAT helper\n");
 +#if IS_ENABLED(CONFIG_IPV6)
-+	if (nf_conntrack_helper_register(&nf_conntrack_helper_bcm_nat6))
++	bcm_nat_helper6_registered =
++		nf_conntrack_helper_register(&nf_conntrack_helper_bcm_nat6) == 0;
++	if (!bcm_nat_helper6_registered)
 +		pr_warn("bcm_nat: cannot register the BCM-NAT6 helper\n");
 +#endif
 +}
@@ -341,9 +350,11 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +void nf_nat_fullcone_helpers_unregister(void)
 +{
 +#if IS_ENABLED(CONFIG_IPV6)
-+	nf_conntrack_helper_unregister(&nf_conntrack_helper_bcm_nat6);
++	if (bcm_nat_helper6_registered)
++		nf_conntrack_helper_unregister(&nf_conntrack_helper_bcm_nat6);
 +#endif
-+	nf_conntrack_helper_unregister(&nf_conntrack_helper_bcm_nat);
++	if (bcm_nat_helper4_registered)
++		nf_conntrack_helper_unregister(&nf_conntrack_helper_bcm_nat);
 +}
 +
 +/* Upper bound on expectation-table lookups per new flow; this runs under
@@ -561,7 +572,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +431,35 @@
+@@ -61,6 +442,35 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -597,7 +608,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +658,37 @@
+@@ -259,6 +669,37 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
