@@ -572,7 +572,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +442,35 @@
+@@ -61,6 +442,38 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -596,8 +596,11 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +                 set_bit(IPS_FULLCONE_BIT, &ct->status);
 +                 if (need_expect &&
 +                     bcm_nat_install_expect(ct, AF_INET, "bcm_nat") < 0) {
++                         /* No expectation slot left: keep the NAT
++                          * mapping and fall back to symmetric
++                          * behaviour instead of breaking the flow.
++                          */
 +                         clear_bit(IPS_FULLCONE_BIT, &ct->status);
-+                         return NF_DROP;
 +                 }
 +
 +                 pr_debug("bcm_nat: full cone mapping %hu installed\n",
@@ -608,7 +611,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +669,37 @@
+@@ -259,6 +672,40 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -633,8 +636,11 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +                 set_bit(IPS_FULLCONE_BIT, &ct->status);
 +                 if (need_expect &&
 +                     bcm_nat_install_expect(ct, AF_INET6, "bcm_nat6") < 0) {
++                         /* No expectation slot left: keep the NAT
++                          * mapping and fall back to symmetric
++                          * behaviour instead of breaking the flow.
++                          */
 +                         clear_bit(IPS_FULLCONE_BIT, &ct->status);
-+                         return NF_DROP;
 +                 }
 +
 +                 pr_debug("bcm_nat6: full cone mapping %hu installed\n",
