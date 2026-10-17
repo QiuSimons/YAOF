@@ -46,7 +46,7 @@ index 48b2440..37186f2 100644
  config zone
  	option name		lan
 diff --git a/root/usr/share/firewall4/templates/ruleset.uc b/root/usr/share/firewall4/templates/ruleset.uc
-index 2bec4d9..e31d2ed 100644
+index 2bec4d9..3b36ba5 100644
 --- a/root/usr/share/firewall4/templates/ruleset.uc
 +++ b/root/usr/share/firewall4/templates/ruleset.uc
 @@ -13,6 +13,7 @@ delete flowtable inet fw4 ft
@@ -111,37 +111,57 @@ index 2bec4d9..e31d2ed 100644
  	chain srcnat {
  		type nat hook postrouting priority srcnat; policy accept;
  {% fw4.includes('chain-prepend', 'srcnat') %}
-@@ -337,20 +378,26 @@ table inet fw4 {
+@@ -337,17 +378,31 @@ table inet fw4 {
  {%   for (let redirect in fw4.redirects(`srcnat_${zone.name}`)): %}
  		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
  {%   endfor %}
 -{%   if (zone.masq): %}
 +{%   if (zone.masq && !zone.fullcone4): %}
++{%    for (let saddrs in zone.masq4_src_subnets): %}
++{%     for (let daddrs in zone.masq4_dest_subnets): %}
++		{%+ include("zone-masq.uc", { fw4, zone, family: 4, saddrs, daddrs, fullcone: false }) %}
++{%     endfor %}
++{%    endfor %}
++{%   endif %}
++{%   if (zone.masq6 && !zone.fullcone6): %}
++{%    for (let saddrs in zone.masq6_src_subnets): %}
++{%     for (let daddrs in zone.masq6_dest_subnets): %}
++		{%+ include("zone-masq.uc", { fw4, zone, family: 6, saddrs, daddrs, fullcone: false }) %}
++{%     endfor %}
++{%    endfor %}
++{%   endif %}
++{%   if (zone.fullcone4): %}
  {%    for (let saddrs in zone.masq4_src_subnets): %}
  {%     for (let daddrs in zone.masq4_dest_subnets): %}
- 		{%+ include("zone-masq.uc", { fw4, zone, family: 4, saddrs, daddrs }) %}
+-		{%+ include("zone-masq.uc", { fw4, zone, family: 4, saddrs, daddrs }) %}
++		{%+ include("zone-masq.uc", { fw4, zone, family: 4, saddrs, daddrs, fullcone: true }) %}
  {%     endfor %}
  {%    endfor %}
  {%   endif %}
 -{%   if (zone.masq6): %}
-+{%   if (zone.masq6 && !zone.fullcone6): %}
++{%   if (zone.fullcone6): %}
  {%    for (let saddrs in zone.masq6_src_subnets): %}
  {%     for (let daddrs in zone.masq6_dest_subnets): %}
- 		{%+ include("zone-masq.uc", { fw4, zone, family: 6, saddrs, daddrs }) %}
+-		{%+ include("zone-masq.uc", { fw4, zone, family: 6, saddrs, daddrs }) %}
++		{%+ include("zone-masq.uc", { fw4, zone, family: 6, saddrs, daddrs, fullcone: true }) %}
  {%     endfor %}
  {%    endfor %}
  {%   endif %}
-+{%   if (zone.fullcone4): %}
-+		meta nfproto ipv4 ct helper set "bcmfullcone4" masquerade comment "!fw4: Handle {{ zone.name }} IPv4 BCM full cone NAT srcnat traffic"
-+{%   endif %}
-+{%   if (zone.fullcone6): %}
-+		meta nfproto ipv6 ct helper set "bcmfullcone6" masquerade comment "!fw4: Handle {{ zone.name }} IPv6 BCM full cone NAT srcnat traffic"
-+{%   endif %}
- {%   fw4.includes('chain-append', `srcnat_${zone.name}`) %}
- 	}
- 
+diff --git a/root/usr/share/firewall4/templates/zone-masq.uc b/root/usr/share/firewall4/templates/zone-masq.uc
+index c3e66d8..7c2c1aa 100644
+--- a/root/usr/share/firewall4/templates/zone-masq.uc
++++ b/root/usr/share/firewall4/templates/zone-masq.uc
+@@ -10,4 +10,8 @@ meta nfproto {{ fw4.nfproto(family) }} {%+ if (saddrs && saddrs[0]): -%}
+ 	{{ fw4.ipproto(family) }} daddr != {{ fw4.set(map(daddrs[1], fw4.cidr)) }} {%+ endif -%}
+ {%+ for (let a in (daddrs ? daddrs[2] : [])): -%}
+ 	{{ fw4.ipproto(family) }} daddr & {{ a.mask }} {{ a.invert ? '!=' : '==' }} {{ a.addr }} {%+ endfor -%}
++{%+ if (fullcone): -%}
++ct helper set "bcmfullcone{{ family }}" masquerade comment "!fw4: Handle {{ zone.name }} {{ fw4.nfproto(family, true) }} BCM full cone NAT srcnat traffic"
++{%+ else -%}
+ masquerade comment "!fw4: Masquerade {{ fw4.nfproto(family, true) }} {{ zone.name }} traffic"
++{%+ endif -%}
 diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
-index a0d8e4f..fdb8787 100644
+index a0d8e4f..a77cfd4 100644
 --- a/root/usr/share/ucode/fw4.uc
 +++ b/root/usr/share/ucode/fw4.uc
 @@ -490,6 +490,33 @@ function nft_try_hw_offload(devices) {
@@ -235,19 +255,17 @@ index a0d8e4f..fdb8787 100644
  		if (zone.mtu_fix && this.kernel < 0x040a0000) {
  			this.warn_section(data, "option 'mtu_fix' requires kernel 4.10 or later");
  			return;
-@@ -2205,10 +2261,18 @@ return {
+@@ -2205,10 +2261,15 @@ return {
  		zone.related_subnets = related_subnets;
  		zone.related_physdevs = related_physdevs;
  
-+		if (zone.fullcone4 || zone.fullcone6) {
-+			zone.dflags.snat = true;
-+			zone.dflags.dnat = true;
-+		}
-+
- 		if (zone.masq || zone.masq6)
+-		if (zone.masq || zone.masq6)
++		if (zone.fullcone4 || zone.fullcone6 || zone.masq || zone.masq6)
  			zone.dflags.snat = true;
  
 -		if ((zone.auto_helper && !(zone.masq || zone.masq6)) || length(zone.helper)) {
++		/* A full cone zone does its own masquerade, so the generic
++		 * "accept port redirections" rule is not wanted here. */
 +		if (zone.fullcone4 || zone.fullcone6)
 +			zone.dflags.dnat = false;
 +
