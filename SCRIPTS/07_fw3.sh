@@ -3,11 +3,7 @@
 rm -rf ./package/network/utils/iptables
 cp -rf ../openwrt_22/package/network/utils/iptables ./package/network/utils/iptables
 cp -rf ../lede/package/network/utils/iptables/patches/900-bcm-fullconenat.patch ./package/network/utils/iptables/patches/900-bcm-fullconenat.patch
-# 滚回fw3
-pushd feeds/luci
-patch -Rp1 <../../../PATCH/firewall/luci-app-firewall_add_fullcone_fw4.patch
-patch -p1 <../../../PATCH/firewall/luci-app-firewall_add_fullcone_fw3.patch
-popd
+# 回滚 fw3：luci-app-firewall 的 fw3 回滚补丁已随 expectation 版 fullcone 迁移删除
 sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall2/Makefile
 sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall/Makefile
 sed -i 's,iptables-nft +kmod-nft-fullcone,iptables-mod-fullconenat,g' ./package/new/addition-trans-zh/Makefile
