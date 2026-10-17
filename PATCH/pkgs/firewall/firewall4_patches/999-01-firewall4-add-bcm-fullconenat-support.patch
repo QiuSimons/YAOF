@@ -1,42 +1,20 @@
-From: YAOF-1 <dev@localhost>
-Date: Thu, 1 Jan 1970 00:00:00 +0000
+From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 Subject: [PATCH] firewall4: add BCM full-cone NAT support
 
-Full-cone NAT is provided by the Broadcom expectation-based scheme only:
+Implement Broadcom expectation-based full-cone NAT support for firewall4:
+- Attach BCM-NAT (IPv4) or BCM-NAT6 (IPv6) helper to connection prior to masquerade
+- Add runtime kernel helper probing via nft_try_brcmfullcone()
+- Add global fullcone4 and fullcone6 configuration options in defaults
+- Insert brcmfullcone_srcnat chain at priority srcnat - 10 to ensure full-cone
+  masquerade executes before other NAT hooks
 
-  * fw4 attaches the kernel helper to the connection ("ct helper set") in
-    front of the masquerade statement; the kernel then registers the matching
-    expectation.  The nftables keyword and its netlink attribute are gone, so
-    nftables and libnftnl need no patches at all.
-  * nft_try_brcmfullcone(family) probes one family at a time by creating a
-    ct helper object, which nft resolves against the kernel helper table; a
-    kernel without BCM-NAT/BCM-NAT6 disables exactly that family
-  * defaults.fullcone4 / defaults.fullcone6 are the switches themselves
-    (both off by default); there is no separate global master switch, and
-    zones cannot shadow them any more
-  * a zone qualifies when it masquerades - for IPv6 also when masq6 is
-    implied by the "nat6" defaults switch, i.e. when the external nat6
-    service translates the zone
-  * the zone srcnat rules are also emitted into a postrouting chain at
-    "priority srcnat - 10" so they run before any other NAT chain at
-    the canonical srcnat priority (the nat6 service installs one).  The
-    full cone masquerade has to perform the NAT itself to register the
-    expectation, so that ordering is what ties it to the right statement.
-    The extra chain only exists when a zone has a full cone family
-    enabled.
-
-The nft-fullcone scheme (nft_try_fullcone, zone-fullcone.uc, defaults.fullcone,
-the fw4.default_option("brcmfullcone") branches) is gone: brcmfullcone is an
-upper replacement and keeping both only made the ruleset pick between two
-schemes.
-
-Signed-off-by: YAOF-1 <dev@localhost>
+Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 ---
+
 diff --git a/root/etc/config/firewall b/root/etc/config/firewall
-index 48b2440..37186f2 100644
 --- a/root/etc/config/firewall
 +++ b/root/etc/config/firewall
-@@ -5,6 +5,8 @@ config defaults
+@@ -5,6 +5,8 @@
  	option forward		REJECT
  # Uncomment this line to disable ipv6 rules
  #	option disable_ipv6	1
@@ -46,10 +24,9 @@ index 48b2440..37186f2 100644
  config zone
  	option name		lan
 diff --git a/root/usr/share/firewall4/templates/ruleset.uc b/root/usr/share/firewall4/templates/ruleset.uc
-index 2bec4d9..3b36ba5 100644
 --- a/root/usr/share/firewall4/templates/ruleset.uc
 +++ b/root/usr/share/firewall4/templates/ruleset.uc
-@@ -13,6 +13,7 @@ delete flowtable inet fw4 ft
+@@ -13,6 +13,7 @@
  {% fw4.includes('ruleset-prepend') %}
  
  table inet fw4 {
@@ -57,16 +34,13 @@ index 2bec4d9..3b36ba5 100644
  {% if (length(flowtable_devices) > 0): %}
  	#
  	# Flowtable
-@@ -43,6 +44,25 @@ table inet fw4 {
- {%   endfor %}
+@@ -44,6 +45,23 @@
  {%  endfor %}
  
-+{% endif %}
+ {% endif %}
 +{% if (length(fullcone_zones)): %}
 +	#
-+	# BCM full cone: the helper attached to a connection is what makes the
-+	# masquerade below register an expectation, so one object per family.
-+	# Creating them also proves the kernel carries the helper.
++	# BCM full-cone NAT helpers
 +	#
 +{%  if (length(filter(fullcone_zones, zone => zone.fullcone4))): %}
 +	ct helper bcmfullcone4 {
@@ -80,20 +54,17 @@ index 2bec4d9..3b36ba5 100644
 +	}
 +
 +{%  endif %}
- {% endif %}
++{% endif %}
  {% if (length(defined_ipsets)): %}
  	#
-@@ -304,6 +324,27 @@ table inet fw4 {
+ 	# Set definitions
+@@ -304,6 +322,23 @@
  {% fw4.includes('chain-append', 'dstnat') %}
  	}
  
 +{% if (length(fullcone_zones)): %}
 +	#
-+	# A full cone expectation is only registered by the masquerade statement
-+	# which actually performs the NAT, so the zone srcnat rules must run before
-+	# every other NAT postrouting chain at priority srcnat (such as the one the
-+	# external nat6 service installs).  Evaluate them a second time from a lower
-+	# priority hook; the regular srcnat chain below is a no-op then.
++	# BCM full-cone NAT postrouting chain
 +	#
 +	chain brcmfullcone_srcnat {
 +		type nat hook postrouting priority srcnat - 10; policy accept;
@@ -111,7 +82,7 @@ index 2bec4d9..3b36ba5 100644
  	chain srcnat {
  		type nat hook postrouting priority srcnat; policy accept;
  {% fw4.includes('chain-prepend', 'srcnat') %}
-@@ -337,17 +378,31 @@ table inet fw4 {
+@@ -337,17 +372,31 @@
  {%   for (let redirect in fw4.redirects(`srcnat_${zone.name}`)): %}
  		{%+ include("redirect.uc", { fw4, zone, redirect }) %}
  {%   endfor %}
@@ -148,10 +119,9 @@ index 2bec4d9..3b36ba5 100644
  {%    endfor %}
  {%   endif %}
 diff --git a/root/usr/share/firewall4/templates/zone-masq.uc b/root/usr/share/firewall4/templates/zone-masq.uc
-index c3e66d8..7c2c1aa 100644
 --- a/root/usr/share/firewall4/templates/zone-masq.uc
 +++ b/root/usr/share/firewall4/templates/zone-masq.uc
-@@ -10,4 +10,8 @@ meta nfproto {{ fw4.nfproto(family) }} {%+ if (saddrs && saddrs[0]): -%}
+@@ -10,4 +10,8 @@
  	{{ fw4.ipproto(family) }} daddr != {{ fw4.set(map(daddrs[1], fw4.cidr)) }} {%+ endif -%}
  {%+ for (let a in (daddrs ? daddrs[2] : [])): -%}
  	{{ fw4.ipproto(family) }} daddr & {{ a.mask }} {{ a.invert ? '!=' : '==' }} {{ a.addr }} {%+ endfor -%}
@@ -161,23 +131,14 @@ index c3e66d8..7c2c1aa 100644
  masquerade comment "!fw4: Masquerade {{ fw4.nfproto(family, true) }} {{ zone.name }} traffic"
 +{%+ endif -%}
 diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
-index a0d8e4f..a77cfd4 100644
 --- a/root/usr/share/ucode/fw4.uc
 +++ b/root/usr/share/ucode/fw4.uc
-@@ -490,6 +490,33 @@ function nft_try_hw_offload(devices) {
+@@ -490,6 +490,25 @@
  }
  
  
 +function nft_try_brcmfullcone(family, loud) {
-+	/*
-+	 * nft resolves a ct helper object against the kernel helper table when
-+	 * the object is created, so this fails cleanly on a kernel that does
-+	 * not carry BCM-NAT (IPv4) or BCM-NAT6 (IPv6).  The scratch NAT chain
-+	 * and its rule make sure nf_nat/nft_masq are loaded first: the helpers
-+	 * are registered from nf_nat_init(), and the object has to find them.
-+	 * The rule matches a device name that cannot exist, so it can never NAT
-+	 * live traffic while the scratch table is installed.
-+	 */
++	/* Probe whether the kernel supports BCM-NAT / BCM-NAT6 helpers */
 +	let name = 'fw4-brcmfullcone-test';
 +	let helper = (family == 6) ? 'BCM-NAT6' : 'BCM-NAT';
 +	let cmd = sprintf("/usr/sbin/nft delete table inet %s 2>/dev/null; " +
@@ -198,7 +159,7 @@ index a0d8e4f..a77cfd4 100644
  return {
  	read_kernel_version: function() {
  		let fd = fs.open("/proc/version", "r"),
-@@ -1946,6 +1973,9 @@ return {
+@@ -1946,6 +1965,9 @@
  		}
  
  		let defs = this.parse_options(data, {
@@ -208,16 +169,11 @@ index a0d8e4f..a77cfd4 100644
  			input: [ "policy", "drop" ],
  			output: [ "policy", "drop" ],
  			forward: [ "policy", "drop" ],
-@@ -1980,6 +2010,21 @@ return {
+@@ -1980,6 +2002,16 @@
  
  		delete defs.syn_flood;
  
-+		/*
-+		 * fullcone4 / fullcone6 are the switches themselves - there is no
-+		 * separate global master switch.  Probe the kernel per family, and only
-+		 * for a family that was actually asked for, so a kernel without the
-+		 * BCM helper disables exactly the family it cannot do.
-+		 */
++		/* Probe and apply BCM full-cone NAT defaults */
 +		if (defs.fullcone4 && !nft_try_brcmfullcone(4, true)) {
 +			this.warn_section(data, "kernel has no IPv4 BRCM full cone NAT support, disabling fullcone4");
 +			defs.fullcone4 = 0;
@@ -230,7 +186,7 @@ index a0d8e4f..a77cfd4 100644
  		this.state.defaults = defs;
  	},
  
-@@ -2004,6 +2049,8 @@ return {
+@@ -2004,6 +2036,8 @@
  			masq_dest: [ "network", null, PARSE_LIST ],
  
  			masq6: [ "bool" ],
@@ -239,13 +195,12 @@ index a0d8e4f..a77cfd4 100644
  
  			extra: [ "string", null, UNSUPPORTED ],
  			extra_src: [ "string", null, UNSUPPORTED ],
-@@ -2036,6 +2083,15 @@ return {
+@@ -2036,6 +2070,14 @@
  			}
  		}
  
 +		if (this.state.defaults) {
-+			/* the switches are global only: a zone key left over from an older
-+			 * configuration must not be able to shadow them */
++			/* Apply global full-cone setting to masquerading zones */
 +			zone.fullcone4 = this.state.defaults.fullcone4 && zone.masq;
 +			zone.fullcone6 = this.state.defaults.fullcone6 &&
 +				(zone.masq6 || (zone.masq && this.state.defaults.nat6));
@@ -255,7 +210,7 @@ index a0d8e4f..a77cfd4 100644
  		if (zone.mtu_fix && this.kernel < 0x040a0000) {
  			this.warn_section(data, "option 'mtu_fix' requires kernel 4.10 or later");
  			return;
-@@ -2205,10 +2261,15 @@ return {
+@@ -2205,10 +2247,15 @@
  		zone.related_subnets = related_subnets;
  		zone.related_physdevs = related_physdevs;
  

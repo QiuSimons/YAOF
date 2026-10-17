@@ -1,55 +1,31 @@
-From: YAOF-1 <dev@localhost>
-Subject: [PATCH] netfilter: add BCM expectation-based full cone NAT
+From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
+Subject: [PATCH] netfilter: nat: add BCM expectation-based full-cone NAT support
 
-BCM full cone NAT is expressed with a wildcard-source conntrack expectation
-keyed on the external address and port: any peer that sends to that
-address/port gets a related connection translated to the internal endpoint.
-The expectation carries the BCM-NAT helper (BCM-NAT6 for IPv6).
+Add Broadcom expectation-based full-cone NAT support for IPv4 and IPv6.
 
-Userspace selects this path by attaching that helper to the connection with
-"ct helper set" in front of the masquerade statement, which is why the
-helpers are registered for name lookup in nf_nat_init().  The mapping itself
-is created from the masquerade path, because that is where the external port
-is chosen.
+Full-cone NAT is implemented via a wildcard-source conntrack expectation
+keyed on the external mapped address and port. Any incoming packet matching
+the external address and port creates a related connection translated to
+the internal endpoint.
 
-Files touched:
+Key characteristics:
+- Endpoint-Independent Mapping (RFC 4787 REQ-1) via nf_nat_src_mapping().
+- Port Preservation (RFC 4787 REQ-3) and Parity Preservation (RFC 4787 REQ-4).
+- Userspace attaches the BCM-NAT (IPv4) or BCM-NAT6 (IPv6) helper to the
+  connection using "ct helper set" prior to masquerade.
+- Full compatibility with Netfilter software flowtable offloading (IPS_FULLCONE).
+- Clean fallback to symmetric NAT when expectation tables are exhausted.
 
-  nf_nat_masquerade.c   external port selection (RFC 4787 REQ-1/3/4),
-                        expectation install, IPv4 and IPv6 entry points
-  nf_nat_core.c         nf_nat_src_mapping(), the endpoint-independent
-                        mapping lookup for REQ-1, and helper registration
-  nft_flow_offload.c    let full cone connections use the software
-                        flowtable (hardware offload stays excluded)
-  include/net/netfilter/nf_nat.h
-  include/uapi/linux/netfilter/nf_conntrack_common.h   IPS_FULLCONE bit
-
-The expectation expiry timer is set far beyond any conntrack lifetime and the
-mapping is torn down with its master connection instead: an offloaded
-connection never returns to the confirm path to re-arm a shorter timer.
-
-A connection that reuses an endpoint mapping therefore takes it over from an
-owner that is about to go away (dying, or not offloaded and thus on its own
-timer); an offloaded owner is exempt from the conntrack gc and keeps the
-mapping, so a flow that is still receiving never loses it.
-
-The related connection created for an inbound peer is marked as well, so the
-software flowtable may forward it too; a mapping is only reused when it
-belongs to the address the packet leaves through, and a source rewrite
-without an explicit range walks the port range the kernel itself uses.
-
-Signed-off-by: YAOF-1 <dev@localhost>
+Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 ---
 
 --- a/include/net/netfilter/nf_nat.h
 +++ b/include/net/netfilter/nf_nat.h
-@@ -35,11 +35,20 @@
+@@ -35,11 +35,17 @@
  #endif
  };
  
-+/* The source mapping NAT already has for this internal endpoint, if any.  The
-+ * caller has to commit the returned address/port as a narrowed range, since the
-+ * kernel only reuses a mapping that its range contains.
-+ */
++/* Lookup existing source mapping for an internal endpoint (RFC 4787 REQ-1) */
 +bool nf_nat_src_mapping(struct net *net, const struct nf_conntrack_zone *zone,
 +			const struct nf_conntrack_tuple *orig,
 +			union nf_inet_addr *addr, __be16 *port);
@@ -63,7 +39,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
  					      unsigned int hooknum);
  
-@@ -116,4 +125,13 @@
+@@ -116,4 +122,13 @@
  	else
  		return ct->status & IPS_DST_NAT_DONE;
  }
@@ -79,14 +55,11 @@ Signed-off-by: YAOF-1 <dev@localhost>
  #endif
 --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
 +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -118,15 +118,22 @@
+@@ -118,15 +118,19 @@
  	IPS_HW_OFFLOAD_BIT = 15,
  	IPS_HW_OFFLOAD = (1 << IPS_HW_OFFLOAD_BIT),
  
-+	/* The connection was set up by the full-cone masquerade path.  It keeps
-+	 * that path from running again on retransmits, and marks the connection
-+	 * as eligible for software flow offload.
-+	 */
++	/* Full-cone NAT connection; eligible for software flowtable offload */
 +	IPS_FULLCONE_BIT = 16,
 +	IPS_FULLCONE = (1 << IPS_FULLCONE_BIT),
 +
@@ -106,28 +79,25 @@ Signed-off-by: YAOF-1 <dev@localhost>
  /* Connection tracking event types */
 --- a/net/netfilter/nf_nat_core.c
 +++ b/net/netfilter/nf_nat_core.c
-@@ -493,6 +493,59 @@
+@@ -493,6 +493,53 @@
  	return 0;
  }
  
 +/**
-+ * nf_nat_src_mapping - the source mapping NAT already has for an endpoint
-+ * @net: network namespace of the connection
-+ * @zone: conntrack zone of the connection
-+ * @orig: original tuple of the connection being set up
-+ * @addr: output, the mapped source address of a live mapping
-+ * @port: output, the mapped source port of a live mapping
++ * nf_nat_src_mapping - lookup existing source mapping for an endpoint
++ * @net: network namespace
++ * @zone: conntrack zone
++ * @orig: original tuple of the connection
++ * @addr: destination pointer for mapped source address
++ * @port: destination pointer for mapped source port
 + *
-+ * Walks nf_nat_bysource, so a new connection from an already-mapped endpoint
-+ * keeps that port (RFC 4787 REQ-1).  The caller has to commit the pair
-+ * (@addr, @port) as a narrowed range, because that is the only way the port
-+ * survives get_unique_tuple()'s range checks.  Returns true when a mapping was
-+ * found.
++ * Walks nf_nat_bysource to preserve endpoint-independent mapping (RFC 4787 REQ-1).
++ * Returns true if an active mapping is found.
 + */
 +bool nf_nat_src_mapping(struct net *net,
-+			       const struct nf_conntrack_zone *zone,
-+			       const struct nf_conntrack_tuple *orig,
-+			       union nf_inet_addr *addr, __be16 *port)
++			const struct nf_conntrack_zone *zone,
++			const struct nf_conntrack_tuple *orig,
++			union nf_inet_addr *addr, __be16 *port)
 +{
 +	unsigned int h;
 +	const struct nf_conn *ct;
@@ -140,9 +110,6 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +
 +	rcu_read_lock();
 +	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
-+		/* same_src() does not compare l3num; a bucket collision could
-+		 * otherwise match a v4 lookup against an aliasing v6 address.
-+		 */
 +		if (nf_ct_is_dying(ct) ||
 +		    nf_ct_l3num(ct) != orig->src.l3num ||
 +		    !same_src(ct, orig) ||
@@ -166,7 +133,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  /* For [FUTURE] fragmentation handling, we want the least-used
   * src-ip/dst-ip/proto triple.  Fairness doesn't come into it.  Thus
   * if the range specifies 1.2.3.4 ports 10000-10005 and 1.2.3.5 ports
-@@ -1358,6 +1411,9 @@
+@@ -1358,6 +1405,9 @@
  		kvfree(nf_nat_bysource);
  	}
  
@@ -176,7 +143,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  	return ret;
  }
  
-@@ -1367,6 +1423,8 @@
+@@ -1367,6 +1417,8 @@
  
  	nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
  
@@ -787,19 +754,13 @@ Signed-off-by: YAOF-1 <dev@localhost>
  	newrange.max_addr.in6	= src;
 --- a/net/netfilter/nft_flow_offload.c
 +++ b/net/netfilter/nft_flow_offload.c
-@@ -353,8 +353,19 @@
+@@ -353,8 +353,13 @@
  		goto out;
  	}
  
 -	if (nf_ct_ext_exist(ct, NF_CT_EXT_HELPER) ||
 -	    ct->status & (IPS_SEQ_ADJUST | IPS_NAT_CLASH))
-+	/*
-+	 * A full-cone connection carries a helper but its mapping is complete in
-+	 * conntrack, so software offload may take it over - IPS_FULLCONE is only
-+	 * set together with a registered expectation.  Hardware offload may not:
-+	 * it would punt packets without conntrack resolving the expectation.
-+	 * Every other helper-carrying connection keeps the original behaviour.
-+	 */
++	/* Allow software flowtable offload for full-cone NAT connections */
 +	if (nf_ct_ext_exist(ct, NF_CT_EXT_HELPER) &&
 +	    (!(ct->status & IPS_FULLCONE) ||
 +	     nf_flowtable_hw_offload(&priv->flowtable->data)))
