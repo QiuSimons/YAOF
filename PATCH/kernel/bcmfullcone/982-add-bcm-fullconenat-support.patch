@@ -192,7 +192,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,466 @@
+@@ -24,6 +27,471 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -317,7 +317,12 @@ Signed-off-by: YAOF-1 <dev@localhost>
 + * connection that owns it, and nf_ct_remove_expectations() frees it.
 + */
 +static struct nf_conntrack_expect_policy bcm_nat_exp_policy __read_mostly = {
-+	.max_expected	= 1000,
++	/* One mapping per connection: the masquerade path registers it once and
++	 * bcm_nat_help() never registers a second one for the same conntrack.
++	 * NF_CT_EXPECT_MAX_CNT is 255 and nf_conntrack_helper_register() refuses
++	 * any policy above it.
++	 */
++	.max_expected	= 1,
 +	.timeout	= 86400,
 +};
 +
@@ -659,7 +664,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +524,38 @@
+@@ -61,6 +529,38 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -698,7 +703,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +754,40 @@
+@@ -259,6 +759,40 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
