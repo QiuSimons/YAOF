@@ -164,7 +164,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,514 @@
+@@ -24,6 +27,511 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -499,9 +499,6 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	bool found = false;
 +	__be16 cands[BCM_NAT_PORT_PROBES];
 +
-+	/* Only the address and port fields are filled in below; the rest of
-+	 * the range has to be zero, as the kernel's own masquerade code does.
-+	 */
 +	memset(newrange, 0, sizeof(*newrange));
 +
 +	/* An endpoint that already has a mapping keeps its port (RFC 4787
@@ -679,7 +676,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +572,38 @@
+@@ -61,6 +569,38 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -718,7 +715,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +802,40 @@
+@@ -259,6 +799,40 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
