@@ -27,6 +27,11 @@ The expectation expiry timer is set far beyond any conntrack lifetime and the
 mapping is torn down with its master connection instead: an offloaded
 connection never returns to the confirm path to re-arm a shorter timer.
 
+A connection that reuses an endpoint mapping therefore takes it over from an
+owner that is about to go away (dying, or not offloaded and thus on its own
+timer); an offloaded owner is exempt from the conntrack gc and keeps the
+mapping, so a flow that is still receiving never loses it.
+
 Signed-off-by: YAOF-1 <dev@localhost>
 ---
 
@@ -187,7 +192,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,384 @@
+@@ -24,6 +27,466 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -210,6 +215,20 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +       range.min_proto = range.max_proto = exp->saved_proto;
 +       range.min_addr = range.max_addr = exp->saved_addr;
 +       nf_nat_setup_info(ct, &range, NF_NAT_MANIP_DST);
++}
++
++/* Build the expectation-table key for an external address and port. */
++static void bcm_nat_expect_tuple(struct nf_conntrack_tuple *tuple, u8 l3num,
++				 const void *addr, __be16 port)
++{
++	memset(tuple, 0, sizeof(*tuple));
++	tuple->src.l3num = l3num;
++	tuple->dst.protonum = IPPROTO_UDP;
++	if (l3num == AF_INET6)
++		tuple->dst.u3.in6 = *(const struct in6_addr *)addr;
++	else
++		tuple->dst.u3.ip = *(const __be32 *)addr;
++	tuple->dst.u.udp.port = port;
 +}
 +
 +/* Install the full-cone expectation.  Shared by v4 and v6. */
@@ -244,28 +263,51 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +}
 +
 +static int bcm_nat_help(struct sk_buff *skb, unsigned int protoff,
-+                       struct nf_conn *ct, enum ip_conntrack_info ctinfo)
++		       struct nf_conn *ct, enum ip_conntrack_info ctinfo)
 +{
-+       int dir = CTINFO2DIR(ctinfo);
-+       struct nf_conntrack_expect *exp;
++	struct nf_conn_help *help = nfct_help(ct);
++	struct nf_conntrack_expect *exp;
++	struct nf_conntrack_tuple tuple;
++	bool found;
++	int dir;
 +
-+       /* Only a connection this feature masqueraded owns the mapping: a
-+        * connection created from the expectation inherits exp->helper and must
-+        * not install a second expectation aimed at its peer.
-+        */
-+       if (!(ct->status & IPS_FULLCONE))
-+               return NF_ACCEPT;
++	/* Only a connection this feature masqueraded owns the mapping: a
++	 * connection created from the expectation inherits exp->helper and must
++	 * not install a second expectation aimed at its peer.
++	 */
++	if (!(ct->status & IPS_FULLCONE))
++		return NF_ACCEPT;
 +
-+       if (dir != IP_CT_DIR_ORIGINAL)
-+               return NF_ACCEPT;
++	dir = CTINFO2DIR(ctinfo);
++	if (dir != IP_CT_DIR_ORIGINAL)
++		return NF_ACCEPT;
 +
-+       exp = bcm_nat_expect_create(ct, ct->tuplehash[dir].tuple.src.l3num, dir);
-+       if (exp != NULL) {
-+               pr_debug("bcm_nat: expect set up\n");
-+               nf_ct_expect_put(exp);
-+       }
++	if (help && help->expecting[NF_CT_EXPECT_CLASS_DEFAULT])
++		return NF_ACCEPT;
 +
-+       return NF_ACCEPT;
++	/* The masquerade path registered the mapping for the connection that
++	 * created it; a connection sharing that mapping has nothing registered
++	 * here.  Probe the table before allocating: the lookup is cheap, while
++	 * creating would allocate and then lose the clash against the owner.
++	 * When the owner is gone the probe misses and this connection takes the
++	 * mapping over.
++	 */
++	bcm_nat_expect_tuple(&tuple, ct->tuplehash[dir].tuple.src.l3num,
++			     &ct->tuplehash[!dir].tuple.dst.u3,
++			     ct->tuplehash[!dir].tuple.dst.u.udp.port);
++	rcu_read_lock();
++	found = __nf_ct_expect_find(nf_ct_net(ct), nf_ct_zone(ct), &tuple) != NULL;
++	rcu_read_unlock();
++	if (found)
++		return NF_ACCEPT;
++
++	exp = bcm_nat_expect_create(ct, ct->tuplehash[dir].tuple.src.l3num, dir);
++	if (exp != NULL) {
++		pr_debug("bcm_nat: expect set up\n");
++		nf_ct_expect_put(exp);
++	}
++
++	return NF_ACCEPT;
 +}
 +
 +/* The expiry timer unlinks an expectation unconditionally (PERMANENT only
@@ -363,20 +405,6 @@ Signed-off-by: YAOF-1 <dev@localhost>
 + */
 +#define BCM_NAT_PORT_PROBES 32
 +
-+/* Build the expectation-table key for an external address and port. */
-+static void bcm_nat_expect_tuple(struct nf_conntrack_tuple *tuple, u8 l3num,
-+				 const void *addr, __be16 port)
-+{
-+	memset(tuple, 0, sizeof(*tuple));
-+	tuple->src.l3num = l3num;
-+	tuple->dst.protonum = IPPROTO_UDP;
-+	if (l3num == AF_INET6)
-+		tuple->dst.u3.in6 = *(const struct in6_addr *)addr;
-+	else
-+		tuple->dst.u3.ip = *(const __be32 *)addr;
-+	tuple->dst.u.udp.port = port;
-+}
-+
 +/* State of the external (addr, port) in the expectation table:
 + *   0 - nobody, 1 - this endpoint's mapping, 2 - another endpoint's mapping.
 + * The table is keyed on the external address and port, so a state-2 port could
@@ -403,6 +431,61 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +	}
 +
 +	return state;
++}
++
++/* The endpoint mapping belongs to whichever conntrack registered it.  An
++ * offloaded owner is exempt from the conntrack gc and outlives this
++ * connection, so it keeps the mapping; any other owner expires on its own
++ * timer and would take the mapping with it.  Move the mapping to the
++ * connection that is being set up now.
++ *
++ * Expressed conntracks do not hold a reference on their master, so the owner
++ * may only be inspected while the expectation is still in the table, i.e.
++ * inside the RCU section that found it.
++ */
++static bool bcm_nat_takeover(struct nf_conn *ct,
++			     const struct nf_conntrack_tuple *tuple)
++{
++	struct nf_conntrack_expect *exp;
++	struct nf_conn *owner = NULL;
++	bool protected = false;
++
++	rcu_read_lock();
++	exp = __nf_ct_expect_find(nf_ct_net(ct), nf_ct_zone(ct), tuple);
++	if (exp == NULL) {
++		rcu_read_unlock();
++		return true;
++	}
++
++	/* The expectation does not hold a reference on its master, so pin the
++	 * owner before looking at it, the same way nf_ct_find_expectation()
++	 * does: a failing refcount means the owner is already being destroyed.
++	 */
++	if (refcount_inc_not_zero(&exp->master->ct_general.use)) {
++		owner = exp->master;
++		if (!nf_ct_is_dying(owner))
++			protected = test_bit(IPS_OFFLOAD_BIT, &owner->status);
++	}
++	rcu_read_unlock();
++
++	if (owner == NULL)
++		return true;
++
++	if (protected) {
++		nf_ct_put(owner);
++		return false;
++	}
++
++	nf_ct_put(owner);
++
++	exp = nf_ct_expect_find_get(nf_ct_net(ct), nf_ct_zone(ct), tuple);
++	if (exp == NULL)
++		return true;
++
++	nf_ct_unexpect_related(exp);
++	nf_ct_expect_put(exp);
++
++	return true;
 +}
 +
 +/* Pick the external port for a full-cone mapping and bind it into @newrange.
@@ -444,12 +527,16 @@ Signed-off-by: YAOF-1 <dev@localhost>
 +		if (state == 2)
 +			return NF_DROP;
 +
-+		/* state 1: a live expectation covers this endpoint.
++		/* state 1: a live expectation covers this endpoint; keep it
++		 * unless its owner is about to go away.
 +		 * state 0: the expectation died with the conntrack that owned it
 +		 * (nf_ct_remove_expectations() drops it with its master), so the
 +		 * port is bound but unreachable and has to be registered again.
 +		 */
-+		*need_expect = (state == 0);
++		if (state == 1)
++			*need_expect = bcm_nat_takeover(ct, &tuple);
++		else
++			*need_expect = true;
 +
 +		minport = maxport = reuse_port;
 +		if (l3num == AF_INET6)
@@ -572,7 +659,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +442,38 @@
+@@ -61,6 +524,38 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -611,7 +698,7 @@ Signed-off-by: YAOF-1 <dev@localhost>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +672,40 @@
+@@ -259,6 +754,40 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
