@@ -115,7 +115,7 @@ new file mode 100644
 diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
 --- a/root/usr/share/ucode/fw4.uc
 +++ b/root/usr/share/ucode/fw4.uc
-@@ -490,6 +492,47 @@
+@@ -490,6 +492,50 @@
  }
  
  
@@ -126,15 +126,18 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
 +	 * without it silently drops the unknown attribute (nf_tables parses
 +	 * expression attributes with nla_parse_nested_deprecated(), which
 +	 * discards types past maxtype), so the rule installs and dumps as a plain
-+	 * masquerade: \"nft -c\" always succeeds and cannot be used to probe.
++	 * masquerade: "nft -c" always succeeds and cannot be used to probe.
 +	 * Hence: install the rule for real, list it back, require the keyword on
 +	 * the masquerade statement, and drop the scratch table on every path.
 +	 * The rule matches a device name that cannot exist, so it can never NAT
-+	 * live traffic while the scratch table is installed.  The name has to be a
-+	 * syntactically valid one as well: iifname \"/never/\" is an nft syntax
-+	 * error (the scanner strips the double quotes and then chokes on the bare
-+	 * slashes), and a probe that fails that way is indistinguishable from a
-+	 * kernel without the attribute.
++	 * live traffic while the scratch table is installed.  That name still has
++	 * to be syntactically valid: a name nft rejects makes the probe fail on a
++	 * kernel that does carry the attribute, and that failure looks identical
++	 * to "no support".  Two measured examples:
++	 *   - iifname "/never/": the scanner drops the quotes and then chokes
++	 *     on the bare slashes
++	 *   - an interface name longer than IFNAMSIZ - 1: nft rejects it with
++	 *     "String exceeds maximum length of 16"
 +	 */
 +	let name = 'fw4-brcmfullcone-test';
 +	let nfproto = (family == 6) ? 'ipv6' : 'ipv4';
@@ -143,7 +146,7 @@ diff --git a/root/usr/share/ucode/fw4.uc b/root/usr/share/ucode/fw4.uc
 +		'add table inet ' + name + '; ' +
 +		'add chain inet ' + name + ' srcnat { ' +
 +			'type nat hook postrouting priority srcnat; policy accept; ' +
-+			sprintf('meta nfproto %s iifname "fw4-brcmfullcone-never" masquerade %s brcmfullcone; ',
++			sprintf('meta nfproto %s iifname "fcprobe-never" masquerade %s brcmfullcone; ',
 +				nfproto, ipproto) +
 +		'}; ';
 +	let cmd = sprintf("/usr/sbin/nft delete table inet %s 2>/dev/null; " +
