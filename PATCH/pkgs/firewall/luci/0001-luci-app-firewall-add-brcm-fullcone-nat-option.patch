@@ -1,32 +1,19 @@
-From: YAOF-1 <dev@localhost>
-Date: Thu, 1 Jan 1970 00:00:00 +0000
+From: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 Subject: [PATCH] luci-app-firewall: add BRCM full cone NAT option
 
-Adds a "BRCM Full Cone NAT" list option (Disable / Enable IPv4 / Enable IPv4
-and IPv6) to the General Settings section, i.e. to the global 'defaults'
-section rather than to a zone: it is registered on the same TypedSection as the
-syn-flood and offloading switches.  It is a view over the fullcone4 and
-fullcone6 keys of that section - reading maps the pair back to one of the three
-states, writing sets both keys - and because fw4 declares both keys with default
-0, an absent key reads as disabled.
+Add BRCM Full Cone NAT option to Firewall - General Settings, controlling
+the global 'fullcone4' and 'fullcone6' options in /etc/config/firewall.
 
-Not wrapped in L.hasSystemFeature(): the option stays visible even when the
-kernel or nftables side is missing, so fw4's runtime probe reports the failure
-instead of the switch silently not existing.
-
-Signed-off-by: YAOF-1 <dev@localhost>
+Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 ---
+
 --- a/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
 +++ b/applications/luci-app-firewall/htdocs/luci-static/resources/view/firewall/zones.js
-@@ -53,6 +53,27 @@ return view.extend({
+@@ -53,6 +53,23 @@
  			uci.unset('firewall', section_id, 'syn_flood');
  			uci.unset('firewall', section_id, 'synflood_protect');
  		};
-+		/* Broadcom full cone NAT (expectation based).  Deliberately not gated
-+		 * on a system feature: the option has to be visible so a missing
-+		 * kernel/nftables piece is reported by fw4 instead of the switch
-+		 * silently not existing. */
-+
++		// BRCM Full Cone NAT
 +		o = s.option(form.ListValue, "fullcone", _("BRCM Full Cone NAT"));
 +		o.value('0', _("Disable"));
 +		o.value('1', _("Enable IPv4"));
