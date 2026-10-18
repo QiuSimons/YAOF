@@ -83,7 +83,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  /* Connection tracking event types */
 --- a/net/netfilter/nf_nat_core.c
 +++ b/net/netfilter/nf_nat_core.c
-@@ -493,6 +493,73 @@
+@@ -493,6 +493,74 @@
  	return 0;
  }
  
@@ -92,6 +92,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 + * @net: network namespace
 + * @zone: conntrack zone
 + * @orig: original tuple of the connection
++ * @want: egress address the mapping has to belong to
 + * @addr: destination pointer for mapped source address
 + * @port: destination pointer for mapped source port
 + *
@@ -157,7 +158,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  /* For [FUTURE] fragmentation handling, we want the least-used
   * src-ip/dst-ip/proto triple.  Fairness doesn't come into it.  Thus
   * if the range specifies 1.2.3.4 ports 10000-10005 and 1.2.3.5 ports
-@@ -1358,6 +1425,9 @@
+@@ -1358,6 +1426,9 @@
  		kvfree(nf_nat_bysource);
  	}
  
@@ -167,7 +168,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  	return ret;
  }
  
-@@ -1367,6 +1437,8 @@
+@@ -1367,6 +1438,8 @@
  
  	nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
  
@@ -531,6 +532,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	union nf_inet_addr reuse_addr, egress = {};
 +	__be16 reuse_port = 0;
 +	unsigned int i, n = 0;
++	int state = 0;
 +	bool found = false;
 +	__be16 cands[BCM_NAT_PORT_PROBES];
 +
@@ -546,30 +548,28 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	 */
 +	if (nf_nat_src_mapping(nf_ct_net(ct), nf_ct_zone(ct), orig, &egress,
 +			       &reuse_addr, &reuse_port) && reuse_port != 0) {
-+		int state;
-+
 +		bcm_nat_expect_tuple(&tuple, l3num, &reuse_addr, reuse_port);
 +		rcu_read_lock();
 +		state = bcm_nat_expect_state(ct, orig, &tuple);
 +		rcu_read_unlock();
 +
-+		if (state == 2)
-+			return NF_DROP;
++		if (state != 2) {
++			*need_expect = state == 1 ?
++				bcm_nat_takeover(ct, &tuple) : true;
 +
-+		*need_expect = state == 1 ? bcm_nat_takeover(ct, &tuple) : true;
-+
-+		minport = maxport = reuse_port;
-+		if (l3num == AF_INET6)
-+			newrange->min_addr.in6 = newrange->max_addr.in6 =
-+				reuse_addr.in6;
-+		else
-+			newrange->min_addr.ip = newrange->max_addr.ip =
-+				reuse_addr.ip;
-+		newrange->flags = range->flags | NF_NAT_RANGE_MAP_IPS |
-+			NF_NAT_RANGE_PROTO_SPECIFIED;
-+		newrange->min_proto.udp.port =
-+			newrange->max_proto.udp.port = reuse_port;
-+		return NF_ACCEPT;
++			minport = maxport = reuse_port;
++			if (l3num == AF_INET6)
++				newrange->min_addr.in6 =
++					newrange->max_addr.in6 = reuse_addr.in6;
++			else
++				newrange->min_addr.ip =
++					newrange->max_addr.ip = reuse_addr.ip;
++			newrange->flags = range->flags | NF_NAT_RANGE_MAP_IPS |
++				NF_NAT_RANGE_PROTO_SPECIFIED;
++			newrange->min_proto.udp.port =
++				newrange->max_proto.udp.port = reuse_port;
++			return NF_ACCEPT;
++		}
 +	}
 +
 +	minport = range->min_proto.all;
@@ -635,7 +635,8 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	rcu_read_lock();
 +	for (i = 0; i < n; i++) {
 +		tuple.dst.u.udp.port = cands[i];
-+		if (bcm_nat_expect_state(ct, orig, &tuple) == 2)
++		state = bcm_nat_expect_state(ct, orig, &tuple);
++		if (state == 2)
 +			continue;
 +		if (!nf_nat_binding_free(ct, orig, &egress, cands[i]))
 +			continue;
@@ -649,7 +650,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +		return NF_DROP;
 +	}
 +
-+	*need_expect = true;
++	*need_expect = state == 1 ? bcm_nat_takeover(ct, &tuple) : true;
 +
 +	if (l3num == AF_INET6)
 +		newrange->min_addr.in6 = newrange->max_addr.in6 = egress.in6;
