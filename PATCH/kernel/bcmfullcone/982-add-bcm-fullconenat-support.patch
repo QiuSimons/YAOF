@@ -189,7 +189,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,517 @@
+@@ -24,6 +27,504 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -333,12 +333,9 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	return NF_ACCEPT;
 +}
 +
-+/* The expiry timer unlinks an expectation unconditionally: PERMANENT only
-+ * stops a matching packet from consuming it.  An offloaded connection keeps
-+ * its conntrack timeout refreshed and never reaches nf_confirm() to re-arm,
-+ * so a flow that stays offloaded for the whole day loses its expectation
-+ * until a slow-path packet installs a new one.  The conntrack itself frees
-+ * the expectation through nf_ct_remove_expectations().
++/* The timer unlinks an expectation unconditionally: PERMANENT only stops a
++ * matching packet from consuming it.  An offloaded owner keeps its conntrack
++ * alive past the timer, so only a slow-path packet re-arms the mapping.
 + */
 +static struct nf_conntrack_expect_policy bcm_nat_exp_policy __read_mostly = {
 +	/* One mapping per connection: the masquerade path registers it once and
@@ -462,15 +459,10 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	return state;
 +}
 +
-+/* The endpoint mapping belongs to whichever conntrack registered it.  An
-+ * offloaded owner is exempt from the conntrack gc and keeps it; a dying or
-+ * expired owner is about to take it away, so move the mapping to the
-+ * connection being set up now.  A live owner keeps the mapping and
-+ * bcm_nat_help() hands it over once the owner is gone.
-+ *
-+ * Expressed conntracks do not hold a reference on their master, so the owner
-+ * may only be inspected while the expectation is still in the table, i.e.
-+ * inside the RCU section that found it.
++/* The external binding belongs to the conntrack that registered it: move it
++ * away from a dying or expired owner, a live one keeps it until bcm_nat_help()
++ * takes over.  The expectation holds no reference on its master, so the owner
++ * is only inspected inside the RCU section that found it.
 + */
 +static bool bcm_nat_takeover(struct nf_conn *ct,
 +			     const struct nf_conntrack_tuple *tuple)
@@ -635,10 +627,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +			found = true;
 +		}
 +
-+		/* Then walk the same-parity ports, testing each one as it is
-+		 * reached, so a narrow range is scanned whole instead of a
-+		 * fixed number of random probes.
-+		 */
++		/* Then the same-parity ports, tested as they are reached. */
 +		for (i = 0; !found && i < cnt && i < BCM_NAT_PORT_PROBES; i++) {
 +			u32 d = (i + 1) >> 1;
 +			u32 j = (i & 1) ? (idx + cnt - d) % cnt :
@@ -654,9 +643,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +			}
 +		}
 +
-+		/* No port of the source parity: parity is only recommended,
-+		 * use the range as it is.
-+		 */
++		/* No port of the source parity: use the range as it is. */
 +		if (!found && cnt == 0 &&
 +		    bcm_nat_port_ok(ct, orig, &tuple, &egress, htons(minp),
 +				    &state)) {
@@ -707,7 +694,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +575,43 @@
+@@ -61,6 +562,43 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -751,7 +738,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +810,45 @@
+@@ -259,6 +797,45 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
