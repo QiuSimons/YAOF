@@ -21,14 +21,18 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 
 --- a/include/net/netfilter/nf_nat.h
 +++ b/include/net/netfilter/nf_nat.h
-@@ -35,11 +35,17 @@
+@@ -35,11 +35,21 @@
  #endif
  };
  
 +/* Lookup existing source mapping for an internal endpoint (RFC 4787 REQ-1) */
 +bool nf_nat_src_mapping(struct net *net, const struct nf_conntrack_zone *zone,
 +			const struct nf_conntrack_tuple *orig,
++			const union nf_inet_addr *want,
 +			union nf_inet_addr *addr, __be16 *port);
++bool nf_nat_binding_free(const struct nf_conn *ct,
++			 const struct nf_conntrack_tuple *orig,
++			 const union nf_inet_addr *addr, __be16 port);
 +
  /* Set up the info structure to map into this range. */
  unsigned int nf_nat_setup_info(struct nf_conn *ct,
@@ -39,7 +43,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
  					      unsigned int hooknum);
  
-@@ -116,4 +122,13 @@
+@@ -116,4 +126,13 @@
  	else
  		return ct->status & IPS_DST_NAT_DONE;
  }
@@ -79,7 +83,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  /* Connection tracking event types */
 --- a/net/netfilter/nf_nat_core.c
 +++ b/net/netfilter/nf_nat_core.c
-@@ -493,6 +493,53 @@
+@@ -493,6 +493,73 @@
  	return 0;
  }
  
@@ -97,11 +101,11 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +bool nf_nat_src_mapping(struct net *net,
 +			const struct nf_conntrack_zone *zone,
 +			const struct nf_conntrack_tuple *orig,
++			const union nf_inet_addr *want,
 +			union nf_inet_addr *addr, __be16 *port)
 +{
 +	unsigned int h;
 +	const struct nf_conn *ct;
-+	struct nf_conntrack_tuple result;
 +
 +	if (orig->dst.protonum != IPPROTO_UDP)
 +		return false;
@@ -110,17 +114,25 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +
 +	rcu_read_lock();
 +	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
-+		if (nf_ct_is_dying(ct) ||
++		const struct nf_conntrack_tuple *map =
++			&ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++
++		if (nf_ct_is_dying(ct) || nf_ct_is_expired(ct) ||
 +		    nf_ct_l3num(ct) != orig->src.l3num ||
 +		    !same_src(ct, orig) ||
 +		    !net_eq(net, nf_ct_net(ct)) ||
 +		    !nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL))
 +			continue;
 +
-+		nf_ct_invert_tuple(&result,
-+				   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+		*addr = result.src.u3;
-+		*port = result.src.u.udp.port;
++		if (orig->src.l3num == AF_INET6) {
++			if (!ipv6_addr_equal(&want->in6, &map->dst.u3.in6))
++				continue;
++		} else if (want->ip != map->dst.u3.ip) {
++			continue;
++		}
++
++		*addr = map->dst.u3;
++		*port = map->dst.u.udp.port;
 +		rcu_read_unlock();
 +		return true;
 +	}
@@ -130,10 +142,22 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +}
 +EXPORT_SYMBOL_GPL(nf_nat_src_mapping);
 +
++/* Whether @addr:@port is still free for a new source mapping. */
++bool nf_nat_binding_free(const struct nf_conn *ct,
++			 const struct nf_conntrack_tuple *orig,
++			 const union nf_inet_addr *addr, __be16 port)
++{
++	struct nf_conntrack_tuple tuple = *orig;
++
++	tuple.src.u3 = *addr;
++	tuple.src.u.udp.port = port;
++	return !nf_nat_used_tuple(&tuple, ct);
++}
++
  /* For [FUTURE] fragmentation handling, we want the least-used
   * src-ip/dst-ip/proto triple.  Fairness doesn't come into it.  Thus
   * if the range specifies 1.2.3.4 ports 10000-10005 and 1.2.3.5 ports
-@@ -1358,6 +1405,9 @@
+@@ -1358,6 +1425,9 @@
  		kvfree(nf_nat_bysource);
  	}
  
@@ -143,7 +167,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  	return ret;
  }
  
-@@ -1367,6 +1417,8 @@
+@@ -1367,6 +1437,8 @@
  
  	nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
  
@@ -164,7 +188,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  
  struct masq_dev_work {
  	struct work_struct work;
-@@ -24,6 +27,511 @@
+@@ -24,6 +27,495 @@
  static unsigned int masq_refcnt __read_mostly;
  static atomic_t masq_worker_count __read_mostly;
  
@@ -175,8 +199,8 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +
 +       memset(&range, 0, sizeof(range));
 +
-+       /* This must be a fresh one. */
-+       BUG_ON(ct->status & IPS_NAT_DONE_MASK);
++       if (WARN_ON_ONCE(ct->status & IPS_NAT_DONE_MASK))
++               return;
 +
 +       /* Change src to where new ct comes from */
 +       range.flags = NF_NAT_RANGE_MAP_IPS;
@@ -213,17 +237,25 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +
 +/* Install the full-cone expectation.  Shared by v4 and v6. */
 +static struct nf_conntrack_expect *bcm_nat_expect_create(struct nf_conn *ct,
-+                                                       u8 l3num, int dir)
++                                                       u8 l3num, int dir,
++                                                       int *err)
 +{
 +       struct nf_conn_help *help = nfct_help(ct);
 +       struct nf_conntrack_expect *exp;
++       int ret;
 +
-+       if (help && help->expecting[NF_CT_EXPECT_CLASS_DEFAULT])
++       if (help && help->expecting[NF_CT_EXPECT_CLASS_DEFAULT]) {
++               if (err)
++                       *err = -EEXIST;
 +               return NULL;
++       }
 +
 +       exp = nf_ct_expect_alloc(ct);
-+       if (exp == NULL)
++       if (exp == NULL) {
++               if (err)
++                       *err = -ENOMEM;
 +               return NULL;
++       }
 +
 +       nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, l3num, NULL,
 +                         &ct->tuplehash[!dir].tuple.dst.u3, IPPROTO_UDP,
@@ -234,7 +266,10 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +       exp->dir = !dir;
 +       exp->expectfn = bcm_nat_expect;
 +
-+       if (nf_ct_expect_related(exp, 0) != 0) {
++       ret = nf_ct_expect_related(exp, 0);
++       if (ret != 0) {
++               if (err)
++                       *err = ret;
 +               nf_ct_expect_put(exp);
 +               return NULL;
 +       }
@@ -287,7 +322,8 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	if (found)
 +		return NF_ACCEPT;
 +
-+	exp = bcm_nat_expect_create(ct, ct->tuplehash[dir].tuple.src.l3num, dir);
++	exp = bcm_nat_expect_create(ct, ct->tuplehash[dir].tuple.src.l3num, dir,
++				     NULL);
 +	if (exp != NULL) {
 +		pr_debug("bcm_nat: expect set up\n");
 +		nf_ct_expect_put(exp);
@@ -348,7 +384,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	if (help == NULL)
 +		return false;
 +
-+	h = rcu_dereference(help->helper);
++	h = rcu_access_pointer(help->helper);
 +	return h == &nf_conntrack_helper_bcm_nat
 +#if IS_ENABLED(CONFIG_IPV6)
 +	       || h == &nf_conntrack_helper_bcm_nat6
@@ -439,7 +475,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +{
 +	struct nf_conntrack_expect *exp;
 +	struct nf_conn *owner = NULL;
-+	bool protected = false;
++	bool gone = false;
 +
 +	rcu_read_lock();
 +	exp = __nf_ct_expect_find(nf_ct_net(ct), nf_ct_zone(ct), tuple);
@@ -448,26 +484,24 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +		return true;
 +	}
 +
-+	/* The expectation does not hold a reference on its master, so pin the
-+	 * owner before looking at it, the same way nf_ct_find_expectation()
-+	 * does: a failing refcount means the owner is already being destroyed.
++	/* The expectation holds no reference on its master, so pin the owner
++	 * before looking at it, as nf_ct_find_expectation() does.
 +	 */
 +	if (refcount_inc_not_zero(&exp->master->ct_general.use)) {
 +		owner = exp->master;
-+		if (!nf_ct_is_dying(owner))
-+			protected = test_bit(IPS_OFFLOAD_BIT, &owner->status);
++		gone = nf_ct_is_dying(owner) || nf_ct_is_expired(owner);
 +	}
 +	rcu_read_unlock();
 +
 +	if (owner == NULL)
 +		return true;
-+
-+	if (protected) {
-+		nf_ct_put(owner);
-+		return false;
-+	}
-+
 +	nf_ct_put(owner);
++
++	/* A live owner keeps the mapping; bcm_nat_help() hands it over once
++	 * the owner is gone.
++	 */
++	if (!gone)
++		return false;
 +
 +	exp = nf_ct_expect_find_get(nf_ct_net(ct), nf_ct_zone(ct), tuple);
 +	if (exp == NULL)
@@ -490,10 +524,11 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +{
 +	const struct nf_conntrack_tuple *orig =
 +		&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-+	u_int16_t srcport = ntohs(orig->src.u.udp.port);
-+	u_int16_t minport, maxport, minp, maxp, parity;
++	u16 srcport = ntohs(orig->src.u.udp.port);
++	u16 minp, maxp, parity;
++	__be16 minport, maxport;
 +	struct nf_conntrack_tuple tuple;
-+	union nf_inet_addr reuse_addr;
++	union nf_inet_addr reuse_addr, egress = {};
 +	__be16 reuse_port = 0;
 +	unsigned int i, n = 0;
 +	bool found = false;
@@ -501,68 +536,47 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +
 +	memset(newrange, 0, sizeof(*newrange));
 +
++	if (l3num == AF_INET6)
++		egress.in6 = *(const struct in6_addr *)addr;
++	else
++		egress.ip = *(const __be32 *)addr;
++
 +	/* An endpoint that already has a mapping keeps its port (RFC 4787
-+	 * REQ-1).  It has to be committed as a narrowed range: the range the
-+	 * kernel is handed would not contain it and get_unique_tuple() would
-+	 * allocate a second port for the same endpoint.
++	 * REQ-1); the kernel only reuses a mapping its range contains.
 +	 */
-+	if (nf_nat_src_mapping(nf_ct_net(ct), nf_ct_zone(ct), orig, &reuse_addr,
-+			       &reuse_port) &&
-+	    reuse_port != 0) {
-+		bool same_addr = (l3num == AF_INET6) ?
-+			ipv6_addr_equal(&reuse_addr.in6,
-+					(const struct in6_addr *)addr) :
-+			reuse_addr.ip == *(const __be32 *)addr;
++	if (nf_nat_src_mapping(nf_ct_net(ct), nf_ct_zone(ct), orig, &egress,
++			       &reuse_addr, &reuse_port) && reuse_port != 0) {
++		int state;
 +
-+		/* The endpoint has a mapping, but not necessarily on the address
-+		 * this packet leaves through: with multiple WANs or a changed
-+		 * address, reusing it would put a foreign source address on the
-+		 * wire.
-+		 */
-+		if (same_addr) {
-+			int state;
++		bcm_nat_expect_tuple(&tuple, l3num, &reuse_addr, reuse_port);
++		rcu_read_lock();
++		state = bcm_nat_expect_state(ct, orig, &tuple);
++		rcu_read_unlock();
 +
-+			bcm_nat_expect_tuple(&tuple, l3num, &reuse_addr, reuse_port);
-+			rcu_read_lock();
-+			state = bcm_nat_expect_state(ct, orig, &tuple);
-+			rcu_read_unlock();
++		if (state == 2)
++			return NF_DROP;
 +
-+			/* A port owned by another endpoint must not be reused. */
-+			if (state == 2)
-+				return NF_DROP;
++		*need_expect = state == 1 ? bcm_nat_takeover(ct, &tuple) : true;
 +
-+			/* state 1: a live expectation covers this endpoint; keep it
-+			 * unless its owner is about to go away.
-+			 * state 0: the expectation died with the conntrack that owned it
-+			 * (nf_ct_remove_expectations() drops it with its master), so the
-+			 * port is bound but unreachable and has to be registered again.
-+			 */
-+			if (state == 1)
-+				*need_expect = bcm_nat_takeover(ct, &tuple);
-+			else
-+				*need_expect = true;
-+
-+			minport = maxport = reuse_port;
-+			if (l3num == AF_INET6)
-+				newrange->min_addr.in6 = newrange->max_addr.in6 =
-+					reuse_addr.in6;
-+			else
-+				newrange->min_addr.ip = newrange->max_addr.ip =
-+					reuse_addr.ip;
-+			newrange->flags = range->flags | NF_NAT_RANGE_MAP_IPS |
-+				NF_NAT_RANGE_PROTO_SPECIFIED;
-+			newrange->min_proto.udp.port =
-+				newrange->max_proto.udp.port = reuse_port;
-+			return NF_ACCEPT;
-+		}
++		minport = maxport = reuse_port;
++		if (l3num == AF_INET6)
++			newrange->min_addr.in6 = newrange->max_addr.in6 =
++				reuse_addr.in6;
++		else
++			newrange->min_addr.ip = newrange->max_addr.ip =
++				reuse_addr.ip;
++		newrange->flags = range->flags | NF_NAT_RANGE_MAP_IPS |
++			NF_NAT_RANGE_PROTO_SPECIFIED;
++		newrange->min_proto.udp.port =
++			newrange->max_proto.udp.port = reuse_port;
++		return NF_ACCEPT;
 +	}
 +
 +	minport = range->min_proto.all;
 +	maxport = range->max_proto.all;
 +	if (minport == 0) {
-+		/* No range in the rule: follow the convention the kernel uses for
-+		 * a source rewrite.  Starting at the internal port would leave
-+		 * only the few ports above a high one available.
++		/* No range in the rule: follow the kernel's convention for a
++		 * source rewrite.
 +		 */
 +		if (srcport < 512) {
 +			minport = htons(1);
@@ -582,26 +596,31 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	parity = srcport & 1;
 +
 +	if (minp <= maxp) {
-+		/* The source port parity has to be kept (RFC 4787 REQ-4), so the
-+		 * candidates are one arithmetic sequence with a step of two.
++		/* Keep the source port parity (RFC 4787 REQ-4): the candidates
++		 * form one arithmetic sequence with a step of two.
 +		 */
 +		u32 first = minp + ((parity ^ (minp & 1)) ? 1 : 0);
 +		u32 cnt = (first <= maxp) ? (maxp - first) / 2 + 1 : 0;
 +		u32 idx = cnt ? get_random_u16() % cnt : 0;
 +		bool have_src = false;
 +
-+		/* internal port first: port preservation (RFC 4787 REQ-3) */
 +		if (srcport >= minp && srcport <= maxp &&
 +		    (srcport & 1) == parity) {
 +			cands[n++] = htons(srcport);
 +			have_src = true;
 +		}
 +
++		/* No port of the source parity in the range: parity is only
++		 * recommended, fall back to the range itself.
++		 */
++		if (cnt == 0 && !have_src)
++			cands[n++] = htons(minp);
++
 +		for (i = 0; i < cnt && n < BCM_NAT_PORT_PROBES; i++) {
 +			u32 d = (i + 1) >> 1;
 +			u32 j = (i & 1) ? (idx + cnt - d) % cnt :
 +					 (idx + d) % cnt;
-+			u_int16_t c = first + 2 * j;
++			u16 c = first + 2 * j;
 +
 +			if (have_src && c == srcport)
 +				continue;
@@ -609,28 +628,21 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +		}
 +	}
 +
-+	/* One RCU section for the whole scan: the expectation hash is read
-+	 * only, and nf_ct_expect_related() takes the lock for the insert.
++	/* Take the first candidate the kernel can commit: no other endpoint's
++	 * expectation and no conntrack using the binding.
 +	 */
-+	bcm_nat_expect_tuple(&tuple, l3num, addr, 0);
++	bcm_nat_expect_tuple(&tuple, l3num, &egress, 0);
 +	rcu_read_lock();
 +	for (i = 0; i < n; i++) {
 +		tuple.dst.u.udp.port = cands[i];
 +		if (bcm_nat_expect_state(ct, orig, &tuple) == 2)
-+			cands[i] = 0;
-+	}
-+	rcu_read_unlock();
-+
-+	/* A clash with an unrelated mapping is left to nf_conntrack_confirm(),
-+	 * the same mechanism plain masquerade relies on.
-+	 */
-+	for (i = 0; i < n; i++) {
-+		if (cands[i] == 0)
 +			continue;
-+		minport = maxport = cands[i];
++		if (!nf_nat_binding_free(ct, orig, &egress, cands[i]))
++			continue;
 +		found = true;
 +		break;
 +	}
++	rcu_read_unlock();
 +
 +	if (!found) {
 +		pr_debug("%s: no free port in [%hu,%hu]\n", tag, minp, maxp);
@@ -640,15 +652,13 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +	*need_expect = true;
 +
 +	if (l3num == AF_INET6)
-+		newrange->min_addr.in6 = newrange->max_addr.in6 =
-+			*(const struct in6_addr *)addr;
++		newrange->min_addr.in6 = newrange->max_addr.in6 = egress.in6;
 +	else
-+		newrange->min_addr.ip = newrange->max_addr.ip =
-+			*(const __be32 *)addr;
++		newrange->min_addr.ip = newrange->max_addr.ip = egress.ip;
 +
 +	newrange->flags = range->flags | NF_NAT_RANGE_MAP_IPS |
 +		NF_NAT_RANGE_PROTO_SPECIFIED;
-+	newrange->min_proto.udp.port = newrange->max_proto.udp.port = minport;
++	newrange->min_proto.udp.port = newrange->max_proto.udp.port = cands[i];
 +
 +	return NF_ACCEPT;
 +}
@@ -659,14 +669,12 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +static int bcm_nat_install_expect(struct nf_conn *ct, u8 l3num, const char *tag)
 +{
 +	struct nf_conntrack_expect *exp;
++	int err = -ENOMEM;
 +
-+	exp = bcm_nat_expect_create(ct, l3num, IP_CT_DIR_ORIGINAL);
++	exp = bcm_nat_expect_create(ct, l3num, IP_CT_DIR_ORIGINAL, &err);
 +	if (exp == NULL) {
-+		/* Nothing can reach this mapping from the outside: do not keep
-+		 * it, let the client retransmit into a new port.
-+		 */
-+		pr_debug("%s: expectation failed, dropping\n", tag);
-+		return -ENOMEM;
++		pr_debug("%s: expectation failed (%d)\n", tag, err);
++		return err;
 +	}
 +	nf_ct_expect_put(exp);
 +
@@ -676,7 +684,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  unsigned int
  nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
  		       const struct nf_nat_range2 *range,
-@@ -61,6 +569,38 @@
+@@ -61,6 +553,43 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -698,13 +706,18 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +                         return ret;
 +
 +                 set_bit(IPS_FULLCONE_BIT, &ct->status);
-+                 if (need_expect &&
-+                     bcm_nat_install_expect(ct, AF_INET, "bcm_nat") < 0) {
-+                         /* No expectation slot left: keep the NAT
-+                          * mapping and fall back to symmetric
-+                          * behaviour instead of breaking the flow.
++                 if (need_expect) {
++                         int err = bcm_nat_install_expect(ct, AF_INET,
++                                                          "bcm_nat");
++
++                         /* Another endpoint claimed the port while this
++                          * connection was set up: let the client retransmit
++                          * into a port the next scan can pick.
 +                          */
-+                         clear_bit(IPS_FULLCONE_BIT, &ct->status);
++                         if (err == -EBUSY)
++                                 return NF_DROP;
++                         if (err < 0)
++                                 clear_bit(IPS_FULLCONE_BIT, &ct->status);
 +                 }
 +
 +                 pr_debug("bcm_nat: full cone mapping %hu installed\n",
@@ -715,7 +728,7 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
  	/* Transfer from original range. */
  	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
  	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
-@@ -259,6 +799,40 @@
+@@ -259,6 +788,45 @@
  	if (nat)
  		nat->masq_index = out->ifindex;
  
@@ -738,13 +751,18 @@ Signed-off-by: QiuSimons <45143996+QiuSimons@users.noreply.github.com>
 +                         return ret;
 +
 +                 set_bit(IPS_FULLCONE_BIT, &ct->status);
-+                 if (need_expect &&
-+                     bcm_nat_install_expect(ct, AF_INET6, "bcm_nat6") < 0) {
-+                         /* No expectation slot left: keep the NAT
-+                          * mapping and fall back to symmetric
-+                          * behaviour instead of breaking the flow.
++                 if (need_expect) {
++                         int err = bcm_nat_install_expect(ct, AF_INET6,
++                                                          "bcm_nat6");
++
++                         /* Another endpoint claimed the port while this
++                          * connection was set up: let the client retransmit
++                          * into a port the next scan can pick.
 +                          */
-+                         clear_bit(IPS_FULLCONE_BIT, &ct->status);
++                         if (err == -EBUSY)
++                                 return NF_DROP;
++                         if (err < 0)
++                                 clear_bit(IPS_FULLCONE_BIT, &ct->status);
 +                 }
 +
 +                 pr_debug("bcm_nat6: full cone mapping %hu installed\n",
