@@ -269,12 +269,18 @@ jobs:
         working-directory: ${{ github.workspace }}/openwrt
         id: compileopenwrt
         continue-on-error: true
+        env:
+          CI: ""
+          GITHUB_ACTIONS: ""
         run: |
           IGNORE_ERRORS=1 make -j$(($(nproc) + 1))
           echo $?
       - name: If Error
         if: steps.compileopenwrt.outcome == 'failure'
         working-directory: ${{ github.workspace }}/openwrt
+        env:
+          CI: ""
+          GITHUB_ACTIONS: ""
         run: |
           cat ./.config
           echo '================================================================'
