@@ -97,6 +97,10 @@ CONFIG_PACKAGE_luci-mod-dashboard=y
 
 ### APPLICATION ###
 CONFIG_PACKAGE_luci-app-homeproxy=y
+# CONFIG_PACKAGE_sing-box is not set
+CONFIG_PACKAGE_sing-box-tiny=y
+# CONFIG_SING_BOX_BUILD_NAIVE_OUTBOUND is not set
+# CONFIG_SING_BOX_TINY_BUILD_NAIVE_OUTBOUND is not set
 CONFIG_PACKAGE_luci-app-ap-modem=y
 CONFIG_PACKAGE_luci-proto-wireguard=y
 CONFIG_PACKAGE_qrencode=y
