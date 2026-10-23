@@ -135,16 +135,9 @@ CONFIG_PACKAGE_coremark=y
 CONFIG_PACKAGE_htop=y
 # CONFIG_PACKAGE_subconverter=y
 # CONFIG_PACKAGE_natflow-boot=y
-CONFIG_PACKAGE_luci-app-nikki=y
 CONFIG_PACKAGE_luci-app-filemanager=y
 CONFIG_PACKAGE_luci-app-flowcone=y
 CONFIG_PACKAGE_luci-app-bandix=y
-
-### SSRP ###
-CONFIG_PACKAGE_luci-app-ssr-plus=y
-
-### PASSWALL ###
-CONFIG_PACKAGE_luci-app-passwall=y
 
 ### THEME ###
 CONFIG_PACKAGE_luci-theme-aurora=y
