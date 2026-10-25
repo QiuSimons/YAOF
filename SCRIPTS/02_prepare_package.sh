@@ -89,29 +89,16 @@ cp -rf ../PATCH/kernel/others/* ./target/linux/generic/pending-${KERNEL_VERSION}
 sed -i '/luci-app-attendedsysupgrade/d' feeds/luci/collections/luci-nginx/Makefile
 
 ### Fullcone-NAT 部分 ###
-# bcmfullcone
-cp -rf ../PATCH/kernel/bcmfullcone/* ./target/linux/generic/hack-${KERNEL_VERSION}/
 # set nf_conntrack_expect_max for fullcone
 wget -qO - https://github.com/openwrt/openwrt/commit/bbf39d07.patch | patch -p1
 # FW4
 mkdir -p package/network/config/firewall4/patches
-#cp -f ../PATCH/pkgs/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
-### NAT6 部分 ###
 # custom nft command
 patch -p1 < ../PATCH/pkgs/firewall/100-openwrt-firewall4-add-custom-nft-command-support.patch
 cp -f ../PATCH/pkgs/firewall/firewall4_patches/*.patch ./package/network/config/firewall4/patches/
-# Patch LuCI 以增添 NAT6 开关
-pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0003-luci-app-firewall-add-ipv6-nat-option.patch
-popd
 # Patch LuCI 以支持自定义 nft 规则
 pushd feeds/luci
 patch -p1 <../../../PATCH/pkgs/firewall/luci/0004-luci-add-firewall-add-custom-nft-rule-support.patch
-popd
-
-### Broadcom FullCone NAT (must come after 0003/0004: generated against them) ###
-pushd feeds/luci
-patch -p1 <../../../PATCH/pkgs/firewall/luci/0001-luci-app-firewall-add-brcm-fullcone-nat-option.patch
 popd
 
 ### Other Kernel Hack 部分 ###
