@@ -135,13 +135,62 @@ load_packages() {
 }
 
 PACKAGES="$(load_packages "${ROOT_DIR}/profiles/packages.common") $(load_packages "${ROOT_DIR}/profiles/${PACKAGES_PROFILE}")"
+BUILD_LOG="${WORK_DIR}/build.log"
+SKIPPED_PACKAGES=""
+MAX_SKIP_ROUNDS=5
+
+build_firmware() {
+    local packages="$1"
+    make -C "$IB_DIR" image \
+        PROFILE="$PROFILE" \
+        PACKAGES="$packages" \
+        FILES="$OVERLAY_DIR" \
+        ROOTFS_PARTSIZE="1024" 2>&1 | tee "$BUILD_LOG"
+}
+
+missing_packages_from_log() {
+    local log_file="$1"
+    # apk (OpenWrt 25.x): "<pkg> (no such package):"
+    sed -nE 's/^[[:space:]]*([^ ]+) \(no such package\):[[:space:]]*$/\1/p' "$log_file"
+    # opkg (OpenWrt 24.x and older): "opkg_install_cmd: Cannot install package <pkg>."
+    sed -nE 's/.*opkg_install_cmd: Cannot install package ([^ ]+)\.$/\1/p' "$log_file"
+}
 
 log "Assembling firmware for ${PROFILE} (${VERSION})..."
-make -C "$IB_DIR" image \
-    PROFILE="$PROFILE" \
-    PACKAGES="$PACKAGES" \
-    FILES="$OVERLAY_DIR" \
-    ROOTFS_PARTSIZE="1024"
+skip_round=0
+while :; do
+    if build_firmware "$PACKAGES"; then
+        break
+    fi
+
+    missing="$(missing_packages_from_log "$BUILD_LOG" | sort -u)"
+    kept=""
+    skipped=""
+    for pkg in $PACKAGES; do
+        if printf '%s\n' "$missing" | grep -qxF -- "$pkg"; then
+            skipped="${skipped}${skipped:+ }${pkg}"
+        else
+            kept="${kept}${kept:+ }${pkg}"
+        fi
+    done
+
+    if [ -z "$skipped" ]; then
+        die "Firmware build failed (no unavailable package detected). See ${BUILD_LOG}"
+    fi
+
+    skip_round=$((skip_round + 1))
+    if [ "$skip_round" -gt "$MAX_SKIP_ROUNDS" ]; then
+        die "Too many unavailable packages; last skipped: ${skipped}. See ${BUILD_LOG}"
+    fi
+
+    log "WARNING: Package(s) not available in repositories, skipping: ${skipped}"
+    SKIPPED_PACKAGES="${SKIPPED_PACKAGES}${SKIPPED_PACKAGES:+ }${skipped}"
+    PACKAGES="$kept"
+done
+
+if [ -n "$SKIPPED_PACKAGES" ]; then
+    log "WARNING: Firmware built without unavailable package(s): ${SKIPPED_PACKAGES}"
+fi
 
 IB_BIN_DIR="${IB_DIR}/bin/targets/${TARGET}/${SUBTARGET}"
 [ -d "$IB_BIN_DIR" ] || die "Output directory not found: $IB_BIN_DIR"
