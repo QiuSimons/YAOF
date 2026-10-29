@@ -23,6 +23,7 @@ luci-i18n-ddns-zh-cn
 luci-i18n-upnp-zh-cn
 luci-i18n-3cat-zh-cn
 luci-i18n-airconnect-zh-cn
+luci-i18n-filemanager-zh-cn
 
 # Proxy & eBPF
 luci-app-homeproxy
@@ -52,6 +53,7 @@ luci-app-airconnect
 ethtool
 kmod-fs-f2fs
 kmod-tcp-bbr
+luci-app-filemanager
 
 # USB Tethering
 kmod-usb-net-rndis
