@@ -11,31 +11,38 @@
 <p align="center">
 <img src="https://github.com/QiuSimons/YAOF/workflows/R2C-OpenWrt/badge.svg">
 <img src="https://github.com/QiuSimons/YAOF/workflows/R2S-OpenWrt/badge.svg">
+<img src="https://github.com/QiuSimons/YAOF/workflows/R3S-OpenWrt/badge.svg">
 <img src="https://github.com/QiuSimons/YAOF/workflows/R4S-OpenWrt/badge.svg">
 <img src="https://github.com/QiuSimons/YAOF/workflows/X86-OpenWrt/badge.svg">
 <p>
-
 
 <h1 align="center">请勿用于商业用途!!!</h1>
 
 ### 特性
 
-- 基于原生 OpenWrt 25.12 编译，默认管理地址 192.168.1.1
-- 内置升级功能可用，物理 Reset 按键可用
-- 预配置了部分插件<b>(注意，使用 MosDNS 同时作为广告过滤手段及 dns 分流措施。)</b>
-- 可无脑 opkg kmod
-- R2C/R2S 核心频率 1.6（交换了 LAN WAN），R4S 核心频率 2.2/1.8（建议使用带有线损补偿的电源，死机大多数情况下，都是因为<b>你用的电源过于垃圾</b>，另外，你也可以选择使用<b>自带的 app 限制最大频率</b>，茄子 🍆）
-- O2 编译，CFLAG 优化
-- 插件包含：SSRP，PassWall，OpenClash，Mihomo，DAED，微信推送，网易云解锁，SQM，DNSProxy，网络唤醒，DDNS，迅雷快鸟，UPNP，FullCone(防火墙中开启，默认开启)，流量分载，irq 优化，京东签到，Zerotier，FRPC，FRPS，无线打印，流量监控，过滤军刀，R2S-OLED
-- ss 协议在 armv8 上实现了 aes 硬件加速（请<b>仅使用 aead 加密</b>的连接方式）
-- 集成并默认启用了 BBRv3，LRNG
-- 不再集成了 Docker，Docker刚需用户请停留在23.05，要使用 Docker，请先开启“Docker-配置-自动启动”选项，并保存应用设置
-- 内置了一个一键格式化剩余空间并挂载的插件，方便 Docker 用户
+- 基于 OpenWrt 官方 ImageBuilder 与 [OpenWrt-Add](https://github.com/QiuSimons/OpenWrt-Add) 预编译 APK 签名源组装，默认管理地址 192.168.1.1
+- 纯 JS 现代 LuCI 界面，彻底淘汰老旧 Lua CBI 与 luci-compat
+- 首次开机动态初始化中文环境、国内 NTP、国内软件源镜像及 Aurora 现代主题
+- 插件包含：HomeProxy、Nikki、Honk / dae (基于 eBPF 的透明代理)、FlowCone (基于 eBPF 的 FullCone NAT)、WireGuard、ZeroTier、SQM (CAKE / FQ_Codel)、NATMap-T、Bandix (实时流量监控)、AP-Modem、ARP 绑定、AirConnect、DDNS、UPnP、3cat
+- 底层优化：集成 BBR 拥塞控制，网卡上线自适应拉满 RX/TX Ring Buffer
+- 支持 iOS / Android 手机 USB 共享网络 (RNDIS / CDC-Ether / usbmuxd 随身 WiFi)
+- X86: 覆盖 Intel、Realtek 2.5G、Mellanox 10G/25G、VirtIO/VMXNet3 虚拟化网卡及 Intel 核显 (i915 DRM)
+- NanoPi 系列：支持 R2S / R2C / R3S / R4S，适配 PWM 温控风扇驱动
 - 如有任何问题，请先尝试 ssh 进入后台，输入 fuck 后回车，等待机器重启后确认问题是否已经解决
 
-### 下载
+### 硬件支持与 Profile
 
-- 选择自己<b>设备对应的固件</b>，并[下载](https://github.com/QiuSimons/R2S-R4S-OpenWrt/releases)
+| 设备型号 | 架构 Target/Subtarget | 官方 Profile 名 | 固件输出标识 |
+| :--- | :--- | :--- | :--- |
+| **X86** | `x86/64` | `generic` | `YAOF-x86-64-...` |
+| **NanoPi R2S** | `rockchip/armv8` | `friendlyarm_nanopi-r2s` | `YAOF-nanopi-r2s-...` |
+| **NanoPi R2C** | `rockchip/armv8` | `friendlyarm_nanopi-r2c` | `YAOF-nanopi-r2c-...` |
+| **NanoPi R3S** | `rockchip/armv8` | `friendlyarm_nanopi-r3s` | `YAOF-nanopi-r3s-...` |
+| **NanoPi R4S** | `rockchip/armv8` | `friendlyarm_nanopi-r4s` | `YAOF-nanopi-r4s-...` |
+
+### 固件下载
+
+- 选择自己设备对应的固件下载：[Releases](https://github.com/QiuSimons/YAOF/releases)
 
 ### 鸣谢
 
