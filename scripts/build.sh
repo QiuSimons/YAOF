@@ -121,7 +121,7 @@ mkdir -p "${OVERLAY_DIR}/etc/apk/keys"
 cp -af "${IB_DIR}/keys/custom-feed.rsa.pub" "${OVERLAY_DIR}/etc/apk/keys/"
 
 mkdir -p "${OVERLAY_DIR}/etc/apk/repositories.d"
-echo "https://qiusimons.github.io/OpenWrt-Add/${ARCH}" > "${OVERLAY_DIR}/etc/apk/repositories.d/00-custom-feed.list"
+echo "https://qiusimons.github.io/OpenWrt-Add/${ARCH}/packages.adb" > "${OVERLAY_DIR}/etc/apk/repositories.d/customfeeds.list"
 
 if [ "$TARGET" = "rockchip" ]; then
     mkdir -p "${OVERLAY_DIR}/etc/apk"
