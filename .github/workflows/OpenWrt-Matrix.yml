@@ -37,7 +37,7 @@ jobs:
       version: ${{ steps.resolve-ver.outputs.version }}
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Resolve OpenWrt Version
         id: resolve-ver
@@ -102,7 +102,7 @@ jobs:
 
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Host Dependencies
         shell: bash
@@ -124,7 +124,7 @@ jobs:
             "${{ needs.setup.outputs.version }}"
 
       - name: Upload Artifacts to Job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: YAOF-${{ matrix.name }}-${{ needs.setup.outputs.version }}
           path: artifact/*.img.gz
