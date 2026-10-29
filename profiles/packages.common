@@ -52,6 +52,7 @@ luci-proto-wireguard
 qrencode
 luci-app-zerotier
 luci-app-ddns
+ddns-scripts-cloudflare
 luci-app-upnp
 luci-app-3cat
 luci-app-airconnect
