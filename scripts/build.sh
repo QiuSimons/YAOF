@@ -121,7 +121,7 @@ mkdir -p "${OVERLAY_DIR}/etc/apk/keys"
 cp -af "${IB_DIR}/keys/custom-feed.rsa.pub" "${OVERLAY_DIR}/etc/apk/keys/"
 
 mkdir -p "${OVERLAY_DIR}/etc/apk/repositories.d"
-echo "https://qiusimons.github.io/OpenWrt-Add/${ARCH}" > "${OVERLAY_DIR}/etc/apk/repositories.d/custom-feed.list"
+echo "https://qiusimons.github.io/OpenWrt-Add/${ARCH}" > "${OVERLAY_DIR}/etc/apk/repositories.d/00-custom-feed.list"
 
 if [ "$TARGET" = "rockchip" ]; then
     mkdir -p "${OVERLAY_DIR}/etc/apk"
@@ -149,9 +149,14 @@ IB_BIN_DIR="${IB_DIR}/bin/targets/${TARGET}/${SUBTARGET}"
 DATE_STR=$(date +%Y-%m-%d)
 PLATFORM_LABEL=$(echo "$PROFILE" | sed 's/^friendlyarm_nanopi-/nanopi-/; s/^generic$/x86-64/')
 
-find "$IB_BIN_DIR" -type f \( -name "*sysupgrade.img.gz" -o -name "*combined*.img.gz" -o -name "*.img.gz" \) | while read -r img; do
+MATCH_PATTERN="*sysupgrade.img.gz"
+if [ "$TARGET" = "x86" ]; then
+    MATCH_PATTERN="*combined-efi.img.gz"
+fi
+
+find "$IB_BIN_DIR" -type f -name "$MATCH_PATTERN" | while read -r img; do
     fname=$(basename "$img")
-    clean_suffix=$(echo "$fname" | sed -E "s/^openwrt-[0-9.]+-${TARGET}-${SUBTARGET}-${PROFILE}-//")
+    clean_suffix=$(echo "$fname" | sed -E "s/^openwrt-.*-${TARGET}-${SUBTARGET}-${PROFILE}-//")
     out_name="YAOF-${PLATFORM_LABEL}-${VERSION}-${DATE_STR}-${clean_suffix}"
     cp -f "$img" "${OUTPUT_DIR}/${out_name}"
     log "Saved: ${out_name}"
