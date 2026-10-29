@@ -151,14 +151,10 @@ PLATFORM_LABEL=$(echo "$PROFILE" | sed 's/^friendlyarm_nanopi-/nanopi-/; s/^gene
 
 find "$IB_BIN_DIR" -type f \( -name "*sysupgrade.img.gz" -o -name "*combined*.img.gz" -o -name "*.img.gz" \) | while read -r img; do
     fname=$(basename "$img")
-    out_name="YAOF-${PLATFORM_LABEL}-${VERSION}-${DATE_STR}-${fname}"
+    clean_suffix=$(echo "$fname" | sed -E "s/^openwrt-[0-9.]+-${TARGET}-${SUBTARGET}-${PROFILE}-//")
+    out_name="YAOF-${PLATFORM_LABEL}-${VERSION}-${DATE_STR}-${clean_suffix}"
     cp -f "$img" "${OUTPUT_DIR}/${out_name}"
     log "Saved: ${out_name}"
 done
-
-(
-    cd "$OUTPUT_DIR"
-    sha256sum YAOF-${PLATFORM_LABEL}-${VERSION}-${DATE_STR}-* > "YAOF-${PLATFORM_LABEL}-${VERSION}-${DATE_STR}.sha256" 2>/dev/null || true
-)
 
 log "Build completed successfully for ${PROFILE}."

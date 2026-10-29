@@ -10,7 +10,7 @@ kmod-ixgbevf
 # Realtek NIC
 kmod-r8169
 kmod-r8125
-kmod-r8152
+kmod-usb-net-rtl8152
 r8152-firmware
 
 # Mellanox NIC
@@ -18,7 +18,6 @@ kmod-mlx4-core
 kmod-mlx5-core
 
 # Virtualization
-kmod-virtio-net
 kmod-vmxnet3
 
 # Display

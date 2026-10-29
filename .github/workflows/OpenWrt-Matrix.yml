@@ -127,7 +127,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: YAOF-${{ matrix.name }}-${{ needs.setup.outputs.version }}
-          path: artifact/*
+          path: artifact/*.img.gz
           if-no-files-found: error
           retention-days: 7
 
@@ -141,4 +141,4 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: artifact/*
+          artifacts: artifact/*.img.gz

@@ -6,6 +6,7 @@
 *.sha256sum
 *.tar.zst
 *.tar.gz
+*.zip
 
 # Local worktrees & scratch dirs
 /flowcone/
