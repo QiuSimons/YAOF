@@ -1,0 +1,22 @@
+#!/bin/sh
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+
+if [ ! -s /tmp/sysinfo/model ] || grep -qiE "Default string|To be filled|System manufacturer|Type2" /tmp/sysinfo/model 2>/dev/null; then
+    echo "Standard PC" > /tmp/sysinfo/model
+fi
+
+PSTATE_STATUS_FILE="/sys/devices/system/cpu/intel_pstate/status"
+if [ -f "$PSTATE_STATUS_FILE" ]; then
+    if [ "$(cat "$PSTATE_STATUS_FILE")" = "passive" ]; then
+        echo "active" > "$PSTATE_STATUS_FILE"
+    fi
+    for cpu_gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+        [ -f "$cpu_gov" ] && echo "powersave" > "$cpu_gov"
+    done
+    for cpu_epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
+        [ -f "$cpu_epp" ] && echo "balance_performance" > "$cpu_epp"
+    done
+fi
+
+exit 0
