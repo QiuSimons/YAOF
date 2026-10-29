@@ -7,6 +7,7 @@ addition-trans-zh
 luci-app-homeproxy
 luci-app-nikki
 luci-app-honk
+luci-app-dae
 vmlinux-btf
 luci-app-flowcone
 

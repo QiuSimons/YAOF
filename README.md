@@ -23,7 +23,7 @@
 - 基于 OpenWrt 官方 ImageBuilder 与 [OpenWrt-Add](https://github.com/QiuSimons/OpenWrt-Add) 预编译 APK 签名源组装，默认管理地址 192.168.1.1
 - 纯 JS 现代 LuCI 界面，彻底淘汰老旧 Lua CBI 与 luci-compat
 - 首次开机动态初始化中文环境、国内 NTP、国内软件源镜像及 Aurora 现代主题
-- 插件包含：HomeProxy、Nikki、Honk (dae-compatible eBPF 透明代理)、FlowCone (基于 eBPF 的 FullCone NAT)、WireGuard、ZeroTier、SQM (CAKE / FQ_Codel)、NATMap-T、Bandix (实时流量监控)、AP-Modem、ARP 绑定、AirConnect、DDNS、UPnP、3cat
+- 插件包含：HomeProxy、Nikki、Honk / dae (基于 eBPF 的透明代理)、FlowCone (基于 eBPF 的 FullCone NAT)、WireGuard、ZeroTier、SQM (CAKE / FQ_Codel)、NATMap-T、Bandix (实时流量监控)、AP-Modem、ARP 绑定、AirConnect、DDNS、UPnP、3cat
 - 底层优化：集成 BBR 拥塞控制，网卡上线自适应拉满 RX/TX Ring Buffer
 - 支持 iOS / Android 手机 USB 共享网络 (RNDIS / CDC-Ether / usbmuxd 随身 WiFi)
 - X86: 覆盖 Intel、Realtek 2.5G、Mellanox 10G/25G、VirtIO/VMXNet3 虚拟化网卡及 Intel 核显 (i915 DRM)
