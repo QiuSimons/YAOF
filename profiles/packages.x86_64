@@ -1,3 +1,6 @@
+# Platform
+autocore-x86
+
 # Intel NIC
 kmod-igc
 kmod-igb
