@@ -1,0 +1,44 @@
+# UI
+luci
+luci-theme-aurora
+addition-trans-zh
+
+# Proxy & eBPF
+luci-app-homeproxy
+luci-app-nikki
+luci-app-honk
+vmlinux-btf
+luci-app-flowcone
+
+# Network & Routing
+luci-app-sqm
+luci-app-natmapt
+luci-app-bandix
+luci-app-arpbind
+luci-app-ap-modem
+
+# VPN & Services
+luci-proto-wireguard
+qrencode
+luci-app-zerotier
+luci-app-ddns
+luci-app-upnp
+luci-app-3cat
+luci-app-airconnect
+
+# System & Filesystem
+ethtool
+kmod-fs-f2fs
+kmod-tcp-bbr
+
+# USB Tethering
+kmod-usb-net-rndis
+kmod-usb-net-ipheth
+usbmuxd
+kmod-usb-net-cdc-ether
+
+# Base Packages
+-dnsmasq
+dnsmasq-full
+-luci-app-attendedsysupgrade
+-attendedsysupgrade-common

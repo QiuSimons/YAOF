@@ -1,0 +1,26 @@
+# Intel NIC
+kmod-igc
+kmod-igb
+kmod-e1000e
+kmod-i40e
+kmod-iavf
+kmod-ixgbe
+kmod-ixgbevf
+
+# Realtek NIC
+kmod-r8169
+kmod-r8125
+kmod-r8152
+r8152-firmware
+
+# Mellanox NIC
+kmod-mlx4-core
+kmod-mlx5-core
+
+# Virtualization
+kmod-virtio-net
+kmod-vmxnet3
+
+# Display
+kmod-drm-i915
+i915-firmware-dmc

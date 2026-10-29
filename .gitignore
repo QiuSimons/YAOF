@@ -1,0 +1,21 @@
+# Build outputs & artifacts
+/build_*/
+/artifact/
+*.img.gz
+*.sha256
+*.sha256sum
+*.tar.zst
+*.tar.gz
+
+# Local worktrees & scratch dirs
+/flowcone/
+/startup-backup-*/
+
+# OS & Editor temp files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
