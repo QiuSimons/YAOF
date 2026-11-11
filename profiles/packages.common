@@ -56,7 +56,7 @@ luci-app-airconnect
 # System & Filesystem
 ethtool
 kmod-fs-f2fs
-kmod-tcp-bbr
+kmod-tcp-bbr3
 zram-swap
 luci-app-filemanager
 luci-app-partexp
