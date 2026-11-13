@@ -2,7 +2,7 @@
 luci
 luci-theme-vantage
 luci-app-vantage
-addition-trans-zh
+system-addon
 
 # Translations
 luci-i18n-base-zh-cn
