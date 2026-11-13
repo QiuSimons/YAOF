@@ -23,3 +23,7 @@ kmod-vmxnet3
 # Display
 kmod-drm-i915
 i915-firmware-dmc
+
+# System
+-kmod-tcp-bbr
+kmod-tcp-bbr3
