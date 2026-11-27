@@ -12,8 +12,7 @@ luci-i18n-vantage-zh-cn
 luci-i18n-vantage-theme-zh-cn
 luci-i18n-homeproxy-zh-cn
 luci-i18n-nikki-zh-cn
-luci-i18n-honk-zh-cn
-luci-i18n-dae-zh-cn
+luci-i18n-daeuniverse-zh-cn
 luci-i18n-flowcone-zh-cn
 luci-i18n-sqm-zh-cn
 luci-i18n-natmapt-zh-cn
@@ -31,8 +30,7 @@ luci-i18n-partexp-zh-cn
 # Proxy & eBPF
 luci-app-homeproxy
 luci-app-nikki
-luci-app-honk
-luci-app-dae
+luci-app-daeuniverse
 vmlinux-btf
 luci-app-flowcone
 
